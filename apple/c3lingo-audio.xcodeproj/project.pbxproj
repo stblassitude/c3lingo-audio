@@ -8,10 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		0000000000000000000002A0 /* LiveKitWebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = 0000000000000000000002B0 /* LiveKitWebRTC */; };
+		0000000000000000000003A0 /* FrontendBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000003B0 /* FrontendBridge.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* c3lingo-audio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "c3lingo-audio.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0000000000000000000003B0 /* FrontendBridge.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = FrontendBridge.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -36,8 +38,18 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* c3lingo-audio */,
+				0000000000000000000003C0 /* shared */,
 				000000000000000000000020 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		0000000000000000000003C0 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				0000000000000000000003B0 /* FrontendBridge.js */,
+			);
+			name = shared;
+			path = ../shared;
 			sourceTree = "<group>";
 		};
 		000000000000000000000020 /* Products */ = {
@@ -113,6 +125,7 @@
 		000000000000000140000000 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				0000000000000000000003A0 /* FrontendBridge.js in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */

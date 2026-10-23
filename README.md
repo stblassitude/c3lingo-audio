@@ -2,7 +2,8 @@
 
 Native app for listening to c3lingo audio channels (hall floor audio and live
 interpretation) distributed through [Galène](https://galene.org/). Runs on iOS, iPadOS,
-macOS and visionOS.
+macOS and visionOS; an Android version is planned, aiming for feature parity
+(tracked in [`docs/parity.md`](docs/parity.md)).
 
 The app shows the event's web frontend
 ([listen-frontend](https://codeberg.org/c3lingo/listen-frontend)), loaded from the
@@ -15,6 +16,16 @@ update. Playback is done natively:
 - automatic reconnect with backoff, after network changes and after interruptions
   such as phone calls
 - the microphone is never used, so there is no permission prompt
+
+## Repository layout
+
+```
+apple/     Xcode project for iOS, iPadOS, macOS and visionOS
+shared/    used by every app
+  FrontendBridge.js   injected into the frontend, see below
+  icon/               logo and the script that renders all app icons
+docs/      notes that apply to all apps
+```
 
 ## How it works
 
@@ -29,7 +40,9 @@ update. Playback is done natively:
                                               └─────────────────────────────────┘
 ```
 
-- `Frontend.swift` hosts the web view, injects `FrontendBridge.js` at document start
+In the Apple app (`apple/c3lingo-audio/`):
+
+- `Frontend.swift` hosts the web view, injects `shared/FrontendBridge.js` at document start
   and keeps the page in sync with the player.
 - `GaleneSession.swift` is a receive-only client for the Galène protocol (version 2):
   handshake, join, request audio, answer offers, trickle ICE both ways, ping/pong
@@ -62,6 +75,12 @@ The app's player states map onto the protocol like this:
 | joined, nobody sending | `connecting` | `error` is "Waiting for audio" |
 | playing | `playing` | |
 
+## Icons
+
+All icons are rendered from `shared/icon/c3lingo-logo.svg`, a copy of the logo in
+[c3lingo-design](https://codeberg.org/c3lingo/c3lingo-design). After changing it, run
+`shared/icon/render.sh` (needs `brew install librsvg imagemagick`).
+
 ## Server URL
 
 The app uses `https://audio.c3lingo.org/` by default. For testing:
@@ -78,7 +97,7 @@ For testing playback without tapping through the UI, `-autoplay test` selects a 
 
 ## Building
 
-Open `c3lingo-audio.xcodeproj` in Xcode 27. The WebRTC framework comes in through Swift
+Open `apple/c3lingo-audio.xcodeproj` in Xcode 27. The WebRTC framework comes in through Swift
 Package Manager from `https://github.com/livekit/webrtc-xcframework`.
 
 Minimum OS versions are iOS/iPadOS 15, macOS 12 and visionOS 26. iOS 15 and macOS 12

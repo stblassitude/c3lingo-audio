@@ -9,17 +9,26 @@
  * Only pages that declare <meta name="c3lingo-native-bridge" content="2"> see
  * window.c3lingoNative; any other page is left alone and plays audio itself. The meta
  * tag hasn't been parsed yet when this runs, so it is checked on access.
+ *
+ * Shared by both apps. The Apple app registers a WKScriptMessageHandler named "c3lingo";
+ * the Android app registers a WebMessageListener named "c3lingoAndroid"
+ * (WebViewCompat.addWebMessageListener), which only takes strings, so messages are sent
+ * to it as JSON.
  */
 (function () {
     "use strict";
 
     const PROTOCOL_VERSION = "2";
 
-    const handler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.c3lingo;
-    if (!handler)
+    const webkitHandler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.c3lingo;
+    const androidHandler = window.c3lingoAndroid;
+    let post;
+    if (webkitHandler)
+        post = (message) => webkitHandler.postMessage(message);
+    else if (androidHandler)
+        post = (message) => androidHandler.postMessage(JSON.stringify(message));
+    else
         return;
-
-    const post = (message) => handler.postMessage(message);
 
     function channelInfo(channel) {
         return {

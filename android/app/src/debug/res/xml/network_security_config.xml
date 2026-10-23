@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Debug builds allow plain http, e.g. for a test server on the host at 10.0.2.2 from the emulator. -->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="true" />
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <!-- Let's Encrypt's root, which Android only ships from 7.1.1 on. -->
+            <certificates src="@raw/isrg_root_x1" />
+        </trust-anchors>
+    </base-config>
 </network-security-config>

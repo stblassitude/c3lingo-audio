@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.net.ConnectivityManager
 import android.net.Network
@@ -12,6 +11,12 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.annotation.OptIn
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.audio.AudioFocusRequestCompat
+import androidx.media3.common.audio.AudioManagerCompat
+import androidx.media3.common.util.UnstableApi
 import kotlin.math.min
 import kotlin.math.pow
 import kotlinx.coroutines.CancellationException
@@ -30,6 +35,7 @@ import okhttp3.OkHttpClient
  * connection drops, after network changes and after audio interruptions such as calls.
  * Everything runs on the main thread.
  */
+@OptIn(UnstableApi::class)
 class Player(private val context: Context, private val settings: ServerSettings) {
     enum class Status {
         IDLE,
@@ -66,8 +72,11 @@ class Player(private val context: Context, private val settings: ServerSettings)
     /** Paused because another app took audio focus for a while, e.g. for a call. */
     private var interrupted = false
 
-    private val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-        .setAudioAttributes(WebRtc.audioAttributes)
+    private val focusRequest = AudioFocusRequestCompat.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN)
+        .setAudioAttributes(AudioAttributes.Builder()
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
+            .build())
         .setWillPauseWhenDucked(false)
         .setOnAudioFocusChangeListener(::onAudioFocusChange, mainHandler)
         .build()
@@ -199,25 +208,28 @@ class Player(private val context: Context, private val settings: ServerSettings)
 
     private fun observeNetwork() {
         val connectivity = context.getSystemService(ConnectivityManager::class.java)
+        // Called on a binder thread.
         connectivity.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                if (!networkAvailable) {
-                    networkAvailable = true
-                    reconnectNow()
+                mainHandler.post {
+                    if (!networkAvailable) {
+                        networkAvailable = true
+                        reconnectNow()
+                    }
                 }
             }
 
             override fun onLost(network: Network) {
-                networkAvailable = false
+                mainHandler.post { networkAvailable = false }
             }
-        }, mainHandler)
+        })
     }
 
     // Audio focus
 
     private fun acquireAudio(): Boolean {
         if (!hasAudioFocus) {
-            hasAudioFocus = audioManager.requestAudioFocus(focusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+            hasAudioFocus = AudioManagerCompat.requestAudioFocus(audioManager, focusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             if (!hasAudioFocus) {
                 Log.w(TAG, "audio focus denied")
                 return false
@@ -233,7 +245,7 @@ class Player(private val context: Context, private val settings: ServerSettings)
 
     private fun releaseAudio() {
         if (hasAudioFocus) {
-            audioManager.abandonAudioFocusRequest(focusRequest)
+            AudioManagerCompat.abandonAudioFocusRequest(audioManager, focusRequest)
             hasAudioFocus = false
         }
         if (noisyReceiverRegistered) {

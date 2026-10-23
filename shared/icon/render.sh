@@ -106,3 +106,21 @@ XML
     paths | sed 's|^    ||'
     echo "</vector>"
 } > "$android_res/drawable/logo.xml"
+
+# Launcher icons for Android 7, which has no adaptive icons: the rounded tile, and a
+# circle for launchers that use round icons, both 48dp with a 2dp margin
+for density in mdpi:1 hdpi:1.5 xhdpi:2 xxhdpi:3 xxxhdpi:4; do
+    name=${density%:*}
+    size=$(echo "${density#*:} * 48 / 1" | bc)
+    inner=$(echo "${density#*:} * 44 / 1" | bc)
+    mkdir -p "$android_res/mipmap-$name"
+    rsvg-convert -w "$inner" -h "$inner" "$svg" -o "$tmp/legacy.png"
+    round "$tmp/legacy.png" "$inner" $((115 * inner / 512))
+    out=$android_res/mipmap-$name/ic_launcher.png
+    png "$tmp/rounded.png" -background none -gravity center -extent "${size}x$size"
+    rsvg-convert -w "$inner" -h "$inner" "$tmp/vision-front.svg" -o "$tmp/glyphs.png"
+    magick -size "${inner}x$inner" xc:none -fill '#fff200' \
+        -draw "circle $((inner / 2)),$((inner / 2)) $((inner / 2)),0" "$tmp/glyphs.png" -composite "$tmp/circle.png"
+    out=$android_res/mipmap-$name/ic_launcher_round.png
+    png "$tmp/circle.png" -background none -gravity center -extent "${size}x$size"
+done

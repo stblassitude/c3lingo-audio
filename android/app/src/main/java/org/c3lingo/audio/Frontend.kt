@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.view.ViewGroup
 import android.webkit.RenderProcessGoneDetail
@@ -14,6 +15,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.ScriptHandler
@@ -195,6 +197,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         override fun onPageFinished(view: WebView, url: String?) {
             this@Frontend.view.isRefreshing = false
             if (navigationFailed) return
+            Log.i(TAG, "loaded $url")
             _hasLoaded.value = true
             _loadError.value = null
             autoplay?.takeIf { it.isNotEmpty() }?.let { channel ->
@@ -211,6 +214,8 @@ class Frontend(private val context: Context, private val player: Player, scope: 
             _loadError.value = error.description.toString()
         }
 
+        // Before Android 8, the app is killed along with the web content process.
+        @RequiresApi(Build.VERSION_CODES.O)
         override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
             Log.e(TAG, "web content process gone (crashed: ${detail.didCrash()}), reloading")
             // The web view can't be used any more; replace it.

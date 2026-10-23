@@ -166,7 +166,9 @@ emulator and a JDK. Then, in Android Studio:
 for the Gradle sync, select the emulator in the toolbar and press Run (⌃R). There are
 two shared run configurations (in `android/.run/`): **app**, and
 **app (c3listen.lassitu.de)**, which uses the test server `https://c3listen.lassitu.de/`. Gradle uses
-the JDK bundled with Android Studio. The app needs Android 8 (API 26) or later.
+the JDK bundled with Android Studio. The app needs Android 7.0 (API 24) or later, the
+oldest version the AndroidX libraries it uses still support. To test on it, create a
+second virtual device with an API 24 system image.
 Logs are in the Logcat window; filter for `tag:galene tag:player tag:frontend`.
 
 **From the command line**, with the SDK in Android Studio's default location:
@@ -188,3 +190,35 @@ adb logcat -s galene player frontend
 In the emulator, `10.0.2.2` is the Mac, so that reaches a test server running there.
 `./gradlew :app:assembleRelease` builds a release APK (it needs signing set up to
 install).
+
+## Releasing the Android app
+
+Pushing a tag such as `v1.2.0` runs `.github/workflows/android-release.yml`. It builds
+signed release APKs for `arm64-v8a` (almost all current phones), `armeabi-v7a` (older
+32-bit phones), `x86_64` (emulators, a few tablets) and a universal one with all three,
+and publishes them as a GitHub release. The release notes list the commits since the
+previous `v*` tag. The version name comes from the tag, the version code is the number
+of commits.
+
+```sh
+git tag v1.2.0
+git push origin v1.2.0
+```
+
+The APKs are signed with the app's release key, which the workflow reads from four
+repository secrets. Create the key once and keep the keystore and its passwords safe:
+every update must be signed with the same key, or phones refuse to install it.
+
+```sh
+keytool -genkeypair -keystore c3lingo-release.jks -alias c3lingo \
+    -keyalg RSA -keysize 4096 -validity 10000
+base64 -i c3lingo-release.jks | gh secret set ANDROID_KEYSTORE_BASE64
+gh secret set ANDROID_KEYSTORE_PASSWORD
+gh secret set ANDROID_KEY_ALIAS --body c3lingo
+gh secret set ANDROID_KEY_PASSWORD
+```
+
+To build a signed release locally, set `ANDROID_KEYSTORE_FILE` to the keystore's path
+and the three other variables to the same values, then run
+`./gradlew :app:assembleRelease` in `android/`. Without them, the release APKs are
+unsigned.

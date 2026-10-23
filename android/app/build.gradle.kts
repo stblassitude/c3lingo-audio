@@ -9,14 +9,40 @@ android {
 
     defaultConfig {
         applicationId = "org.c3lingo.audio"
-        minSdk = 26
+        minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        // Release builds get both from the tag, see .github/workflows/android-release.yml.
+        versionCode = providers.gradleProperty("versionCode").orNull?.toInt() ?: 1
+        versionName = providers.gradleProperty("versionName").orNull ?: "1.0"
+    }
+
+    // One APK per processor architecture, as WebRTC's native code makes up most of the
+    // size, and one universal APK with all of them.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            isUniversalApk = true
+        }
+    }
+
+    // Release signing comes from the environment; without it, release APKs are unsigned.
+    val keystore = providers.environmentVariable("ANDROID_KEYSTORE_FILE").orNull
+    signingConfigs {
+        if (keystore != null) {
+            create("release") {
+                storeFile = file(keystore)
+                storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").get()
+            }
+        }
     }
 
     buildTypes {
         release {
+            if (keystore != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

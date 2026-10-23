@@ -3,3 +3,7 @@ xcuserdata/
 
 # Build output
 /apple/build/
+
+# Signing keys, kept out of the repository (see "Releasing the Android app" in README.md)
+*.jks
+*.keystore

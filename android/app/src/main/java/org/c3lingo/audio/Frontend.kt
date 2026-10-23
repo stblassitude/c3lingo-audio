@@ -1,0 +1,236 @@
+package org.c3lingo.audio
+
+import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
+import android.util.Log
+import android.view.ViewGroup
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.core.net.toUri
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.webkit.ScriptHandler
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import org.json.JSONObject
+
+/**
+ * Hosts the web frontend loaded from the server, and connects it to the native player
+ * through `FrontendBridge.js` (shared with the Apple app), which implements version 2 of
+ * the frontend's native bridge protocol (`docs/playback-api.md` in listen-frontend).
+ *
+ * The player's state is the only source of truth: commands from the page go to the
+ * player, and every state change, whatever caused it, is reported back in full.
+ */
+class Frontend(private val context: Context, private val player: Player, scope: CoroutineScope) {
+    /** The web view inside a pull to refresh container; the container stays when the web view is replaced. */
+    val view = SwipeRefreshLayout(context).apply {
+        setOnRefreshListener { reload() }
+    }
+
+    private val _loadError = MutableStateFlow<String?>(null)
+    val loadError: StateFlow<String?> = _loadError.asStateFlow()
+    private val _hasLoaded = MutableStateFlow(false)
+    val hasLoaded: StateFlow<Boolean> = _hasLoaded.asStateFlow()
+
+    /** For testing: selects this channel once the page has loaded. */
+    var autoplay: String? = null
+
+    private var webView = createWebView()
+    private var url: Uri? = null
+    private var scriptHandler: ScriptHandler? = null
+    private var listenerInstalled = false
+    private var navigationFailed = false
+    private val bridgeScript = context.assets.open("FrontendBridge.js").bufferedReader().use { it.readText() }
+
+    init {
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
+        view.addView(webView)
+        scope.launch { player.state.collect(::sendState) }
+    }
+
+    fun load(url: Uri) {
+        if (url == this.url) return
+        Log.i(TAG, "loading $url")
+        this.url = url
+        _loadError.value = null
+        _hasLoaded.value = false
+        installBridge(url)
+        webView.loadUrl(url.toString())
+    }
+
+    fun reload() {
+        _loadError.value = null
+        if (_hasLoaded.value) {
+            webView.reload()
+        } else {
+            url?.let { webView.loadUrl(it.toString()) }
+        }
+    }
+
+    fun destroy() {
+        view.removeAllViews()
+        webView.destroy()
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun createWebView() = WebView(context).apply {
+        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = true
+        webViewClient = Client()
+        webChromeClient = WebChromeClient()
+    }
+
+    // Bridge
+
+    /** The bridge is only offered to the frontend's own origin. */
+    private fun installBridge(url: Uri) {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
+            Log.e(TAG, "this WebView doesn't support message listeners, the page will play audio itself")
+            return
+        }
+        val port = if (url.port != -1) ":${url.port}" else ""
+        val origins = setOf("${url.scheme}://${url.host}$port")
+        scriptHandler?.remove()
+        scriptHandler = null
+        if (listenerInstalled) WebViewCompat.removeWebMessageListener(webView, MESSAGE_LISTENER)
+        WebViewCompat.addWebMessageListener(webView, MESSAGE_LISTENER, origins) { _, message, _, isMainFrame, _ ->
+            if (isMainFrame) message.data?.let(::receive)
+        }
+        listenerInstalled = true
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            scriptHandler = WebViewCompat.addDocumentStartJavaScript(webView, bridgeScript, origins)
+        }
+    }
+
+    private fun sendState(state: Player.State) {
+        val protocolState = when (state.status) {
+            Player.Status.IDLE, Player.Status.PAUSED -> "stopped"
+            Player.Status.CONNECTING, Player.Status.WAITING, Player.Status.RECONNECTING -> "connecting"
+            Player.Status.PLAYING -> "playing"
+        }
+        val error = if (state.status == Player.Status.WAITING) context.getString(R.string.waiting_for_audio) else state.lastError
+        val detail = JSONObject()
+            .put("state", protocolState)
+            // A paused channel stays selected, which the protocol allows while stopped.
+            .put("channel", state.channel?.name ?: JSONObject.NULL)
+            .put("muted", state.isMuted)
+            .put("error", error ?: JSONObject.NULL)
+        evaluate("window.__c3lingoNativeState && window.__c3lingoNativeState($detail)")
+    }
+
+    private fun evaluate(script: String) {
+        webView.evaluateJavascript(script, null)
+    }
+
+    private fun receive(text: String) {
+        val message = runCatching { JSONObject(text) }.getOrNull() ?: return
+        val command = message.string("cmd") ?: return
+        Log.d(TAG, "bridge command $command")
+        when (command) {
+            // Also brings a reloaded page up to date while audio keeps playing.
+            "ready" -> sendState(player.state.value)
+            "play" -> {
+                val channel = message.optJSONObject("channel")?.let { Channel.fromJson(it, webView.url?.toUri()) }
+                if (channel == null) {
+                    Log.e(TAG, "invalid channel in play message: ${message.opt("channel")}")
+                    return
+                }
+                player.play(channel)
+            }
+            "stop" -> player.stop()
+            "setMuted" -> {
+                val muted = message.opt("muted") as? Boolean ?: return
+                if (player.state.value.isMuted != muted) player.setMuted(muted)
+            }
+            else -> Log.w(TAG, "unknown bridge command $command")
+        }
+    }
+
+    private fun isFrontend(url: Uri): Boolean {
+        val base = this.url ?: return false
+        return url.host == base.host && url.port == base.port && url.scheme == base.scheme
+    }
+
+    private fun openExternally(url: Uri) {
+        try {
+            context.startActivity(Intent(Intent.ACTION_VIEW, url).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        } catch (e: ActivityNotFoundException) {
+            Log.w(TAG, "no app to open $url")
+        }
+    }
+
+    private inner class Client : WebViewClient() {
+        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+            // Links leaving the frontend, e.g. to the schedule, open in the browser.
+            val url = request.url
+            if (request.isForMainFrame && request.hasGesture() && !isFrontend(url)) {
+                openExternally(url)
+                return true
+            }
+            return false
+        }
+
+        override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+            navigationFailed = false
+            // Without document start scripts, this is the earliest the bridge can be added.
+            if (scriptHandler == null && url != null && isFrontend(url.toUri())) {
+                evaluate(bridgeScript)
+            }
+        }
+
+        override fun onPageFinished(view: WebView, url: String?) {
+            this@Frontend.view.isRefreshing = false
+            if (navigationFailed) return
+            _hasLoaded.value = true
+            _loadError.value = null
+            autoplay?.takeIf { it.isNotEmpty() }?.let { channel ->
+                autoplay = null
+                evaluate("setTimeout(() => { location.hash = ${JSONObject.quote(channel)}; }, 500)")
+            }
+        }
+
+        override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+            if (!request.isForMainFrame) return
+            Log.e(TAG, "loading failed: ${error.errorCode} ${error.description}")
+            navigationFailed = true
+            this@Frontend.view.isRefreshing = false
+            _loadError.value = error.description.toString()
+        }
+
+        override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+            Log.e(TAG, "web content process gone (crashed: ${detail.didCrash()}), reloading")
+            // The web view can't be used any more; replace it.
+            this@Frontend.view.removeView(webView)
+            webView.destroy()
+            scriptHandler = null
+            listenerInstalled = false
+            webView = createWebView()
+            this@Frontend.view.addView(webView)
+            url?.let {
+                this@Frontend.url = null
+                load(it)
+            }
+            return true
+        }
+    }
+
+    private companion object {
+        const val TAG = "frontend"
+        /** Seen by the page as `window.c3lingoAndroid`, see FrontendBridge.js. */
+        const val MESSAGE_LISTENER = "c3lingoAndroid"
+    }
+}

@@ -1,2 +1,5 @@
 # Per-user Xcode state
 xcuserdata/
+
+# Build output
+/apple/build/

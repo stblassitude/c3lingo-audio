@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">c3lingo</string>
+
+    <string name="loading">Loading…</string>
+    <string name="load_error_title">Unable to load the channel list</string>
+    <string name="try_again">Try Again</string>
+    <string name="change_server">Change Server…</string>
+
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_waiting">Waiting for audio…</string>
+    <string name="status_live">Live</string>
+    <string name="status_live_muted">Live, muted</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_reconnecting">Reconnecting…</string>
+    <string name="status_reconnecting_error">Reconnecting: %1$s</string>
+    <string name="waiting_for_audio">Waiting for audio</string>
+
+    <string name="mute">Mute</string>
+    <string name="unmute">Unmute</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="stop">Stop</string>
+    <string name="audio_output">Audio output</string>
+
+    <string name="settings_title">Server</string>
+    <string name="settings_url_label">Server URL</string>
+    <string name="settings_invalid_url">This is not a valid http or https URL.</string>
+    <string name="settings_footer">For testing only. Leave empty to use %1$s. Currently using %2$s.</string>
+    <string name="settings_use_default">Use Default</string>
+    <string name="settings_apply">Apply</string>
+    <string name="back">Back</string>
+
+    <string name="error_join_failed">Unable to join the channel: %1$s</string>
+    <string name="error_kicked">The server closed the connection</string>
+    <string name="error_timeout">The server stopped responding</string>
+    <string name="error_connection_failed">The audio connection failed</string>
+    <string name="error_unknown_reason">unknown reason</string>
+</resources>

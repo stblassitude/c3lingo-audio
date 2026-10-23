@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.C3lingo" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+
+    <!-- The system splash screen, handed over to the in-app splash on the first frame. -->
+    <style name="Theme.C3lingo.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/window_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/c3lingo_yellow</item>
+        <item name="postSplashScreenTheme">@style/Theme.C3lingo</item>
+    </style>
+</resources>

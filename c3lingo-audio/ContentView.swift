@@ -15,8 +15,12 @@ struct ContentView: View {
                     LoadErrorView(message: error, url: settings.serverURL) {
                         frontend.reload()
                     }
+                } else if !frontend.hasLoaded {
+                    SplashView()
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeOut, value: frontend.hasLoaded)
             if player.channel != nil {
                 PlayerBar()
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -31,6 +35,28 @@ struct ContentView: View {
             player.stop()
             frontend.load(url)
         }
+    }
+}
+
+/// Shown until the frontend has loaded. The logo sits where the launch screen puts it,
+/// centred in the whole screen, so the handover from the launch screen is seamless.
+private struct SplashView: View {
+    var body: some View {
+        Image("Logo")
+            .accessibilityHidden(true)
+            .overlay(alignment: .bottom) {
+                VStack(spacing: 12) {
+                    ProgressView()
+                    Text("Loading…")
+                        .foregroundStyle(.secondary)
+                }
+                .fixedSize()
+                // Place below the logo rather than over it.
+                .alignmentGuide(.bottom) { $0[.top] - 32 }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(.background)
+            .ignoresSafeArea()
     }
 }
 

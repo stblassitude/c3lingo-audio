@@ -1,0 +1,23 @@
+# Uploads the screenshots taken by android/screenshots/capture.sh to the app's store
+# listing in Google Play. See "Screenshots" in README.md.
+#
+#   bundle exec fastlane upload_screenshots
+#
+# Uses the Google Play service account key in GOOGLE_PLAY_JSON_KEY_PATH.
+
+PACKAGE_NAME = "org.c3lingo.audio"
+
+lane :upload_screenshots do
+  upload_to_play_store(
+    package_name: PACKAGE_NAME,
+    json_key: ENV.fetch("GOOGLE_PLAY_JSON_KEY_PATH"),
+    metadata_path: File.join(__dir__, "metadata", "android"),
+    # Only the screenshots: no builds, texts or other images.
+    skip_upload_apk: true,
+    skip_upload_aab: true,
+    skip_upload_metadata: true,
+    skip_upload_changelogs: true,
+    skip_upload_images: true,
+    skip_upload_screenshots: false
+  )
+end

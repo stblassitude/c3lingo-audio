@@ -1,0 +1,48 @@
+# Uploads the screenshots taken by apple/screenshots/capture.sh to the version of the
+# app that is being prepared in App Store Connect. See "Screenshots" in README.md.
+#
+#   bundle exec fastlane upload_screenshots
+#
+# Uses the App Store Connect API key from APP_STORE_CONNECT_KEY_ID,
+# APP_STORE_CONNECT_ISSUER_ID and APP_STORE_CONNECT_KEY_PATH (the .p8 file).
+
+APP_IDENTIFIER = "org.c3lingo.audio"
+
+# App Store Connect platform and the folder in screenshots/ with its screenshots.
+PLATFORMS = {
+  "ios" => "ios",
+  "xros" => "visionos",
+  "osx" => "macos"
+}.freeze
+
+lane :upload_screenshots do |options|
+  api_key = app_store_connect_api_key(
+    key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID"),
+    issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+    key_filepath: ENV.fetch("APP_STORE_CONNECT_KEY_PATH")
+  )
+  # Only the platforms named, e.g. `platforms:ios,osx`, or all that have screenshots.
+  wanted = options[:platforms]&.split(",") || PLATFORMS.keys
+  PLATFORMS.slice(*wanted).each do |platform, folder|
+    path = File.join(__dir__, "screenshots", folder)
+    if Dir.glob(File.join(path, "*", "*.png")).empty?
+      UI.important("No screenshots in #{path}, skipping #{platform}")
+      next
+    end
+    UI.header("Uploading #{folder} screenshots")
+    deliver(
+      api_key: api_key,
+      app_identifier: APP_IDENTIFIER,
+      platform: platform,
+      screenshots_path: path,
+      # Replaces all screenshots of the languages in the folder.
+      overwrite_screenshots: true,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_app_version_update: true,
+      run_precheck_before_submit: false,
+      # No HTML preview to confirm: this runs after looking at the files.
+      force: true
+    )
+  end
+end

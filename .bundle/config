@@ -1,0 +1,3 @@
+---
+# Gems go into the repository's vendor/bundle, not the system's or the user's.
+BUNDLE_PATH: "vendor/bundle"

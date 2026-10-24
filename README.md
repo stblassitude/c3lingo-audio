@@ -21,7 +21,11 @@ update. Playback is done natively:
 
 ```
 apple/     Xcode project for iOS, iPadOS, macOS and visionOS
+  screenshots/        takes the App Store screenshots
+  fastlane/           uploads them
 android/   Gradle project for Android
+  screenshots/        takes the Google Play screenshots
+  fastlane/           uploads them
 shared/    used by both apps
   FrontendBridge.js   injected into the frontend, see below
   icon/               logo and the script that renders all app icons
@@ -304,6 +308,127 @@ To upload from a Mac instead, archive in Xcode (destination Any iOS Device, then
 Product → Archive) and choose Distribute App → TestFlight & App Store in the Organizer,
 or run the two `xcodebuild` commands from the workflow. Without the `-authentication…`
 options they use the Apple ID signed in to Xcode.
+
+## Screenshots
+
+The store screenshots are taken on this Mac, in simulators and emulators, and uploaded
+with [fastlane](https://fastlane.tools). Each app has one script that takes them and
+one fastlane lane that uploads them. The apps show the test server
+`https://c3listen.lassitu.de/`, so it needs audio on its channels and a schedule for
+the talk line. For each language (the six the apps come in) there are two
+screenshots: the channel list, and the same with a channel playing.
+
+The screenshots aren't kept in the repository. Look through them before uploading.
+
+### Setup
+
+fastlane needs a current Ruby; the one macOS comes with is too old. With Homebrew:
+
+```sh
+brew install ruby
+export PATH="$(brew --prefix ruby)/bin:$PATH"   # also in ~/.zshrc
+bundle install                                  # in the repository's root
+```
+
+The gems go into `vendor/bundle/`. `bundle update fastlane` updates fastlane.
+
+### Apple
+
+```sh
+apple/screenshots/capture.sh                    # all of them, or e.g. `iphone ipad`
+cd apple
+APP_STORE_CONNECT_KEY_ID=XXXXXXXXXX \
+APP_STORE_CONNECT_ISSUER_ID=00000000-0000-0000-0000-000000000000 \
+APP_STORE_CONNECT_KEY_PATH=~/keys/AuthKey_XXXXXXXXXX.p8 \
+    bundle exec fastlane upload_screenshots     # or `platforms:ios,osx`
+```
+
+`capture.sh` builds the app, then takes the screenshots App Store Connect asks for:
+
+| target | device | size | App Store Connect |
+|---|---|---|---|
+| `iphone` | iPhone 18 Pro, iPhone 18 Pro Max | 1206 × 2622, 1320 × 2868 | iPhone 6.3" (required) and 6.9" |
+| `duo` | iPhone Duo, outer and inner display | 1398 × 2034, 2853 × 2007 | iPhone Duo |
+| `ipad` | iPad Pro 13-inch (M5) | 2064 × 2752 | iPad 13" |
+| `vision` | Apple Vision Pro | 3840 × 2160 | Apple Vision Pro |
+| `mac` | the Mac app, in a 1440 × 900 window | 2880 × 1800 | Mac |
+
+They go to `apple/fastlane/screenshots/`, one folder per App Store Connect platform
+(`ios`, `visionos`, `macos`) and language. The simulators are the script's own
+(`c3lingo screenshots …`) and are erased before each run. Each gets the newest runtime
+installed that supports it. The status bar shows 9:41 on 27 December
+(`STATUS_BAR_DATE`).
+
+Some steps need you:
+
+- **iPhone Duo:** there is no command to fold or unfold the simulator. The script
+  takes the outer display first (an erased simulator starts folded), then opens Device
+  Hub and waits while you unfold it: select "c3lingo screenshots iPhone-Duo" under
+  Simulators to open its window, and unfold it there. A simulator started from the
+  command line has no window until you do. Unfolded, the inner display is in
+  landscape.
+- **Apple Vision Pro** needs the visionOS simulator, which Xcode doesn't install by
+  default: `xcodebuild -downloadPlatform visionOS`. Without it, the script skips it.
+- **Mac:** the script takes a picture of the app's window, which macOS only allows apps
+  with permission to record the screen. Give it to your terminal app in System
+  Settings → Privacy & Security → Screen & System Audio Recording, then restart the
+  terminal. The window is 1440 × 900 points; on a display with Retina resolution, that
+  makes the 2880 × 1800 pixels App Store Connect wants.
+
+The upload uses an App Store Connect API key, like the TestFlight workflow (see
+"Releasing the Apple app"); the App Manager role is enough. The version the screenshots
+are for has to exist in App Store Connect, for each platform: create it under the app's
+iOS, macOS and visionOS sections. The upload replaces all screenshots of each language
+it has screenshots for. fastlane 2.241.1 or later is needed for the iPhone Duo.
+
+### Android
+
+```sh
+android/screenshots/capture.sh                  # all of them, or e.g. `phone`
+cd android
+GOOGLE_PLAY_JSON_KEY_PATH=~/keys/c3lingo-play.json bundle exec fastlane upload_screenshots
+```
+
+`capture.sh` builds the debug app and starts an emulator without a window for each
+form factor Google Play shows screenshots for:
+
+| target | screen | Google Play |
+|---|---|---|
+| `phone` | 1080 × 1920 | phone |
+| `tablet7` | 1200 × 1920 | 7-inch tablet |
+| `tablet10` | 1600 × 2560 | 10-inch tablet |
+
+The phone has a 16:9 screen because Google Play doesn't take screenshots longer than
+2:1, which current phones' screens are. The virtual devices are the script's own
+(`c3lingo_screenshots_…`), use the newest Google Play system image installed, and start
+from scratch each time. The status bar shows 9:41 (demo mode), and the app's language
+is set as in the system's per-app language setting. The screenshots go to
+`android/fastlane/metadata/android/<language>/images/`, where fastlane expects them.
+
+The upload needs:
+
+1. The app in Google Play Console. The API only works for an app with at least one
+   build uploaded, so upload the first one by hand (Play wants an Android App Bundle,
+   `./gradlew :app:bundleRelease`, for new apps).
+2. A Google Cloud service account with a JSON key: in Google Cloud Console, create a
+   project, enable the Google Play Android Developer API, create a service account and
+   a key for it (JSON). Then, in Play Console → Users and permissions, invite the
+   service account's email address and give it access to the app with permission to
+   edit the store listing. Keep the JSON file outside the repository.
+
+The upload replaces the screenshots of each language and form factor it has
+screenshots for.
+
+### Settings
+
+Both scripts take these environment variables:
+
+| variable | default | |
+|---|---|---|
+| `SERVER_URL` | `https://c3listen.lassitu.de/` | the server the app shows |
+| `CHANNEL` | `Saal_1_1_DE_EN` | the channel playing in the second screenshot |
+| `WAIT` | `10` | seconds for the page to load and the channel to connect |
+| `LANGUAGES` | all six | e.g. `"en:en-US:en_US de:de-DE:de_DE"` (Apple: app language, App Store locale, region) or `"en:en-US de:de-DE"` (Android: app language, Play locale) |
 
 ## License
 

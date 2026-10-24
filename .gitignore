@@ -8,3 +8,11 @@ xcuserdata/
 *.jks
 *.keystore
 *.p8
+
+# fastlane: gems, generated screenshots, and what fastlane writes on each run
+/vendor/bundle/
+/apple/fastlane/screenshots/
+/android/fastlane/metadata/
+fastlane/report.xml
+fastlane/README.md
+fastlane/test_output/

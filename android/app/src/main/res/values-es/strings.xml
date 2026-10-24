@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_tag">es</string>
+
+    <string name="loading">Cargando…</string>
+    <string name="load_error_title">No se puede cargar la lista de canales</string>
+    <string name="try_again">Reintentar</string>
+    <string name="change_server">Cambiar servidor…</string>
+    <string name="status_connecting">Conectando…</string>
+    <string name="status_waiting">Sin emisión</string>
+    <string name="status_live">En directo</string>
+    <string name="status_live_muted">En directo, silenciado</string>
+    <string name="status_paused">En pausa</string>
+    <string name="status_reconnecting">Reconectando…</string>
+    <string name="status_connection_problem">Problema de conexión</string>
+    <string name="waiting_message">Ahora mismo no se emite nada en este canal. Empezará a sonar en cuanto haya emisión.</string>
+    <string name="talk_day">día %1$d, %2$s</string>
+    <string name="talk_since">Desde %1$s: %2$s</string>
+    <string name="talk_next">A continuación: %1$s: %2$s</string>
+    <string name="mute">Silenciar</string>
+    <string name="unmute">Activar sonido</string>
+    <string name="play">Reproducir</string>
+    <string name="pause">Pausar</string>
+    <string name="stop">Detener</string>
+    <string name="audio_output">Salida de audio</string>
+    <string name="settings_title">Servidor</string>
+    <string name="settings_url_label">URL del servidor</string>
+    <string name="settings_invalid_url">No es una URL http o https válida.</string>
+    <string name="settings_footer">Solo para pruebas. Déjalo vacío para usar %1$s. Ahora se usa %2$s.</string>
+    <string name="settings_use_default">Usar predeterminado</string>
+    <string name="settings_apply">Aplicar</string>
+    <string name="back">Atrás</string>
+    <string name="error_network">No se puede conectar. Comprueba que estás en la wifi del evento. Reintentando…</string>
+    <string name="error_unavailable">Este canal no está disponible ahora mismo. Reintentando…</string>
+</resources>

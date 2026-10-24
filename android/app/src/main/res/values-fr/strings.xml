@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_tag">fr</string>
+
+    <string name="loading">Chargement…</string>
+    <string name="load_error_title">Impossible de charger la liste des canaux</string>
+    <string name="try_again">Réessayer</string>
+    <string name="change_server">Changer de serveur…</string>
+    <string name="status_connecting">Connexion…</string>
+    <string name="status_waiting">Aucune diffusion</string>
+    <string name="status_live">En direct</string>
+    <string name="status_live_muted">En direct, son coupé</string>
+    <string name="status_paused">En pause</string>
+    <string name="status_reconnecting">Reconnexion…</string>
+    <string name="status_connection_problem">Problème de connexion</string>
+    <string name="waiting_message">Rien n\'est diffusé sur ce canal pour le moment. La lecture démarre dès que la diffusion commence.</string>
+    <string name="talk_day">jour %1$d, %2$s</string>
+    <string name="talk_since">Depuis %1$s : %2$s</string>
+    <string name="talk_next">Ensuite : %1$s : %2$s</string>
+    <string name="mute">Couper le son</string>
+    <string name="unmute">Réactiver le son</string>
+    <string name="play">Lire</string>
+    <string name="pause">Mettre en pause</string>
+    <string name="stop">Arrêter</string>
+    <string name="audio_output">Sortie audio</string>
+    <string name="settings_title">Serveur</string>
+    <string name="settings_url_label">URL du serveur</string>
+    <string name="settings_invalid_url">Ce n\'est pas une URL http ou https valide.</string>
+    <string name="settings_footer">Uniquement pour les tests. Laissez vide pour utiliser %1$s. Actuellement : %2$s.</string>
+    <string name="settings_use_default">Utiliser la valeur par défaut</string>
+    <string name="settings_apply">Appliquer</string>
+    <string name="back">Retour</string>
+    <string name="error_network">Connexion impossible. Vérifiez que vous êtes sur le Wi-Fi de l\'événement. Nouvelle tentative…</string>
+    <string name="error_unavailable">Ce canal n\'est pas disponible pour le moment. Nouvelle tentative…</string>
+</resources>

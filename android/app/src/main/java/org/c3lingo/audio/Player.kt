@@ -164,19 +164,25 @@ class Player(private val context: Context, private val settings: ServerSettings)
 
     private fun handle(event: GaleneSession.Event) {
         when (event) {
-            GaleneSession.Event.Joined ->
-                if (state.value.status != Status.PLAYING) _state.update { it.copy(status = Status.WAITING) }
             GaleneSession.Event.Receiving -> {
                 attempt = 0
                 _state.update { it.copy(status = Status.PLAYING, lastError = null) }
             }
-            GaleneSession.Event.Waiting -> _state.update { it.copy(status = Status.WAITING) }
+            // Everything works, there is just nothing to hear.
+            GaleneSession.Event.Waiting -> {
+                attempt = 0
+                _state.update { it.copy(status = Status.WAITING, lastError = null) }
+            }
             is GaleneSession.Event.Failed -> {
-                _state.update { it.copy(lastError = event.error.localizedMessage ?: event.error.toString()) }
+                _state.update { it.copy(lastError = message(event.error)) }
                 scheduleReconnect()
             }
         }
     }
+
+    /** Tells listeners whose problem it is, worded like the frontend; details go to the log. */
+    private fun message(error: Throwable): String = context.getString(
+        if ((error as? GaleneException)?.unavailable == true) R.string.error_unavailable else R.string.error_network)
 
     private fun scheduleReconnect() {
         if (!state.value.isActive) return

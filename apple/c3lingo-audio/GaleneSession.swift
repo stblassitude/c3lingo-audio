@@ -7,6 +7,7 @@ enum GaleneError: LocalizedError {
     case kicked(String?)
     case timeout
     case connectionFailed
+    case mediaTimeout
 
     var errorDescription: String? {
         switch self {
@@ -14,6 +15,15 @@ enum GaleneError: LocalizedError {
         case .kicked(let reason): reason ?? "The server closed the connection"
         case .timeout: "The server stopped responding"
         case .connectionFailed: "The audio connection failed"
+        case .mediaTimeout: "The audio connection timed out"
+        }
+    }
+
+    /// The server is reachable but won't let us join, as opposed to a network problem.
+    var isUnavailable: Bool {
+        switch self {
+        case .joinFailed, .kicked: true
+        case .timeout, .connectionFailed, .mediaTimeout: false
         }
     }
 }
@@ -25,11 +35,10 @@ enum GaleneError: LocalizedError {
 /// owner creates a new one.
 final class GaleneSession {
     enum Event {
-        /// Joined the group; audio will follow as soon as somebody is sending.
-        case joined
         /// Audio is flowing from at least one stream.
         case receiving
-        /// No stream is left, e.g. because the sender stopped.
+        /// Joined, but nobody is sending: no stream was offered after joining, or the
+        /// last one was closed because the sender stopped. Audio follows when they start.
         case waiting
         case failed(Error)
     }
@@ -47,11 +56,18 @@ final class GaleneSession {
     private var downstreams: [String: Downstream] = [:]
     private var iceServers: [LKRTCIceServer] = []
     private var keepalive: Task<Void, Never>?
+    private var offerTimeout: Task<Void, Never>?
+    /// Streams offered but not yet connected, failing when ICE doesn't get through.
+    private var mediaTimeouts: [String: Task<Void, Never>] = [:]
     private var lastReceived = Date.now
     private var isClosed = false
 
     private static let pingInterval: UInt64 = 5_000_000_000
     private static let timeout: TimeInterval = 15
+    /// After joining, Galène offers the streams that are already there right away.
+    private static let offerTimeout: UInt64 = 2_000_000_000
+    /// Time for ICE to connect after answering an offer.
+    private static let mediaTimeout: UInt64 = 15_000_000_000
 
     init(endpoint: URL, group: String) {
         self.endpoint = endpoint
@@ -85,6 +101,9 @@ final class GaleneSession {
         guard !isClosed else { return }
         isClosed = true
         keepalive?.cancel()
+        offerTimeout?.cancel()
+        mediaTimeouts.values.forEach { $0.cancel() }
+        mediaTimeouts.removeAll()
         downstreams.values.forEach { $0.close() }
         downstreams.removeAll()
         socket?.cancel(with: .goingAway, reason: nil)
@@ -172,7 +191,11 @@ final class GaleneSession {
         case "join":
             iceServers = Self.iceServers(from: message["rtcConfiguration"])
             send(["type": "request", "request": ["": ["audio"]]])
-            onEvent?(.joined)
+            offerTimeout = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: Self.offerTimeout)
+                guard let self, !Task.isCancelled, !isClosed, downstreams.isEmpty else { return }
+                onEvent?(.waiting)
+            }
         case "fail":
             fail(GaleneError.joinFailed(message["value"] as? String ?? "unknown reason"))
         case "leave":
@@ -207,6 +230,12 @@ final class GaleneSession {
             created.setMuted(isMuted)
             downstreams[streamID] = created
             downstream = created
+            offerTimeout?.cancel()
+            mediaTimeouts[streamID] = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: Self.mediaTimeout)
+                guard let self, !Task.isCancelled else { return }
+                fail(GaleneError.mediaTimeout)
+            }
         }
 
         do {
@@ -236,6 +265,7 @@ final class GaleneSession {
 
     private func closeDownstream(_ streamID: String) {
         guard let downstream = downstreams.removeValue(forKey: streamID) else { return }
+        mediaTimeouts.removeValue(forKey: streamID)?.cancel()
         downstream.close()
         if downstreams.isEmpty {
             onEvent?(.waiting)
@@ -256,6 +286,7 @@ final class GaleneSession {
         guard downstreams[streamID] != nil else { return }
         switch state {
         case .connected:
+            mediaTimeouts.removeValue(forKey: streamID)?.cancel()
             onEvent?(.receiving)
         case .failed:
             fail(GaleneError.connectionFailed)

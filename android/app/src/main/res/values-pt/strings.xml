@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_tag">pt</string>
+
+    <string name="loading">A carregar…</string>
+    <string name="load_error_title">Não foi possível carregar a lista de canais</string>
+    <string name="try_again">Tentar novamente</string>
+    <string name="change_server">Mudar de servidor…</string>
+    <string name="status_connecting">A ligar…</string>
+    <string name="status_waiting">Sem emissão</string>
+    <string name="status_live">Em direto</string>
+    <string name="status_live_muted">Em direto, sem som</string>
+    <string name="status_paused">Em pausa</string>
+    <string name="status_reconnecting">A ligar novamente…</string>
+    <string name="status_connection_problem">Problema de ligação</string>
+    <string name="waiting_message">Neste momento não está a ser emitido nada neste canal. A reprodução começa assim que houver emissão.</string>
+    <string name="talk_day">dia %1$d, %2$s</string>
+    <string name="talk_since">Desde %1$s: %2$s</string>
+    <string name="talk_next">A seguir: %1$s: %2$s</string>
+    <string name="mute">Silenciar</string>
+    <string name="unmute">Ativar som</string>
+    <string name="play">Reproduzir</string>
+    <string name="pause">Pausa</string>
+    <string name="stop">Parar</string>
+    <string name="audio_output">Saída de áudio</string>
+    <string name="settings_title">Servidor</string>
+    <string name="settings_url_label">URL do servidor</string>
+    <string name="settings_invalid_url">Não é um URL http ou https válido.</string>
+    <string name="settings_footer">Apenas para testes. Deixe vazio para usar %1$s. Atualmente a usar %2$s.</string>
+    <string name="settings_use_default">Usar predefinição</string>
+    <string name="settings_apply">Aplicar</string>
+    <string name="back">Voltar</string>
+    <string name="error_network">Não é possível ligar. Confirme que está ligado à rede Wi-Fi do evento. A tentar novamente…</string>
+    <string name="error_unavailable">Este canal não está disponível de momento. A tentar novamente…</string>
+</resources>

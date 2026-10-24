@@ -130,6 +130,7 @@ private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettin
     val loadError by frontend.loadError.collectAsStateWithLifecycle()
     val hasLoaded by frontend.hasLoaded.collectAsStateWithLifecycle()
     val serverURL by settings.serverURL.collectAsStateWithLifecycle()
+    val descriptions by frontend.descriptions.collectAsStateWithLifecycle()
     val playing = state.channel != null
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
@@ -142,7 +143,7 @@ private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettin
             enter = slideInVertically { it } + fadeIn(),
             exit = slideOutVertically { it } + fadeOut(),
         ) {
-            PlayerBar(state, player)
+            PlayerBar(state, player, state.channel?.let { descriptions[it.name] })
         }
     }
 }

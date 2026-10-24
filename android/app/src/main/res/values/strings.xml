@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">c3lingo</string>
+    <string name="app_name" translatable="false">c3lingo</string>
+    <!-- The language of these strings, passed to the web frontend so it matches. -->
+    <string name="language_tag">en</string>
 
     <string name="loading">Loading…</string>
     <string name="load_error_title">Unable to load the channel list</string>
@@ -8,13 +10,16 @@
     <string name="change_server">Change Server…</string>
 
     <string name="status_connecting">Connecting…</string>
-    <string name="status_waiting">Waiting for audio…</string>
+    <string name="status_waiting">Nothing playing</string>
     <string name="status_live">Live</string>
     <string name="status_live_muted">Live, muted</string>
     <string name="status_paused">Paused</string>
     <string name="status_reconnecting">Reconnecting…</string>
-    <string name="status_reconnecting_error">Reconnecting: %1$s</string>
-    <string name="waiting_for_audio">Waiting for audio</string>
+    <string name="status_connection_problem">Connection problem</string>
+    <string name="waiting_message">Nothing is being broadcast on this channel right now. It starts playing as soon as it is.</string>
+    <string name="talk_day">Day %1$d, %2$s</string>
+    <string name="talk_since">Since %1$s: %2$s</string>
+    <string name="talk_next">Next: %1$s: %2$s</string>
 
     <string name="mute">Mute</string>
     <string name="unmute">Unmute</string>
@@ -31,9 +36,6 @@
     <string name="settings_apply">Apply</string>
     <string name="back">Back</string>
 
-    <string name="error_join_failed">Unable to join the channel: %1$s</string>
-    <string name="error_kicked">The server closed the connection</string>
-    <string name="error_timeout">The server stopped responding</string>
-    <string name="error_connection_failed">The audio connection failed</string>
-    <string name="error_unknown_reason">unknown reason</string>
+    <string name="error_network">Can\'t connect. Make sure you are on the event Wi-Fi. Retrying…</string>
+    <string name="error_unavailable">This channel isn\'t available right now. Retrying…</string>
 </resources>

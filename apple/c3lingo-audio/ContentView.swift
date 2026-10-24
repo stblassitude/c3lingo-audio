@@ -21,8 +21,8 @@ struct ContentView: View {
                 }
             }
             .animation(.easeOut, value: frontend.hasLoaded)
-            if player.channel != nil {
-                PlayerBar()
+            if let channel = player.channel {
+                PlayerBar(description: frontend.descriptions[channel.name])
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }

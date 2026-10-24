@@ -109,21 +109,29 @@ final class Player: ObservableObject {
 
     private func handle(_ event: GaleneSession.Event) {
         switch event {
-        case .joined:
-            if status != .playing {
-                status = .waiting
-            }
         case .receiving:
             attempt = 0
             lastError = nil
             status = .playing
         case .waiting:
+            // Everything works, there is just nothing to hear.
+            attempt = 0
+            lastError = nil
             status = .waiting
         case .failed(let error):
-            lastError = error.localizedDescription
+            lastError = Self.message(for: error)
             scheduleReconnect()
         }
         updateNowPlaying()
+    }
+
+    /// Tells listeners whose problem it is, worded like the frontend; details go to the log.
+    private static func message(for error: Error) -> String {
+        if let error = error as? GaleneError, error.isUnavailable {
+            String(localized: "This channel isn't available right now. Retrying…")
+        } else {
+            String(localized: "Can't connect. Make sure you are on the event Wi-Fi. Retrying…")
+        }
     }
 
     private func scheduleReconnect() {

@@ -56,3 +56,59 @@ data class Channel(
 
 /** The string value for [key], or null if it is missing, not a string, or empty. */
 internal fun JSONObject.string(key: String): String? = (opt(key) as? String)?.takeIf { it.isNotEmpty() }
+
+/**
+ * What the frontend knows about a channel beyond its name: the hall, the language being
+ * interpreted into and the current talk, from the bridge's optional `describe` message.
+ */
+data class ChannelDescription(
+    /** The hall's short name, e.g. `One`. */
+    val room: String? = null,
+    val language: Language? = null,
+    val talk: Talk? = null,
+) {
+    data class Language(val name: String, val flag: String?)
+
+    data class Talk(
+        val title: String,
+        /** The start time as the schedule gives it, e.g. `14:30`. */
+        val start: String,
+        val started: Boolean,
+        /** The schedule day, if the talk isn't today. */
+        val day: Int?,
+    )
+
+    /** The hall and language, e.g. "One · 🇬🇧 English", or null if the language isn't known. */
+    val title: String?
+        get() {
+            val language = language ?: return null
+            val name = listOfNotNull(language.flag, language.name).joinToString(" ")
+            return listOfNotNull(room, name).joinToString(" · ")
+        }
+
+    companion object {
+        fun fromJson(json: JSONObject): ChannelDescription {
+            val language = json.optJSONObject("language")
+            val talk = json.optJSONObject("talk")
+            val title = talk?.string("title")
+            val start = talk?.string("start")
+            return ChannelDescription(
+                room = json.string("room"),
+                language = language?.string("name")?.let { Language(it, language.string("flag")) },
+                talk = if (title != null && start != null) {
+                    Talk(title, start, talk.opt("started") as? Boolean ?: false, (talk.opt("day") as? Number)?.toInt())
+                } else {
+                    null
+                },
+            )
+        }
+
+        /** Parses the `channels` object of a `describe` message, keyed by channel name. */
+        fun all(json: JSONObject?): Map<String, ChannelDescription> {
+            json ?: return emptyMap()
+            return json.keys().asSequence()
+                .mapNotNull { name -> json.optJSONObject(name)?.let { name to fromJson(it) } }
+                .toMap()
+        }
+    }
+}

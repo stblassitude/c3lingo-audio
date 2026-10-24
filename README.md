@@ -76,6 +76,13 @@ In short:
 - The page declares `<meta name="c3lingo-native-bridge" content="2">`. Only then does
   it see `window.c3lingoNative`; any other page is left alone and plays audio itself.
 - The page calls `ready()`, `play(channel)`, `stop()` and `setMuted(muted)`.
+- `window.c3lingoNative.language` is the app's UI language (`en`, `de`, `fr`, `es`, `pt`
+  or `pl`, the same languages as the frontend), so the page and the native controls
+  always match. The WebViews also follow the app's language, which covers pages without
+  the bridge.
+- If the page also calls the optional `describe(channels)` with each channel's hall,
+  language and current talk, the player bar shows them; otherwise it shows the
+  channel's `displayName`.
 - The app answers `ready()` and reports every state change, whatever caused it, as a
   `c3lingo:state` event with the full state `{state, channel, muted, error}`.
 
@@ -85,9 +92,12 @@ The app's player states map onto the protocol like this:
 |---|---|---|
 | idle | `stopped` | `channel` is `null` |
 | paused (e.g. from the lock screen) | `stopped` | `channel` stays set |
-| connecting, reconnecting | `connecting` | `error` explains a reconnect |
-| joined, nobody sending | `connecting` | `error` is "Waiting for audio" |
+| connecting, reconnecting | `connecting` | `error` says whether the network or the channel is the problem |
+| joined, nobody sending | `waiting` | no stream offered within 2 s of joining, or the sender stopped |
 | playing | `playing` | |
+
+An offered stream that doesn't connect within 15 s (ICE failing, e.g. because UDP is
+blocked) counts as a network problem, like in the frontend's own player.
 
 ## Icons
 

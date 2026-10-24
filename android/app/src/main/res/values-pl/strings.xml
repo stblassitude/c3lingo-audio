@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_tag">pl</string>
+
+    <string name="loading">Ładowanie…</string>
+    <string name="load_error_title">Nie można załadować listy kanałów</string>
+    <string name="try_again">Spróbuj ponownie</string>
+    <string name="change_server">Zmień serwer…</string>
+    <string name="status_connecting">Łączenie…</string>
+    <string name="status_waiting">Brak transmisji</string>
+    <string name="status_live">Na żywo</string>
+    <string name="status_live_muted">Na żywo, wyciszono</string>
+    <string name="status_paused">Wstrzymano</string>
+    <string name="status_reconnecting">Ponowne łączenie…</string>
+    <string name="status_connection_problem">Problem z połączeniem</string>
+    <string name="waiting_message">Na tym kanale nic teraz nie jest nadawane. Odtwarzanie rozpocznie się, gdy tylko ruszy transmisja.</string>
+    <string name="talk_day">dzień %1$d, %2$s</string>
+    <string name="talk_since">Od %1$s: %2$s</string>
+    <string name="talk_next">Następnie: %1$s: %2$s</string>
+    <string name="mute">Wycisz</string>
+    <string name="unmute">Wyłącz wyciszenie</string>
+    <string name="play">Odtwórz</string>
+    <string name="pause">Wstrzymaj</string>
+    <string name="stop">Zatrzymaj</string>
+    <string name="audio_output">Wyjście audio</string>
+    <string name="settings_title">Serwer</string>
+    <string name="settings_url_label">Adres URL serwera</string>
+    <string name="settings_invalid_url">To nie jest prawidłowy adres URL http lub https.</string>
+    <string name="settings_footer">Tylko do testów. Pozostaw puste, aby użyć %1$s. Obecnie używany: %2$s.</string>
+    <string name="settings_use_default">Użyj domyślnego</string>
+    <string name="settings_apply">Zastosuj</string>
+    <string name="back">Wstecz</string>
+    <string name="error_network">Nie można połączyć. Upewnij się, że korzystasz z Wi-Fi wydarzenia. Ponawianie…</string>
+    <string name="error_unavailable">Ten kanał jest teraz niedostępny. Ponawianie…</string>
+</resources>

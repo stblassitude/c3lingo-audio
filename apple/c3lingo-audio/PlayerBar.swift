@@ -2,27 +2,103 @@ import AVKit
 import SwiftUI
 
 /// The native playback controls, shown at the bottom while a channel is selected.
+///
+/// Narrow (portrait phones): the hall and language on one line, status and controls
+/// below. Wide: hall, language, status and the current talk on the left, the controls
+/// on the right. Below that, if needed, a message that explains the status.
 struct PlayerBar: View {
     @EnvironmentObject private var player: Player
+    /// What the frontend knows about the channel, if anything.
+    let description: ChannelDescription?
+
+    @State private var isWide = false
+    private static let wideWidth: CGFloat = 520
 
     var body: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(player.channel?.displayName ?? "")
-                    .font(.headline)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                HStack(spacing: 6) {
-                    statusIndicator
-                    Text(statusText)
-                        .lineLimit(1)
+        Group {
+            if isWide {
+                HStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 12) {
+                            title
+                            status
+                        }
+                        if let talk = description?.talkText {
+                            Text(talk)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        message
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .combine)
+                    controls
                 }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    title
+                    HStack(spacing: 16) {
+                        status
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        controls
+                    }
+                    message
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityElement(children: .combine)
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.borderless)
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .background(GeometryReader { geometry in
+            Color.clear.preference(key: WidthKey.self, value: geometry.size.width)
+        })
+        .onPreferenceChange(WidthKey.self) { width in
+            isWide = width >= Self.wideWidth
+        }
+        .background(.bar)
+    }
 
+    private var title: some View {
+        Text(description?.title ?? player.channel?.displayName ?? "")
+            .font(.headline)
+            .lineLimit(1)
+            .truncationMode(.tail)
+    }
+
+    private var status: some View {
+        HStack(spacing: 6) {
+            statusIndicator
+            Text(statusText)
+                .lineLimit(1)
+        }
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+    }
+
+    /// Explains the status: that nothing is being broadcast, or why there's no connection.
+    @ViewBuilder private var message: some View {
+        if let text = messageText {
+            Text(text)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var messageText: String? {
+        switch player.status {
+        case .waiting: String(localized: "Nothing is being broadcast on this channel right now. It starts playing as soon as it is.")
+        case .connecting, .reconnecting: player.lastError
+        default: nil
+        }
+    }
+
+    private var controls: some View {
+        HStack(spacing: 16) {
             Button {
                 player.isMuted.toggle()
             } label: {
@@ -51,13 +127,7 @@ struct PlayerBar: View {
                 Label("Stop", systemImage: "xmark")
             }
         }
-        .labelStyle(.iconOnly)
         .font(.title2)
-        .buttonStyle(.borderless)
-        .padding(.horizontal)
-        .padding(.vertical, 12)
-        .frame(maxWidth: .infinity)
-        .background(.bar)
     }
 
     @ViewBuilder private var statusIndicator: some View {
@@ -82,16 +152,21 @@ struct PlayerBar: View {
         switch player.status {
         case .idle: ""
         case .connecting: String(localized: "Connecting…")
-        case .waiting: String(localized: "Waiting for audio…")
+        case .waiting: String(localized: "Nothing playing")
         case .playing: player.isMuted ? String(localized: "Live, muted") : String(localized: "Live")
         case .paused: String(localized: "Paused")
         case .reconnecting:
-            if let error = player.lastError {
-                String(localized: "Reconnecting: \(error)")
-            } else {
-                String(localized: "Reconnecting…")
-            }
+            // The message below says what's wrong.
+            player.lastError != nil ? String(localized: "Connection problem") : String(localized: "Reconnecting…")
         }
+    }
+}
+
+private nonisolated struct WidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 

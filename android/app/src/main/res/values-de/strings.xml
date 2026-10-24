@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_tag">de</string>
+
+    <string name="loading">Wird geladen…</string>
+    <string name="load_error_title">Die Kanalliste konnte nicht geladen werden</string>
+    <string name="try_again">Erneut versuchen</string>
+    <string name="change_server">Server ändern…</string>
+    <string name="status_connecting">Verbinde…</string>
+    <string name="status_waiting">Keine Übertragung</string>
+    <string name="status_live">Live</string>
+    <string name="status_live_muted">Live, stumm</string>
+    <string name="status_paused">Pausiert</string>
+    <string name="status_reconnecting">Verbinde erneut…</string>
+    <string name="status_connection_problem">Verbindungsproblem</string>
+    <string name="waiting_message">Auf diesem Kanal wird gerade nichts übertragen. Die Wiedergabe startet, sobald es losgeht.</string>
+    <string name="talk_day">Tag %1$d, %2$s</string>
+    <string name="talk_since">Seit %1$s: %2$s</string>
+    <string name="talk_next">Als Nächstes: %1$s: %2$s</string>
+    <string name="mute">Stummschalten</string>
+    <string name="unmute">Ton an</string>
+    <string name="play">Abspielen</string>
+    <string name="pause">Pausieren</string>
+    <string name="stop">Stopp</string>
+    <string name="audio_output">Audioausgabe</string>
+    <string name="settings_title">Server</string>
+    <string name="settings_url_label">Server-URL</string>
+    <string name="settings_invalid_url">Das ist keine gültige http- oder https-URL.</string>
+    <string name="settings_footer">Nur zum Testen. Leer lassen, um %1$s zu verwenden. Derzeit wird %2$s verwendet.</string>
+    <string name="settings_use_default">Standard verwenden</string>
+    <string name="settings_apply">Übernehmen</string>
+    <string name="back">Zurück</string>
+    <string name="error_network">Keine Verbindung. Prüfe, ob du im Event-WLAN bist. Neuer Versuch…</string>
+    <string name="error_unavailable">Dieser Kanal ist gerade nicht verfügbar. Neuer Versuch…</string>
+</resources>

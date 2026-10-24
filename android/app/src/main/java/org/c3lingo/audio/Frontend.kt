@@ -46,6 +46,9 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     val loadError: StateFlow<String?> = _loadError.asStateFlow()
     private val _hasLoaded = MutableStateFlow(false)
     val hasLoaded: StateFlow<Boolean> = _hasLoaded.asStateFlow()
+    private val _descriptions = MutableStateFlow<Map<String, ChannelDescription>>(emptyMap())
+    /** Hall, language and talk per channel name, if the page sends them. */
+    val descriptions: StateFlow<Map<String, ChannelDescription>> = _descriptions.asStateFlow()
 
     /** For testing: selects this channel once the page has loaded. */
     var autoplay: String? = null
@@ -55,7 +58,10 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     private var scriptHandler: ScriptHandler? = null
     private var listenerInstalled = false
     private var navigationFailed = false
-    private val bridgeScript = context.assets.open("FrontendBridge.js").bufferedReader().use { it.readText() }
+    /** The bridge, told the app's UI language so the page uses the same one. */
+    private val bridgeScript = "window.__c3lingoNativeConfig = " +
+        JSONObject().put("language", context.getString(R.string.language_tag)) + ";\n" +
+        context.assets.open("FrontendBridge.js").bufferedReader().use { it.readText() }
 
     init {
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
@@ -69,6 +75,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         this.url = url
         _loadError.value = null
         _hasLoaded.value = false
+        _descriptions.value = emptyMap()
         installBridge(url)
         webView.loadUrl(url.toString())
     }
@@ -121,16 +128,16 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     private fun sendState(state: Player.State) {
         val protocolState = when (state.status) {
             Player.Status.IDLE, Player.Status.PAUSED -> "stopped"
-            Player.Status.CONNECTING, Player.Status.WAITING, Player.Status.RECONNECTING -> "connecting"
+            Player.Status.CONNECTING, Player.Status.RECONNECTING -> "connecting"
+            Player.Status.WAITING -> "waiting"
             Player.Status.PLAYING -> "playing"
         }
-        val error = if (state.status == Player.Status.WAITING) context.getString(R.string.waiting_for_audio) else state.lastError
         val detail = JSONObject()
             .put("state", protocolState)
             // A paused channel stays selected, which the protocol allows while stopped.
             .put("channel", state.channel?.name ?: JSONObject.NULL)
             .put("muted", state.isMuted)
-            .put("error", error ?: JSONObject.NULL)
+            .put("error", state.lastError ?: JSONObject.NULL)
         evaluate("window.__c3lingoNativeState && window.__c3lingoNativeState($detail)")
     }
 
@@ -158,6 +165,8 @@ class Frontend(private val context: Context, private val player: Player, scope: 
                 val muted = message.opt("muted") as? Boolean ?: return
                 if (player.state.value.isMuted != muted) player.setMuted(muted)
             }
+            // Only information for display; it doesn't change the player's state.
+            "describe" -> _descriptions.value = ChannelDescription.all(message.optJSONObject("channels"))
             else -> Log.w(TAG, "unknown bridge command $command")
         }
     }

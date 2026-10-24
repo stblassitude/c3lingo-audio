@@ -13,6 +13,8 @@ final class Frontend: NSObject, ObservableObject {
     let webView: WKWebView
     @Published private(set) var loadError: String?
     @Published private(set) var hasLoaded = false
+    /// Hall, language and talk per channel name, if the page sends them.
+    @Published private(set) var descriptions: [String: ChannelDescription] = [:]
 
     private var player: Player?
     private var playerObservation: AnyCancellable?
@@ -20,12 +22,22 @@ final class Frontend: NSObject, ObservableObject {
 
     private static let messageHandlerName = "c3lingo"
 
+    /// Tells the bridge the app's UI language, so the page uses the same one.
+    private static var configScript: String {
+        let config = ["language": Bundle.main.preferredLocalizations.first ?? "en"]
+        guard let data = try? JSONSerialization.data(withJSONObject: config),
+              let json = String(data: data, encoding: .utf8) else {
+            return ""
+        }
+        return "window.__c3lingoNativeConfig = \(json);\n"
+    }
+
     override init() {
         let configuration = WKWebViewConfiguration()
         let contentController = WKUserContentController()
         if let url = Bundle.main.url(forResource: "FrontendBridge", withExtension: "js"),
            let source = try? String(contentsOf: url, encoding: .utf8) {
-            contentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+            contentController.addUserScript(WKUserScript(source: Self.configScript + source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         } else {
             Log.frontend.fault("FrontendBridge.js is missing from the app bundle")
         }
@@ -67,6 +79,7 @@ final class Frontend: NSObject, ObservableObject {
         self.url = url
         loadError = nil
         hasLoaded = false
+        descriptions = [:]
         webView.load(URLRequest(url: url))
     }
 
@@ -85,16 +98,16 @@ final class Frontend: NSObject, ObservableObject {
         let state: String
         switch player.status {
         case .idle, .paused: state = "stopped"
-        case .connecting, .waiting, .reconnecting: state = "connecting"
+        case .connecting, .reconnecting: state = "connecting"
+        case .waiting: state = "waiting"
         case .playing: state = "playing"
         }
-        let error = player.status == .waiting ? String(localized: "Waiting for audio") : player.lastError
         let detail: [String: Any] = [
             "state": state,
             // A paused channel stays selected, which the protocol allows while stopped.
             "channel": player.channel?.name ?? NSNull(),
             "muted": player.isMuted,
-            "error": error ?? NSNull(),
+            "error": player.lastError ?? NSNull(),
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: detail),
               let json = String(data: data, encoding: .utf8) else {
@@ -139,6 +152,9 @@ final class Frontend: NSObject, ObservableObject {
             if let muted = body["muted"] as? Bool, player?.isMuted != muted {
                 player?.isMuted = muted
             }
+        case "describe":
+            // Only information for display; it doesn't change the player's state.
+            descriptions = ChannelDescription.all(json: body["channels"])
         default:
             Log.frontend.warning("unknown bridge command \(command)")
         }

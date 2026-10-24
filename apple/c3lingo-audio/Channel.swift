@@ -43,3 +43,62 @@ nonisolated struct Channel: Equatable, Sendable {
         return url
     }
 }
+
+/// What the frontend knows about a channel beyond its name: the hall, the language being
+/// interpreted into and the current talk, from the bridge's optional `describe` message.
+nonisolated struct ChannelDescription: Equatable, Sendable {
+    struct Language: Equatable, Sendable {
+        let name: String
+        let flag: String?
+    }
+
+    struct Talk: Equatable, Sendable {
+        let title: String
+        /// The start time as the schedule gives it, e.g. `14:30`.
+        let start: String
+        let started: Bool
+        /// The schedule day, if the talk isn't today.
+        let day: Int?
+    }
+
+    /// The hall's short name, e.g. `One`.
+    let room: String?
+    let language: Language?
+    let talk: Talk?
+
+    init(json: [String: Any]) {
+        func string(_ json: [String: Any]?, _ key: String) -> String? {
+            (json?[key] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        }
+        room = string(json, "room")
+        let language = json["language"] as? [String: Any]
+        self.language = string(language, "name").map { Language(name: $0, flag: string(language, "flag")) }
+        let talk = json["talk"] as? [String: Any]
+        if let title = string(talk, "title"), let start = string(talk, "start") {
+            self.talk = Talk(title: title, start: start, started: talk?["started"] as? Bool ?? false, day: talk?["day"] as? Int)
+        } else {
+            self.talk = nil
+        }
+    }
+
+    /// The hall and language, e.g. "One · 🇬🇧 English", or nil if the language isn't known.
+    var title: String? {
+        guard let language else { return nil }
+        let name = [language.flag, language.name].compactMap { $0 }.joined(separator: " ")
+        return [room, name].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    /// The current or next talk, e.g. "Since 14:30: Opening" or "Next: Day 2, 10:00: Keynote",
+    /// worded like the frontend's hall cards.
+    var talkText: String? {
+        guard let talk else { return nil }
+        let when = talk.day.map { String(localized: "Day \($0), \(talk.start)") } ?? talk.start
+        return talk.started ? String(localized: "Since \(when): \(talk.title)") : String(localized: "Next: \(when): \(talk.title)")
+    }
+
+    /// Parses the `channels` object of a `describe` message, keyed by channel name.
+    static func all(json: Any?) -> [String: ChannelDescription] {
+        guard let json = json as? [String: Any] else { return [:] }
+        return json.compactMapValues { ($0 as? [String: Any]).map(ChannelDescription.init(json:)) }
+    }
+}

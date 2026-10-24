@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -43,60 +44,138 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.mediarouter.app.SystemOutputSwitcherDialogController
 
-/** The native playback controls, shown at the bottom while a channel is selected. */
+/**
+ * The native playback controls, shown at the bottom while a channel is selected.
+ *
+ * Narrow (portrait phones): the hall and language on one line, status and controls
+ * below. Wide: hall, language, status and the current talk on the left, the controls
+ * on the right. Below that, if needed, a message that explains the status.
+ */
 @Composable
-fun PlayerBar(state: Player.State, player: Player) {
-    val context = LocalContext.current
-    val paused = state.status == Player.Status.PAUSED
+fun PlayerBar(state: Player.State, player: Player, description: ChannelDescription?) {
     Surface(tonalElevation = 3.dp) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier
+        BoxWithConstraints(
+            Modifier
                 .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
                 .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
         ) {
-            Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
-                Text(
-                    state.channel?.displayName.orEmpty(),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    StatusIndicator(state)
-                    Text(
-                        statusText(state),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+            val title = description?.title ?: state.channel?.displayName.orEmpty()
+            if (maxWidth >= WIDE_WIDTH) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Title(title, Modifier.weight(1f, fill = false))
+                            Status(state)
+                        }
+                        description?.talk?.let { talk ->
+                            Text(
+                                talkText(talk),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Message(state)
+                    }
+                    Controls(state, player)
                 }
-            }
-            IconButton(onClick = { player.setMuted(!state.isMuted) }) {
-                if (state.isMuted) {
-                    Icon(Icons.AutoMirrored.Filled.VolumeOff, stringResource(R.string.unmute))
-                } else {
-                    Icon(Icons.AutoMirrored.Filled.VolumeUp, stringResource(R.string.mute))
+            } else {
+                Column {
+                    Title(title, Modifier.padding(end = 12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Status(state, Modifier.weight(1f))
+                        Controls(state, player)
+                    }
+                    Message(state, Modifier.padding(end = 12.dp))
                 }
-            }
-            IconButton(onClick = player::togglePause) {
-                if (paused) {
-                    Icon(Icons.Filled.PlayArrow, stringResource(R.string.play))
-                } else {
-                    Icon(Icons.Filled.Pause, stringResource(R.string.pause))
-                }
-            }
-            // Bluetooth, wired and other outputs, through the system's output switcher.
-            IconButton(onClick = { SystemOutputSwitcherDialogController.showDialog(context) }) {
-                Icon(Icons.Outlined.SpeakerGroup, stringResource(R.string.audio_output))
-            }
-            IconButton(onClick = player::stop) {
-                Icon(Icons.Filled.Close, stringResource(R.string.stop))
             }
         }
     }
+}
+
+/** From this width on, the bar puts the controls beside the channel information. */
+private val WIDE_WIDTH = 520.dp
+
+@Composable
+private fun Title(title: String, modifier: Modifier = Modifier) {
+    Text(
+        title,
+        style = MaterialTheme.typography.titleMedium,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun Status(state: Player.State, modifier: Modifier = Modifier) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        StatusIndicator(state)
+        Text(
+            statusText(state),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/** Explains the status: that nothing is being broadcast, or why there's no connection. */
+@Composable
+private fun Message(state: Player.State, modifier: Modifier = Modifier) {
+    val text = when (state.status) {
+        Player.Status.WAITING -> stringResource(R.string.waiting_message)
+        Player.Status.CONNECTING, Player.Status.RECONNECTING -> state.lastError
+        else -> null
+    } ?: return
+    Text(
+        text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun Controls(state: Player.State, player: Player) {
+    val context = LocalContext.current
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        IconButton(onClick = { player.setMuted(!state.isMuted) }) {
+            if (state.isMuted) {
+                Icon(Icons.AutoMirrored.Filled.VolumeOff, stringResource(R.string.unmute))
+            } else {
+                Icon(Icons.AutoMirrored.Filled.VolumeUp, stringResource(R.string.mute))
+            }
+        }
+        IconButton(onClick = player::togglePause) {
+            if (state.status == Player.Status.PAUSED) {
+                Icon(Icons.Filled.PlayArrow, stringResource(R.string.play))
+            } else {
+                Icon(Icons.Filled.Pause, stringResource(R.string.pause))
+            }
+        }
+        // Bluetooth, wired and other outputs, through the system's output switcher.
+        IconButton(onClick = { SystemOutputSwitcherDialogController.showDialog(context) }) {
+            Icon(Icons.Outlined.SpeakerGroup, stringResource(R.string.audio_output))
+        }
+        IconButton(onClick = player::stop) {
+            Icon(Icons.Filled.Close, stringResource(R.string.stop))
+        }
+    }
+}
+
+/**
+ * The current or next talk, e.g. "Since 14:30: Opening" or "Next: Day 2, 10:00: Keynote",
+ * worded like the frontend's hall cards.
+ */
+@Composable
+private fun talkText(talk: ChannelDescription.Talk): String {
+    val time = talk.day?.let { stringResource(R.string.talk_day, it, talk.start) } ?: talk.start
+    return stringResource(if (talk.started) R.string.talk_since else R.string.talk_next, time, talk.title)
 }
 
 @Composable
@@ -124,6 +203,7 @@ private fun statusText(state: Player.State): String = when (state.status) {
     Player.Status.WAITING -> stringResource(R.string.status_waiting)
     Player.Status.PLAYING -> stringResource(if (state.isMuted) R.string.status_live_muted else R.string.status_live)
     Player.Status.PAUSED -> stringResource(R.string.status_paused)
-    Player.Status.RECONNECTING -> state.lastError?.let { stringResource(R.string.status_reconnecting_error, it) }
-        ?: stringResource(R.string.status_reconnecting)
+    // The message below says what's wrong.
+    Player.Status.RECONNECTING ->
+        stringResource(if (state.lastError != null) R.string.status_connection_problem else R.string.status_reconnecting)
 }

@@ -2,9 +2,13 @@
  * Bridge between the c3lingo listen frontend and the native player, implementing
  * version 2 of the native bridge protocol (docs/playback-api.md in listen-frontend).
  *
- * Injected at document start. Page → app: window.c3lingoNative.ready(), play(channel),
- * stop() and setMuted(muted). App → page: "c3lingo:state" events with the full state,
- * dispatched through window.__c3lingoNativeState().
+ * Injected at document start, after the app has set window.__c3lingoNativeConfig to
+ * {language}, the app's UI language as a BCP 47 tag; the page uses it for its own texts.
+ * Page → app: window.c3lingoNative.ready(), play(channel),
+ * stop(), setMuted(muted) and the optional describe(channels), which tells the app the
+ * hall, language and current talk of each channel for its player controls. App → page:
+ * "c3lingo:state" events with the full state, dispatched through
+ * window.__c3lingoNativeState().
  *
  * Only pages that declare <meta name="c3lingo-native-bridge" content="2"> see
  * window.c3lingoNative; any other page is left alone and plays audio itself. The meta
@@ -19,6 +23,9 @@
     "use strict";
 
     const PROTOCOL_VERSION = "2";
+
+    const config = window.__c3lingoNativeConfig ?? {};
+    delete window.__c3lingoNativeConfig;
 
     const webkitHandler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.c3lingo;
     const androidHandler = window.c3lingoAndroid;
@@ -39,11 +46,18 @@
         };
     }
 
+    // Plain data only: the apps validate each field themselves.
+    function descriptions(channels) {
+        return JSON.parse(JSON.stringify(channels ?? {}));
+    }
+
     const bridge = Object.freeze({
+        language: typeof config.language === "string" ? config.language : undefined,
         ready: () => post({ cmd: "ready" }),
         play: (channel) => post({ cmd: "play", channel: channelInfo(channel) }),
         stop: () => post({ cmd: "stop" }),
         setMuted: (muted) => post({ cmd: "setMuted", muted: !!muted }),
+        describe: (channels) => post({ cmd: "describe", channels: descriptions(channels) }),
     });
 
     function pageSupportsBridge() {

@@ -10,6 +10,7 @@ import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel as MessageQueue
@@ -33,7 +34,8 @@ import org.webrtc.RtpReceiver
 import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription
 
-class GaleneException(message: String) : Exception(message)
+/** [unavailable]: the server is reachable but won't let us join, as opposed to a network problem. */
+class GaleneException(message: String, val unavailable: Boolean = false) : Exception(message)
 
 /**
  * A receive-only client for one Galène group, speaking version 2 of the Galène protocol.
@@ -49,11 +51,12 @@ class GaleneSession(
     private val http: OkHttpClient,
 ) {
     sealed interface Event {
-        /** Joined the group; audio will follow as soon as somebody is sending. */
-        data object Joined : Event
         /** Audio is flowing from at least one stream. */
         data object Receiving : Event
-        /** No stream is left, e.g. because the sender stopped. */
+        /**
+         * Joined, but nobody is sending: no stream was offered after joining, or the
+         * last one was closed because the sender stopped. Audio follows when they start.
+         */
         data object Waiting : Event
         data class Failed(val error: Throwable) : Event
     }
@@ -72,6 +75,9 @@ class GaleneSession(
     private var socket: WebSocket? = null
     private val downstreams = mutableMapOf<String, Downstream>()
     private var iceServers = emptyList<PeerConnection.IceServer>()
+    private var offerTimeout: Job? = null
+    /** Streams offered but not yet connected, failing when ICE doesn't get through. */
+    private val mediaTimeouts = mutableMapOf<String, Job>()
     private var lastReceived = SystemClock.elapsedRealtime()
     private var isClosed = false
 
@@ -84,7 +90,7 @@ class GaleneSession(
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                 scope.launch {
-                    fail(GaleneException(reason.ifEmpty { context.getString(R.string.error_kicked) }))
+                    fail(GaleneException(reason.ifEmpty { "The server closed the connection" }))
                 }
             }
 
@@ -105,7 +111,7 @@ class GaleneSession(
             while (isActive) {
                 delay(PING_INTERVAL_MS)
                 if (SystemClock.elapsedRealtime() - lastReceived > TIMEOUT_MS) {
-                    fail(GaleneException(context.getString(R.string.error_timeout)))
+                    fail(GaleneException("The server stopped responding"))
                     return@launch
                 }
                 send(JSONObject().put("type", "ping"))
@@ -139,7 +145,7 @@ class GaleneSession(
         if (isClosed) return
         val socket = socket ?: return
         if (!socket.send(message.toString())) {
-            fail(GaleneException(context.getString(R.string.error_connection_failed)))
+            fail(GaleneException("The audio connection failed"))
         }
     }
 
@@ -166,12 +172,13 @@ class GaleneSession(
             "join" -> {
                 iceServers = parseIceServers(message.optJSONObject("rtcConfiguration"))
                 send(JSONObject().put("type", "request").put("request", JSONObject().put("", JSONArray().put("audio"))))
-                onEvent?.invoke(Event.Joined)
+                offerTimeout = scope.launch {
+                    delay(OFFER_TIMEOUT_MS)
+                    if (downstreams.isEmpty()) onEvent?.invoke(Event.Waiting)
+                }
             }
-            "fail" -> fail(GaleneException(context.getString(
-                R.string.error_join_failed,
-                message.string("value") ?: context.getString(R.string.error_unknown_reason))))
-            "leave" -> fail(GaleneException(message.string("value") ?: context.getString(R.string.error_kicked)))
+            "fail" -> fail(GaleneException("Unable to join the channel: ${message.string("value") ?: "unknown reason"}", unavailable = true))
+            "leave" -> fail(GaleneException(message.string("value") ?: "The server closed the connection", unavailable = true))
         }
     }
 
@@ -190,11 +197,16 @@ class GaleneSession(
         val downstream = downstreams[streamId] ?: run {
             val created = Downstream.create(streamId, iceServers, this)
             if (created == null) {
-                fail(GaleneException(context.getString(R.string.error_connection_failed)))
+                fail(GaleneException("The audio connection failed"))
                 return
             }
             created.setMuted(isMuted)
             downstreams[streamId] = created
+            offerTimeout?.cancel()
+            mediaTimeouts[streamId] = scope.launch {
+                delay(MEDIA_TIMEOUT_MS)
+                fail(GaleneException("The audio connection timed out"))
+            }
             created
         }
 
@@ -221,6 +233,7 @@ class GaleneSession(
 
     private fun closeDownstream(streamId: String) {
         val downstream = downstreams.remove(streamId) ?: return
+        mediaTimeouts.remove(streamId)?.cancel()
         downstream.close()
         if (downstreams.isEmpty()) onEvent?.invoke(Event.Waiting)
     }
@@ -242,9 +255,11 @@ class GaleneSession(
         scope.launch {
             if (downstreams[streamId] == null) return@launch
             when (state) {
-                PeerConnection.PeerConnectionState.CONNECTED -> onEvent?.invoke(Event.Receiving)
-                PeerConnection.PeerConnectionState.FAILED ->
-                    fail(GaleneException(context.getString(R.string.error_connection_failed)))
+                PeerConnection.PeerConnectionState.CONNECTED -> {
+                    mediaTimeouts.remove(streamId)?.cancel()
+                    onEvent?.invoke(Event.Receiving)
+                }
+                PeerConnection.PeerConnectionState.FAILED -> fail(GaleneException("The audio connection failed"))
                 else -> Unit
             }
         }
@@ -254,6 +269,10 @@ class GaleneSession(
         const val TAG = "galene"
         const val PING_INTERVAL_MS = 5_000L
         const val TIMEOUT_MS = 15_000L
+        /** After joining, Galène offers the streams that are already there right away. */
+        const val OFFER_TIMEOUT_MS = 2_000L
+        /** Time for ICE to connect after answering an offer. */
+        const val MEDIA_TIMEOUT_MS = 15_000L
 
         fun parseIceServers(configuration: JSONObject?): List<PeerConnection.IceServer> {
             val servers = configuration?.optJSONArray("iceServers") ?: return emptyList()

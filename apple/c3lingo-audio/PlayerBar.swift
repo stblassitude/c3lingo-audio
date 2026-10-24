@@ -23,16 +23,11 @@ struct PlayerBar: View {
                             title
                             status
                         }
-                        if let talk = description?.talkText {
-                            Text(talk)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
+                        .accessibilityElement(children: .combine)
+                        talk
                         message
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityElement(children: .combine)
                     controls
                 }
             } else {
@@ -66,6 +61,23 @@ struct PlayerBar: View {
             .font(.headline)
             .lineLimit(1)
             .truncationMode(.tail)
+    }
+
+    /// The current or next talk, a link to its page in the browser if the schedule has one.
+    @ViewBuilder private var talk: some View {
+        if let text = description?.talkText {
+            Group {
+                if let url = description?.talk?.url {
+                    Link(text, destination: url)
+                        .accessibilityHint("Opens the talk's page in the browser")
+                } else {
+                    Text(text)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .font(.subheadline)
+            .lineLimit(1)
+        }
     }
 
     private var status: some View {

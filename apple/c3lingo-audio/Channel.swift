@@ -54,6 +54,8 @@ nonisolated struct ChannelDescription: Equatable, Sendable {
 
     struct Talk: Equatable, Sendable {
         let title: String
+        /// The talk's page in the schedule, only if it is an `http` or `https` URL.
+        let url: URL?
         /// The start time as the schedule gives it, e.g. `14:30`.
         let start: String
         let started: Bool
@@ -75,7 +77,8 @@ nonisolated struct ChannelDescription: Equatable, Sendable {
         self.language = string(language, "name").map { Language(name: $0, flag: string(language, "flag")) }
         let talk = json["talk"] as? [String: Any]
         if let title = string(talk, "title"), let start = string(talk, "start") {
-            self.talk = Talk(title: title, start: start, started: talk?["started"] as? Bool ?? false, day: talk?["day"] as? Int)
+            let url = string(talk, "url").flatMap(URL.init(string:)).flatMap { ["http", "https"].contains($0.scheme?.lowercased()) ? $0 : nil }
+            self.talk = Talk(title: title, url: url, start: start, started: talk?["started"] as? Bool ?? false, day: talk?["day"] as? Int)
         } else {
             self.talk = nil
         }

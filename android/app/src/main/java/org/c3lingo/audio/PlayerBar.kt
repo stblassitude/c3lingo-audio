@@ -1,11 +1,15 @@
 package org.c3lingo.audio
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.util.Log
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -67,15 +71,7 @@ fun PlayerBar(state: Player.State, player: Player, description: ChannelDescripti
                             Title(title, Modifier.weight(1f, fill = false))
                             Status(state)
                         }
-                        description?.talk?.let { talk ->
-                            Text(
-                                talkText(talk),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
+                        description?.talk?.let { Talk(it) }
                         Message(state)
                     }
                     Controls(state, player)
@@ -102,6 +98,32 @@ private fun Title(title: String, modifier: Modifier = Modifier) {
     Text(
         title,
         style = MaterialTheme.typography.titleMedium,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+}
+
+/** The current or next talk, a link to its page in the browser if the schedule has one. */
+@Composable
+private fun Talk(talk: ChannelDescription.Talk) {
+    val context = LocalContext.current
+    val url = talk.url
+    val modifier = if (url != null) {
+        Modifier.clickable(onClickLabel = stringResource(R.string.open_talk)) {
+            try {
+                context.startActivity(Intent(Intent.ACTION_VIEW, url))
+            } catch (e: ActivityNotFoundException) {
+                Log.w("PlayerBar", "no app to open $url")
+            }
+        }
+    } else {
+        Modifier
+    }
+    Text(
+        talkText(talk),
+        style = MaterialTheme.typography.bodyMedium,
+        color = if (url != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,

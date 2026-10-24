@@ -545,6 +545,40 @@
         }
       }
     },
+    "Opens the talk's page in the browser": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet die Seite des Vortrags im Browser"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre la página de la charla en el navegador"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre la page de la conférence dans le navigateur"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwiera stronę wykładu w przeglądarce"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre a página da palestra no navegador"
+          }
+        }
+      }
+    },
     "Pause": {
       "localizations": {
         "de": {

@@ -20,6 +20,7 @@
     <string name="talk_day">Day %1$d, %2$s</string>
     <string name="talk_since">Since %1$s: %2$s</string>
     <string name="talk_next">Next: %1$s: %2$s</string>
+    <string name="open_talk">Open the talk\'s page</string>
 
     <string name="mute">Mute</string>
     <string name="unmute">Unmute</string>

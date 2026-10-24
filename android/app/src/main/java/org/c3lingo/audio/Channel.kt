@@ -71,6 +71,8 @@ data class ChannelDescription(
 
     data class Talk(
         val title: String,
+        /** The talk's page in the schedule, only if it is an `http` or `https` URL. */
+        val url: Uri?,
         /** The start time as the schedule gives it, e.g. `14:30`. */
         val start: String,
         val started: Boolean,
@@ -96,7 +98,8 @@ data class ChannelDescription(
                 room = json.string("room"),
                 language = language?.string("name")?.let { Language(it, language.string("flag")) },
                 talk = if (title != null && start != null) {
-                    Talk(title, start, talk.opt("started") as? Boolean ?: false, (talk.opt("day") as? Number)?.toInt())
+                    val url = talk.string("url")?.toUri()?.takeIf { it.scheme?.lowercase() in setOf("http", "https") }
+                    Talk(title, url, start, talk.opt("started") as? Boolean ?: false, (talk.opt("day") as? Number)?.toInt())
                 } else {
                     null
                 },

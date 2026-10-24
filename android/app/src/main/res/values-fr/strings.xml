@@ -17,6 +17,7 @@
     <string name="talk_day">jour %1$d, %2$s</string>
     <string name="talk_since">Depuis %1$s : %2$s</string>
     <string name="talk_next">Ensuite : %1$s : %2$s</string>
+    <string name="open_talk">Ouvrir la page de la conférence</string>
     <string name="mute">Couper le son</string>
     <string name="unmute">Réactiver le son</string>
     <string name="play">Lire</string>

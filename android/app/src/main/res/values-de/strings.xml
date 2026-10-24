@@ -17,6 +17,7 @@
     <string name="talk_day">Tag %1$d, %2$s</string>
     <string name="talk_since">Seit %1$s: %2$s</string>
     <string name="talk_next">Als Nächstes: %1$s: %2$s</string>
+    <string name="open_talk">Seite des Vortrags öffnen</string>
     <string name="mute">Stummschalten</string>
     <string name="unmute">Ton an</string>
     <string name="play">Abspielen</string>

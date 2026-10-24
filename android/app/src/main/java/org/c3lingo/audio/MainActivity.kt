@@ -83,9 +83,14 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             var first = true
             app.settings.serverURL.collect { url ->
-                if (!first) app.player.stop()
+                if (first) {
+                    frontend.load(url)
+                } else {
+                    // A different server: start over as if the app had just been launched.
+                    app.player.stop()
+                    frontend.restart(url)
+                }
                 first = false
-                frontend.load(url)
             }
         }
     }

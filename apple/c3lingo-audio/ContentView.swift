@@ -10,6 +10,8 @@ struct ContentView: View {
         VStack(spacing: 0) {
             ZStack {
                 FrontendView(frontend: frontend)
+                    // A new web view after a server change needs a new view.
+                    .id(ObjectIdentifier(frontend.webView))
                     .ignoresSafeArea(edges: player.channel == nil ? .all : .top)
                 if let error = frontend.loadError {
                     LoadErrorView(message: error, url: settings.serverURL) {
@@ -33,7 +35,7 @@ struct ContentView: View {
         }
         .onReceive(settings.$serverURL.dropFirst().removeDuplicates()) { url in
             player.stop()
-            frontend.load(url)
+            frontend.restart(url)
         }
     }
 }

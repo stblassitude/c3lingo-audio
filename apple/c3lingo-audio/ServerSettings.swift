@@ -1,5 +1,8 @@
 import Combine
 import Foundation
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// The frontend server the app talks to.
 ///
@@ -28,10 +31,16 @@ final class ServerSettings: ObservableObject {
 
     private init() {
         serverURL = Self.url(from: UserDefaults.standard.string(forKey: Self.key)) ?? Self.defaultURL
-        // Changes made in the Settings app arrive when the app becomes active again.
+        // Changes made in the Settings app arrive when the app becomes active again, but
+        // the change notification isn't reliable for them, so also check on activation.
         NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { ServerSettings.shared.refresh() }
         }
+        #if canImport(UIKit)
+        NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { ServerSettings.shared.refresh() }
+        }
+        #endif
     }
 
     private func refresh() {

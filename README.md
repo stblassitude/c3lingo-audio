@@ -120,6 +120,10 @@ The apps use `https://audio.c3lingo.org/` by default. For testing:
 Leave it empty to go back to the default. Plain `http` is allowed for local network
 addresses only (Apple), or in debug builds only (Android).
 
+A changed URL takes effect right away, also while the app is running: playback stops
+and the app starts over with a new web view, without any page state, cache or storage
+left from the previous server.
+
 For testing playback without tapping through the UI, `-autoplay test` (Android:
 `-e autoplay test`) selects a channel (here `test`) once the page has loaded, exactly as
 if it had been clicked.

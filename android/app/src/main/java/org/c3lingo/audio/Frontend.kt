@@ -9,10 +9,12 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.view.ViewGroup
+import android.webkit.CookieManager
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.RequiresApi
@@ -80,6 +82,21 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         webView.loadUrl(url.toString())
     }
 
+    /**
+     * Starts over with [url] in a new web view, without anything left from before: no
+     * page state, history, cache, storage or cookies. Used when the server changes.
+     */
+    fun restart(url: Uri) {
+        Log.i(TAG, "starting over with $url")
+        webView.stopLoading()
+        webView.clearCache(true)
+        WebStorage.getInstance().deleteAllData()
+        CookieManager.getInstance().removeAllCookies(null)
+        replaceWebView()
+        this.url = null
+        load(url)
+    }
+
     fun reload() {
         _loadError.value = null
         if (_hasLoaded.value) {
@@ -101,6 +118,16 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         settings.domStorageEnabled = true
         webViewClient = Client()
         webChromeClient = WebChromeClient()
+    }
+
+    /** Replaces the web view with a new one; the bridge is installed again on the next load. */
+    private fun replaceWebView() {
+        view.removeView(webView)
+        webView.destroy()
+        scriptHandler = null
+        listenerInstalled = false
+        webView = createWebView()
+        view.addView(webView)
     }
 
     // Bridge
@@ -228,12 +255,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
             Log.e(TAG, "web content process gone (crashed: ${detail.didCrash()}), reloading")
             // The web view can't be used any more; replace it.
-            this@Frontend.view.removeView(webView)
-            webView.destroy()
-            scriptHandler = null
-            listenerInstalled = false
-            webView = createWebView()
-            this@Frontend.view.addView(webView)
+            replaceWebView()
             url?.let {
                 this@Frontend.url = null
                 load(it)

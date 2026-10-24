@@ -10,7 +10,8 @@ import WebKit
 /// The player's state is the only source of truth: commands from the page go to the
 /// player, and every state change, whatever caused it, is reported back in full.
 final class Frontend: NSObject, ObservableObject {
-    let webView: WKWebView
+    /// Replaced by a new one when the server changes, see `restart(_:)`.
+    @Published private(set) var webView: WKWebView
     @Published private(set) var loadError: String?
     @Published private(set) var hasLoaded = false
     /// Hall, language and talk per channel name, if the page sends them.
@@ -33,6 +34,12 @@ final class Frontend: NSObject, ObservableObject {
     }
 
     override init() {
+        webView = Self.makeWebView()
+        super.init()
+        configure(webView)
+    }
+
+    private static func makeWebView() -> WKWebView {
         let configuration = WKWebViewConfiguration()
         let contentController = WKUserContentController()
         if let url = Bundle.main.url(forResource: "FrontendBridge", withExtension: "js"),
@@ -42,10 +49,11 @@ final class Frontend: NSObject, ObservableObject {
             Log.frontend.fault("FrontendBridge.js is missing from the app bundle")
         }
         configuration.userContentController = contentController
-        webView = WKWebView(frame: .zero, configuration: configuration)
-        super.init()
+        return WKWebView(frame: .zero, configuration: configuration)
+    }
 
-        contentController.add(WeakScriptMessageHandler(self), name: Self.messageHandlerName)
+    private func configure(_ webView: WKWebView) {
+        webView.configuration.userContentController.add(WeakScriptMessageHandler(self), name: Self.messageHandlerName)
         webView.navigationDelegate = self
         webView.uiDelegate = self
         webView.allowsBackForwardNavigationGestures = false
@@ -81,6 +89,29 @@ final class Frontend: NSObject, ObservableObject {
         hasLoaded = false
         descriptions = [:]
         webView.load(URLRequest(url: url))
+    }
+
+    /// Starts over with `url` in a new web view, without anything left from before: no
+    /// page state, history, cache or storage. Used when the server changes.
+    func restart(_ url: URL) {
+        Log.frontend.info("starting over with \(url)")
+        let old = webView
+        old.stopLoading()
+        old.navigationDelegate = nil
+        old.uiDelegate = nil
+        old.configuration.userContentController.removeScriptMessageHandler(forName: Self.messageHandlerName)
+        self.url = nil
+        loadError = nil
+        hasLoaded = false
+        descriptions = [:]
+        let dataStore = WKWebsiteDataStore.default()
+        dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) { [weak self] in
+            guard let self else { return }
+            let webView = Self.makeWebView()
+            configure(webView)
+            self.webView = webView
+            load(url)
+        }
     }
 
     func reload() {

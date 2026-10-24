@@ -9,6 +9,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>c3lingo only plays audio and never uses the camera. The WebRTC library it includes also supports video, which is why this permission is listed.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Connects to a test server on your local network, if you configured one.</string>
 	<key>UILaunchScreen</key>

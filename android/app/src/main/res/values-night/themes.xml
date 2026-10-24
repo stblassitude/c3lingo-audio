@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- A dark parent, so the WebView reports prefers-color-scheme: dark to the frontend. -->
+    <style name="Theme.C3lingo" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

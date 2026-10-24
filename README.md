@@ -262,3 +262,8 @@ To upload from a Mac instead, archive in Xcode (destination Any iOS Device, then
 Product → Archive) and choose Distribute App → TestFlight & App Store in the Organizer,
 or run the two `xcodebuild` commands from the workflow. Without the `-authentication…`
 options they use the Apple ID signed in to Xcode.
+
+## License
+
+MIT, see [LICENSE](LICENSE). The apps include LiveKit's build of WebRTC, which comes
+under its own BSD-style license.

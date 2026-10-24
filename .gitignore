@@ -4,6 +4,7 @@ xcuserdata/
 # Build output
 /apple/build/
 
-# Signing keys, kept out of the repository (see "Releasing the Android app" in README.md)
+# Signing and API keys, kept out of the repository (see "Releasing the Android app" and "Releasing the Apple app" in README.md)
 *.jks
 *.keystore
+*.p8

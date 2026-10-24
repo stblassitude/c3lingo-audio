@@ -1,0 +1,73 @@
+# Builds the iOS app for a tag such as v1.2.0 and uploads it to App Store Connect,
+# where it shows up in TestFlight once Apple has processed it.
+name: Apple TestFlight
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  testflight:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The whole history: for the build number.
+          fetch-depth: 0
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "27"
+
+      - name: Determine version
+        id: version
+        run: |
+          echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          # Grows with every commit, as App Store Connect requires for each upload.
+          echo "build=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up App Store Connect API key
+        env:
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          if [ -z "$APP_STORE_CONNECT_KEY" ] || [ -z "$APP_STORE_CONNECT_KEY_ID" ] || [ -z "$APP_STORE_CONNECT_ISSUER_ID" ]; then
+            echo "::error::App Store Connect secrets are missing; see 'Releasing the Apple app' in README.md."
+            exit 1
+          fi
+          echo "$APP_STORE_CONNECT_KEY" > "$RUNNER_TEMP/AuthKey.p8"
+          {
+            echo "AUTH_KEY_PATH=$RUNNER_TEMP/AuthKey.p8"
+            echo "AUTH_KEY_ID=$APP_STORE_CONNECT_KEY_ID"
+            echo "AUTH_ISSUER_ID=$APP_STORE_CONNECT_ISSUER_ID"
+          } >> "$GITHUB_ENV"
+
+      - name: Archive
+        working-directory: apple
+        run: >
+          xcodebuild archive
+          -scheme c3lingo-audio
+          -destination 'generic/platform=iOS'
+          -archivePath build/c3lingo-audio.xcarchive
+          -allowProvisioningUpdates
+          -authenticationKeyPath "$AUTH_KEY_PATH"
+          -authenticationKeyID "$AUTH_KEY_ID"
+          -authenticationKeyIssuerID "$AUTH_ISSUER_ID"
+          MARKETING_VERSION=${{ steps.version.outputs.name }}
+          CURRENT_PROJECT_VERSION=${{ steps.version.outputs.build }}
+
+      - name: Upload to App Store Connect
+        working-directory: apple
+        run: >
+          xcodebuild -exportArchive
+          -archivePath build/c3lingo-audio.xcarchive
+          -exportOptionsPlist ExportOptions.plist
+          -exportPath build/export
+          -allowProvisioningUpdates
+          -authenticationKeyPath "$AUTH_KEY_PATH"
+          -authenticationKeyID "$AUTH_KEY_ID"
+          -authenticationKeyIssuerID "$AUTH_ISSUER_ID"

@@ -222,3 +222,29 @@ To build a signed release locally, set `ANDROID_KEYSTORE_FILE` to the keystore's
 and the three other variables to the same values, then run
 `./gradlew :app:assembleRelease` in `android/`. Without them, the release APKs are
 unsigned.
+
+## Releasing the Apple app
+
+The same `v*` tag also runs `.github/workflows/apple-testflight.yml`. It archives the iOS
+app and uploads it to App Store Connect with the settings in `apple/ExportOptions.plist`;
+after Apple has processed it (usually 10 to 30 minutes), the build appears in TestFlight.
+As on Android, the version comes from the tag and the build number is the number of
+commits, so every upload has a higher one.
+
+The app record for `org.c3lingo.audio` has to exist in App Store Connect before the first
+upload. The workflow signs with Xcode's automatic signing through an App Store Connect
+API key, which it reads from three repository secrets. Create the key under Users and
+Access → Integrations → App Store Connect API with the **Admin** role, which automatic
+signing needs to create certificates and profiles. The `.p8` file can be downloaded only
+once:
+
+```sh
+gh secret set APP_STORE_CONNECT_KEY < AuthKey_XXXXXXXXXX.p8
+gh secret set APP_STORE_CONNECT_KEY_ID --body XXXXXXXXXX
+gh secret set APP_STORE_CONNECT_ISSUER_ID --body 00000000-0000-0000-0000-000000000000
+```
+
+To upload from a Mac instead, archive in Xcode (destination Any iOS Device, then
+Product → Archive) and choose Distribute App → TestFlight & App Store in the Organizer,
+or run the two `xcodebuild` commands from the workflow. Without the `-authentication…`
+options they use the Apple ID signed in to Xcode.

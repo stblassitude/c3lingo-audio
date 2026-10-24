@@ -99,6 +99,48 @@ The app's player states map onto the protocol like this:
 An offered stream that doesn't connect within 15 s (ICE failing, e.g. because UDP is
 blocked) counts as a network problem, like in the frontend's own player.
 
+## Translations
+
+The apps come in the frontend's six languages: English, German, French, Spanish,
+Portuguese and Polish. They use the system's language, or on Android 13 and later
+and iOS the language picked for the app in the system settings. English is the source
+and the fallback.
+
+Most of what a listener reads comes from the web page and is translated in
+[listen-frontend](https://codeberg.org/c3lingo/listen-frontend), not here. The app
+tells the page its own language, so both always match. The apps translate only their
+own native parts:
+
+- the player bar: status ("Live", "Nothing playing", …), the message under it, the
+  talk line ("Since 14:30: …", "Next: Day 2, 10:00: …") and the labels screen readers
+  read for the buttons
+- the connection errors in the player bar and in the state sent to the page, worded
+  like the frontend's own
+- the screen shown when the channel list can't be loaded
+- the server settings, which are for testing only
+- on Apple, the permission texts the system shows (local network, and camera, which
+  is never used but App Store Connect requires)
+
+Hall names, languages and talk titles come from the server and aren't translated.
+Where the frontend has the same text, use its wording.
+
+Files to check:
+
+| | file | notes |
+|---|---|---|
+| Apple | `apple/c3lingo-audio/Localizable.xcstrings` | all texts of the app; edit in Xcode, or as JSON |
+| Apple | `apple/c3lingo-audio/InfoPlist.xcstrings` | permission texts |
+| Apple | `apple/c3lingo-audio/Settings.bundle/*.lproj/Root.strings` | the app's page in the Settings app |
+| Android | `android/app/src/main/res/values-*/strings.xml` | `values/strings.xml` is English |
+
+In the Android files, keep the placeholders (`%1$s`, `%1$d`) and escape apostrophes
+as `\'`. `language_tag` is not a text but the language's code, passed to the page.
+`%@` and `%lld` in the Apple catalog are placeholders, too.
+
+A new language needs a translation in all of these files, and its code added to
+`android/app/src/main/res/xml/locales_config.xml` and to `knownRegions` in the Xcode
+project. The frontend needs to support it as well, or the page will be in English.
+
 ## Icons
 
 All icons are rendered from `shared/icon/c3lingo-logo.svg`, a copy of the logo in

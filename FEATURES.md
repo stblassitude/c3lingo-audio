@@ -25,6 +25,7 @@ what isn't done yet in the table at the end.
 - **Links leaving the frontend open in the browser**, e.g. the schedule. Links within
   the server stay in the app.
 - **Pull to refresh** reloads the page (iOS, Android).
+- **No zooming:** the page scrolls, but pinching and double tapping don't zoom it.
 - **The web content process may crash**; the page is then reloaded without user
   interaction.
 - **Inspectable in debug builds** (Safari Web Inspector, Chrome `chrome://inspect`).

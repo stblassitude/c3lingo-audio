@@ -116,6 +116,8 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
+        // The page scrolls but can't be zoomed, neither by pinching nor by double tapping.
+        settings.setSupportZoom(false)
         webViewClient = Client()
         webChromeClient = WebChromeClient()
     }

@@ -33,6 +33,23 @@ final class Frontend: NSObject, ObservableObject {
         return "window.__c3lingoNativeConfig = \(json);\n"
     }
 
+    /// The page scrolls but can't be zoomed, neither by pinching nor by double tapping:
+    /// limits the page's viewport to its initial scale, which WKWebView respects.
+    private static let noZoomScript = """
+        (() => {
+            let viewport = document.querySelector('meta[name="viewport"]');
+            if (!viewport) {
+                viewport = document.createElement("meta");
+                viewport.name = "viewport";
+                viewport.content = "width=device-width, initial-scale=1";
+                document.head.appendChild(viewport);
+            }
+            const kept = viewport.content.split(",").map((part) => part.trim())
+                .filter((part) => part && !/^(minimum-scale|maximum-scale|user-scalable)\\s*=/i.test(part));
+            viewport.content = [...kept, "maximum-scale=1", "user-scalable=no"].join(", ");
+        })();
+        """
+
     override init() {
         webView = Self.makeWebView()
         super.init()
@@ -48,6 +65,7 @@ final class Frontend: NSObject, ObservableObject {
         } else {
             Log.frontend.fault("FrontendBridge.js is missing from the app bundle")
         }
+        contentController.addUserScript(WKUserScript(source: Self.noZoomScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         configuration.userContentController = contentController
         return WKWebView(frame: .zero, configuration: configuration)
     }

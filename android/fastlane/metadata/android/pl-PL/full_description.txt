@@ -1,0 +1,13 @@
+Słuchaj tłumaczeń na żywo c3lingo i dźwięku z sal podczas wykładów na Chaos Communication Congress i innych wydarzeniach, na telefonie i we własnych słuchawkach.
+
+Aplikacja pokazuje listę kanałów wydarzenia pobraną z serwera, więc zawsze pasuje do bieżącego wydarzenia. Odtwarzanie jest natywne:
+
+• gra w tle i przy zablokowanym ekranie
+• sterowanie w powiadomieniu, na ekranie blokady i ze słuchawek
+• wybór wyjścia, np. słuchawek Bluetooth, w systemowym przełączniku wyjścia
+• automatycznie łączy się ponownie po zmianie sieci i przerwach, np. połączeniach telefonicznych
+• nigdy nie używa mikrofonu i odtwarza dźwięk jako multimedia, a nie jako rozmowę
+
+Dźwięk jest przesyłany przez WebRTC z serwera Galène (https://galene.org/). Aplikacja łączy się z https://audio.c3lingo.org/, co można zmienić w ustawieniach.
+
+Aplikacja jest open source: https://github.com/stblassitude/c3lingo-audio

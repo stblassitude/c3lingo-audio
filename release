@@ -1,0 +1,86 @@
+#!/bin/bash
+# Releases both apps: takes the release notes from release-notes/, sets the Android
+# version, commits, tags v<version> and pushes. The tag starts the release workflows.
+# See "Releasing" in README.md.
+#
+#   ./release 1.2.0        asks before pushing
+#   ./release -y 1.2.0     doesn't ask
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+yes=
+if [ "${1:-}" = -y ]; then
+    yes=1
+    shift
+fi
+if [ $# -ne 1 ] || ! [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "usage: $0 [-y] <major.minor.patch>" >&2
+    exit 2
+fi
+version=$1
+tag=v$version
+
+gradle=android/app/build.gradle.kts
+metadata=android/fastlane/metadata/android
+notes=release-notes
+
+fail() {
+    echo "$0: $*" >&2
+    exit 1
+}
+
+# Release notes are counted in characters, not bytes.
+export LC_ALL=en_US.UTF-8
+
+# Only from an up-to-date main without local changes, so the tag is what's on GitHub.
+[ "$(git branch --show-current)" = main ] || fail "not on main"
+[ -z "$(git status --porcelain)" ] || fail "uncommitted changes"
+git fetch --quiet origin main --tags
+[ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] || fail "main differs from origin/main"
+! git rev-parse --quiet --verify "refs/tags/$tag" >/dev/null || fail "$tag exists already"
+
+old_name=$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' "$gradle")
+old_code=$(sed -n 's/^ *versionCode = \([0-9]*\)$/\1/p' "$gradle")
+[ -n "$old_name" ] && [ -n "$old_code" ] || fail "no versionName or versionCode in $gradle"
+[ "$(printf '%s\n' "$old_name" "$version" | sort -V | tail -1)" = "$version" ] \
+    && [ "$old_name" != "$version" ] || fail "$version isn't after $old_name"
+code=$((old_code + 1))
+
+# One file per language, named like the folders in android/fastlane/metadata/android/.
+[ -s "$notes/en-US.txt" ] || fail "write the release notes into $notes/en-US.txt first"
+for file in "$notes"/*.txt; do
+    locale=$(basename "$file" .txt)
+    [ -d "$metadata/$locale" ] || fail "$file: no language $locale in $metadata"
+    # Google Play's and F-Droid's limit.
+    length=$(wc -m < "$file" | tr -d ' ')
+    [ "$length" -le 500 ] || fail "$file: $length characters, at most 500"
+done
+
+echo "versionName $old_name -> $version"
+echo "versionCode $old_code -> $code"
+sed -i.bak \
+    -e "s/^\( *versionName = \)\".*\"$/\1\"$version\"/" \
+    -e "s/^\( *versionCode = \)[0-9]*$/\1$code/" \
+    "$gradle"
+rm "$gradle.bak"
+for file in "$notes"/*.txt; do
+    locale=$(basename "$file" .txt)
+    mkdir -p "$metadata/$locale/changelogs"
+    git mv "$file" "$metadata/$locale/changelogs/$code.txt"
+    echo "release notes: $metadata/$locale/changelogs/$code.txt"
+done
+
+git add "$gradle"
+git commit --quiet -m "Release $version"
+git tag -a "$tag" -F "$metadata/en-US/changelogs/$code.txt"
+git log --oneline -1
+
+if [ -z "$yes" ]; then
+    read -r -p "Push main and $tag to origin? [y/N] " answer
+    if [ "$answer" != y ]; then
+        echo "Not pushed. To undo: git tag -d $tag && git reset --hard HEAD^"
+        exit 1
+    fi
+fi
+git push --atomic origin main "$tag"

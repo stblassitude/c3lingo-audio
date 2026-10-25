@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val singleAbi = providers.gradleProperty("abi").orNull
+
 android {
     namespace = "org.c3lingo.audio"
     compileSdk = 37
@@ -11,21 +13,37 @@ android {
         applicationId = "org.c3lingo.audio"
         minSdk = 24
         targetSdk = 36
-        // Release builds get both from the tag, see .github/workflows/android-release.yml.
-        versionCode = providers.gradleProperty("versionCode").orNull?.toInt() ?: 1
-        versionName = providers.gradleProperty("versionName").orNull ?: "1.0"
+        // The last release, written by ./release, which tags it as v<versionName>. F-Droid
+        // reads both from here, so they must stay literals. See "Releasing" in README.md.
+        versionCode = 26
+        versionName = "0.9.4"
+        if (singleAbi != null) {
+            ndk { abiFilters += singleAbi }
+            // F-Droid's scheme: the ABI in the last digit, in this order.
+            val abis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            require(singleAbi in abis) { "abi must be one of $abis" }
+            versionCode = versionCode!! * 10 + abis.indexOf(singleAbi) + 1
+        }
     }
 
     // One APK per processor architecture, as WebRTC's native code makes up most of the
     // size, and one universal APK with all of them. Off for app bundles, which Play splits
     // itself, and which fail to build with it, see https://issuetracker.google.com/402800800.
+    // Also off with -Pabi=<ABI>, which builds a single APK for that ABI only, as F-Droid does.
     splits {
         abi {
-            isEnable = gradle.startParameter.taskNames.none { it.contains("bundle", ignoreCase = true) }
+            isEnable = singleAbi == null && gradle.startParameter.taskNames.none { it.contains("bundle", ignoreCase = true) }
             reset()
             include("arm64-v8a", "armeabi-v7a", "x86_64")
             isUniversalApk = true
         }
+    }
+
+    // Leave out the dependency list that Gradle encrypts with a key only Google can read;
+    // F-Droid doesn't accept it.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     // Release signing comes from the environment; without it, release APKs are unsigned.

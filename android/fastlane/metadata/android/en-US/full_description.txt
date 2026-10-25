@@ -1,0 +1,13 @@
+Listen to c3lingo's live interpretation and the hall audio of talks at the Chaos Communication Congress and other events, on your phone and with your own headphones.
+
+The app shows the event's channel list from the server, so it always matches the current event. Playback is native:
+
+• keeps playing in the background and with the screen locked
+• controls in the notification, on the lock screen and on headsets
+• choose the output, such as Bluetooth headphones, with the system output switcher
+• reconnects automatically after network changes and interruptions such as phone calls
+• never uses the microphone, and plays as media, not as a call
+
+The audio is streamed with WebRTC from a Galène server (https://galene.org/). The app connects to https://audio.c3lingo.org/, which can be changed in the settings.
+
+The app is open source: https://github.com/stblassitude/c3lingo-audio

@@ -1,0 +1,15 @@
+Hör die Live-Übersetzungen von c3lingo und den Saalton der Vorträge beim Chaos Communication Congress und anderen Veranstaltungen, auf dem Handy und mit deinen eigenen Kopfhörern.
+
+Die App zeigt die Kanalliste der Veranstaltung vom Server, sie passt also immer zur aktuellen Veranstaltung. Die Wiedergabe ist nativ:
+
+• spielt im Hintergrund und bei gesperrtem Bildschirm weiter
+• Steuerung auf dem Sperrbildschirm, im Kontrollzentrum und an Kopfhörern
+• Ausgabe über AirPlay und Bluetooth
+• verbindet sich nach Netzwechseln und Unterbrechungen wie Anrufen automatisch neu
+• nutzt nie das Mikrofon und spielt als Medium, nicht als Anruf
+
+Für iPhone, iPad, Mac und Apple Vision Pro.
+
+Der Ton kommt per WebRTC von einem Galène-Server (https://galene.org/). Die App verbindet sich mit https://audio.c3lingo.org/, das lässt sich in den Einstellungen ändern.
+
+Die App ist Open Source: https://github.com/stblassitude/c3lingo-audio

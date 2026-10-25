@@ -22,13 +22,15 @@ update. Playback is done natively:
 ```
 apple/     Xcode project for iOS, iPadOS, macOS and visionOS
   screenshots/        takes the App Store screenshots
-  fastlane/           uploads them
+  fastlane/           store texts; uploads them with the screenshots
 android/   Gradle project for Android
   screenshots/        takes the Google Play screenshots
-  fastlane/           uploads them
+  fastlane/           store listing and release notes, also for F-Droid; uploads them
 shared/    used by both apps
   FrontendBridge.js   injected into the frontend, see below
   icon/               logo and the script that renders all app icons
+release-notes/        notes for the next release, see "Releasing"
+release               releases both apps
 FEATURES.md           what the apps do, and where they differ
 ```
 
@@ -251,19 +253,55 @@ In the emulator, `10.0.2.2` is the Mac, so that reaches a test server running th
 `./gradlew :app:assembleRelease` builds a release APK (it needs signing set up to
 install).
 
+## Releasing
+
+Both apps are released together, from one tag such as `v1.2.0`, made by `./release`:
+
+1. Write the release notes into `release-notes/<language>.txt`, at most 500 characters
+   each (Google Play's and F-Droid's limit), with the languages named like the folders
+   in `android/fastlane/metadata/android/`. `en-US.txt` is required; languages without
+   notes get the English ones.
+2. Commit them to `main`, push, and run `./release 1.2.0` (`-y` to push without asking).
+
+The script sets `versionName` to the new version and increments `versionCode` in
+`android/app/build.gradle.kts`, moves the release notes to
+`android/fastlane/metadata/android/<language>/changelogs/<versionCode>.txt`, commits
+"Release 1.2.0", tags it `v1.2.0` with the English notes as the tag message, and pushes
+`main` and the tag. It refuses to run outside an up-to-date `main` without local
+changes, or for a version that isn't higher than the last.
+
+The tag starts the two release workflows, which check it against `versionName`:
+
+- **Android:** signed APKs as a GitHub release, and an app bundle on Google Play's
+  internal testing track, see [Releasing the Android app](#releasing-the-android-app).
+  F-Droid builds the tag itself, see [F-Droid](#f-droid).
+- **Apple:** an iOS build in TestFlight, see
+  [Releasing the Apple app](#releasing-the-apple-app).
+
+Everything shown in the stores comes from the repository, so it is changed with a
+commit and goes out with the next release:
+
+| | Android (Google Play, F-Droid) | Apple (App Store) |
+|---|---|---|
+| texts | `android/fastlane/metadata/android/<language>/`: `title.txt`, `short_description.txt` (80 characters), `full_description.txt` | `apple/fastlane/metadata/<language>/`: `name.txt`, `subtitle.txt` (30 characters), `description.txt`, `keywords.txt` (100 characters) |
+| release notes | `…/changelogs/<versionCode>.txt` | the same files as Android |
+| icon, feature graphic | `…/images/`, from `shared/icon/render.sh` | in the app |
+| screenshots | `…/images/*Screenshots/`, committed | `apple/fastlane/screenshots/`, not committed |
+
+The descriptions are plain text, with `•` for lists, which all three stores show as
+written. Other fields, such as the support URL, categories and privacy details, are kept
+in Play Console and App Store Connect.
+
+The version name is the only version number to choose. The Android version code
+counts the releases; the Apple build number is the number of commits.
+
 ## Releasing the Android app
 
-Pushing a tag such as `v1.2.0` runs `.github/workflows/android-release.yml`. It builds
-signed release APKs for `arm64-v8a` (almost all current phones), `armeabi-v7a` (older
-32-bit phones), `x86_64` (emulators, a few tablets) and a universal one with all three,
-and publishes them as a GitHub release. The release notes list the commits since the
-previous `v*` tag. The version name comes from the tag, the version code is the number
-of commits.
-
-```sh
-git tag v1.2.0
-git push origin v1.2.0
-```
+The tag runs `.github/workflows/android-release.yml`. It builds signed release APKs for
+`arm64-v8a` (almost all current phones), `armeabi-v7a` (older 32-bit phones), `x86_64`
+(emulators, a few tablets) and a universal one with all three, and publishes them as a
+GitHub release, with the English release notes and a link to all commits since the
+previous `v*` tag.
 
 The APKs are signed with the app's release key, which the workflow reads from four
 repository secrets. Create the key once and keep the keystore and its passwords safe:
@@ -285,14 +323,19 @@ unsigned.
 
 Google Play takes an app bundle instead, built with `./gradlew :app:bundleRelease` and
 the same variables. The workflow builds it too and uploads it to the internal testing
-track with `bundle exec fastlane upload_internal`, with the commits as "What's new"
-(cut to Play's 500 characters). From there, it is promoted to other tracks in Play
-Console. Play signs with the same key as the APKs (it was uploaded on Play Console's
+track with `bundle exec fastlane upload_internal`, with the release notes as "What's
+new". From there, it is promoted to other tracks in Play Console. The same upload
+updates the store listing (texts, icon, feature graphic and screenshots, only the
+images that changed), which Play shows right away, not just once the build is promoted.
+To update the listing between releases:
+`GOOGLE_PLAY_JSON_KEY_PATH=~/keys/c3lingo-play.json bundle exec fastlane upload_listing`
+in `android/`. Play signs with the same key as the APKs (it was uploaded on Play Console's
 App signing page, under Protected with Play), so the two can update each other.
 
 The upload uses the service account described under [Screenshots](#android), whose
 JSON key the workflow reads from a repository secret. In Play Console, the service
-account also needs permission to release to testing tracks.
+account also needs permission to release to testing tracks and to edit the store
+listing.
 
 ```sh
 gh secret set GOOGLE_PLAY_JSON_KEY < ~/keys/c3lingo-play.json
@@ -304,13 +347,34 @@ debug symbols. That warning can be ignored: the native code is WebRTC and Androi
 Crashes in the app's own code are decoded with R8's mapping file, which is part of the
 bundle.
 
+### F-Droid
+
+F-Droid builds the app itself from the `v*` tags, using the build recipe in
+[fdroiddata](https://gitlab.com/fdroid/fdroiddata/-/blob/master/metadata/org.c3lingo.audio.yml),
+and signs it with its own key, so it can't update the APKs from GitHub or Google Play
+or be updated by them. It notices new tags by itself, usually within a few days, and
+reads the version from `android/app/build.gradle.kts` in the tagged commit. That's why
+the version is committed there by `./release` rather than only known to the workflow.
+
+F-Droid builds one APK per ABI with `./gradlew :app:assembleRelease -Pabi=<ABI>`, with
+version code `10 * versionCode + n`, n being 1 for `armeabi-v7a`, 2 for `arm64-v8a`
+and 4 for `x86_64`. The store listing (title, descriptions, icon, screenshots and
+changelogs) comes from `android/fastlane/metadata/android/`.
+
 ## Releasing the Apple app
 
-The same `v*` tag also runs `.github/workflows/apple-testflight.yml`. It archives the iOS
-app and uploads it to App Store Connect with the settings in `apple/ExportOptions.plist`;
-after Apple has processed it (usually 10 to 30 minutes), the build appears in TestFlight.
-As on Android, the version comes from the tag and the build number is the number of
-commits, so every upload has a higher one.
+The tag also runs `.github/workflows/apple-testflight.yml`. It archives the iOS app and
+uploads it to App Store Connect with the settings in `apple/ExportOptions.plist`; after
+Apple has processed it (usually 10 to 30 minutes), the build appears in TestFlight.
+The version comes from the tag and the build number is the number of commits, so every
+upload has a higher one.
+
+Then `bundle exec fastlane upload_metadata` uploads the texts in
+`apple/fastlane/metadata/` and the release notes as "What's New" to the iOS version
+with that number, creating it in App Store Connect if needed. It doesn't submit the
+version for review. For the Mac and Vision Pro versions, which are built by hand, run it
+with `platforms:osx,xros` in `apple/`, with the same variables as `upload_screenshots`
+(see [Screenshots](#apple)).
 
 The app record for `org.c3lingo.audio` has to exist in App Store Connect before the first
 upload. The workflow signs with Xcode's automatic signing through an App Store Connect
@@ -334,12 +398,13 @@ options they use the Apple ID signed in to Xcode.
 
 The store screenshots are taken on this Mac, in simulators and emulators, and uploaded
 with [fastlane](https://fastlane.tools). Each app has one script that takes them and
-one fastlane lane that uploads them. The apps show the test server
+one fastlane lane that uploads them (on Android, with the rest of the listing). The apps show the test server
 `https://c3listen.lassitu.de/`, so it needs audio on its channels and a schedule for
 the talk line. For each language (the six the apps come in) there are two
 screenshots: the channel list, and the same with a channel playing.
 
-The screenshots aren't kept in the repository. Look through them before uploading.
+The Apple screenshots aren't kept in the repository; the Android ones are, since F-Droid
+takes them from there. Look through them before uploading or committing.
 
 ### Setup
 
@@ -407,7 +472,7 @@ it has screenshots for. fastlane 2.241.1 or later is needed for the iPhone Duo.
 ```sh
 android/screenshots/capture.sh                  # all of them, or e.g. `phone`
 cd android
-GOOGLE_PLAY_JSON_KEY_PATH=~/keys/c3lingo-play.json bundle exec fastlane upload_screenshots
+GOOGLE_PLAY_JSON_KEY_PATH=~/keys/c3lingo-play.json bundle exec fastlane upload_listing
 ```
 
 `capture.sh` builds the debug app and starts an emulator without a window for each
@@ -425,6 +490,7 @@ The phone has a 16:9 screen because Google Play doesn't take screenshots longer 
 from scratch each time. The status bar shows 9:41 (demo mode), and the app's language
 is set as in the system's per-app language setting. The screenshots go to
 `android/fastlane/metadata/android/<language>/images/`, where fastlane expects them.
+Commit them: F-Droid takes its screenshots from the repository.
 
 The upload needs:
 
@@ -437,8 +503,8 @@ The upload needs:
    service account's email address and give it access to the app with permission to
    edit the store listing. Keep the JSON file outside the repository.
 
-The upload replaces the screenshots of each language and form factor it has
-screenshots for.
+`upload_listing` uploads the whole store listing, texts included, and replaces the
+screenshots that changed. Each release uploads it too.
 
 ### Settings
 

@@ -1,43 +1,56 @@
 # Lanes for Google Play. See "Releasing the Android app" and "Screenshots" in README.md.
+#
+# The store listing comes from metadata/android/<language>/: title, short and full
+# description, icon, feature graphic, screenshots, and the release notes in
+# changelogs/<version code>.txt. F-Droid reads the same files.
 
 PACKAGE_NAME = "org.c3lingo.audio"
 
-# Uploads the screenshots taken by android/screenshots/capture.sh to the app's store
-# listing, with the service account key in the file GOOGLE_PLAY_JSON_KEY_PATH.
+METADATA_PATH = File.join(__dir__, "metadata", "android")
+
+GRADLE = File.join(__dir__, "..", "app", "build.gradle.kts")
+
+# Uploads the store listing, without a build, with the service account key in the file
+# GOOGLE_PLAY_JSON_KEY_PATH. For changes between releases; each release uploads it too.
 #
-#   bundle exec fastlane upload_screenshots
-lane :upload_screenshots do
+#   bundle exec fastlane upload_listing
+lane :upload_listing do
   upload_to_play_store(
     package_name: PACKAGE_NAME,
     json_key: ENV.fetch("GOOGLE_PLAY_JSON_KEY_PATH"),
-    metadata_path: File.join(__dir__, "metadata", "android"),
-    # Only the screenshots: no builds, texts or other images.
+    metadata_path: METADATA_PATH,
     skip_upload_apk: true,
     skip_upload_aab: true,
-    skip_upload_metadata: true,
     skip_upload_changelogs: true,
-    skip_upload_images: true,
-    skip_upload_screenshots: false
+    # Only the images that changed.
+    sync_image_upload: true
   )
 end
 
-# Uploads an app bundle to the internal testing track, with the "What's new" text from
-# metadata/android/<language>/changelogs/<version code>.txt, if there is one. Called by
-# .github/workflows/android-release.yml with the key itself in GOOGLE_PLAY_JSON_KEY.
+# Uploads an app bundle to the internal testing track, with its release notes and the
+# store listing. Called by .github/workflows/android-release.yml with the key itself in
+# GOOGLE_PLAY_JSON_KEY.
 #
 #   bundle exec fastlane upload_internal aab:/path/to/app-release.aab
 lane :upload_internal do |options|
+  # Languages without release notes get the English ones, as in the App Store. This
+  # changes the checkout, which is the workflow's own.
+  code = File.read(GRADLE)[/^ *versionCode = (\d+)$/, 1] || UI.user_error!("No versionCode in #{GRADLE}")
+  english = File.join(METADATA_PATH, "en-US", "changelogs", "#{code}.txt")
+  Dir.children(METADATA_PATH).each do |language|
+    notes = File.join(METADATA_PATH, language, "changelogs", "#{code}.txt")
+    next if File.exist?(notes)
+    FileUtils.mkdir_p(File.dirname(notes))
+    FileUtils.cp(english, notes)
+  end
+
   upload_to_play_store(
     package_name: PACKAGE_NAME,
     json_key_data: ENV.fetch("GOOGLE_PLAY_JSON_KEY"),
     track: "internal",
     aab: options.fetch(:aab),
-    metadata_path: File.join(__dir__, "metadata", "android"),
-    # Only the build and its release notes; the store listing is edited in Play Console.
+    metadata_path: METADATA_PATH,
     skip_upload_apk: true,
-    skip_upload_metadata: true,
-    skip_upload_changelogs: false,
-    skip_upload_images: true,
-    skip_upload_screenshots: true
+    sync_image_upload: true
   )
 end

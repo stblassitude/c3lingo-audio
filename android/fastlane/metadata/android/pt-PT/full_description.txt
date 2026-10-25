@@ -1,0 +1,13 @@
+Ouça a interpretação em direto do c3lingo e o som das salas nas palestras do Chaos Communication Congress e de outros eventos, no telemóvel e com os seus próprios auscultadores.
+
+A app mostra a lista de canais do evento a partir do servidor, por isso corresponde sempre ao evento atual. A reprodução é nativa:
+
+• continua a tocar em segundo plano e com o ecrã bloqueado
+• controlos na notificação, no ecrã de bloqueio e nos auscultadores
+• escolha a saída, como auscultadores Bluetooth, com o seletor de saída do sistema
+• volta a ligar-se automaticamente após mudanças de rede e interrupções como chamadas
+• nunca usa o microfone e toca como multimédia, não como uma chamada
+
+O áudio é transmitido por WebRTC a partir de um servidor Galène (https://galene.org/). A app liga-se a https://audio.c3lingo.org/, o que pode ser alterado nas definições.
+
+A app é de código aberto: https://github.com/stblassitude/c3lingo-audio

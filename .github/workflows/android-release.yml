@@ -1,6 +1,7 @@
-# Builds signed APKs for a tag such as v1.2.0 and publishes them as a GitHub
-# release, with the commits since the previous v* tag as release notes. The app
-# bundle goes to Google Play's internal testing track.
+# Builds signed APKs for a tag such as v1.2.0, as made by ./release, and publishes them
+# as a GitHub release, with the release notes committed for F-Droid. The app bundle goes
+# to Google Play's internal testing track, together with the store listing from
+# android/fastlane/metadata/android/.
 name: Android release
 
 on:
@@ -16,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The whole history: for the release notes and the version code.
+          # The whole history, for the previous tag.
           fetch-depth: 0
 
       - uses: actions/setup-java@v4
@@ -26,12 +27,27 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # Both are set in android/app/build.gradle.kts by ./release; F-Droid reads them there too.
       - name: Determine version
         id: version
         run: |
-          echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-          # Grows with every commit, as Android requires for updates.
-          echo "code=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
+          gradle=android/app/build.gradle.kts
+          name=$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' "$gradle")
+          code=$(sed -n 's/^ *versionCode = \([0-9]*\)$/\1/p' "$gradle")
+          if [ "v$name" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::The tag $GITHUB_REF_NAME doesn't match versionName $name in $gradle."
+            exit 1
+          fi
+          notes=android/fastlane/metadata/android/en-US/changelogs/$code.txt
+          if [ ! -s "$notes" ]; then
+            echo "::error::No release notes in $notes; see 'Releasing' in README.md."
+            exit 1
+          fi
+          {
+            echo "name=$name"
+            echo "code=$code"
+            echo "notes=$notes"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up signing
         env:
@@ -50,10 +66,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: >
-          ./gradlew :app:assembleRelease
-          -PversionName=${{ steps.version.outputs.name }}
-          -PversionCode=${{ steps.version.outputs.code }}
+        run: ./gradlew :app:assembleRelease
 
       # A separate run, as the APKs are split by ABI only when no bundle is built.
       - name: Build app bundle
@@ -62,26 +75,21 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: >
-          ./gradlew :app:bundleRelease
-          -PversionName=${{ steps.version.outputs.name }}
-          -PversionCode=${{ steps.version.outputs.code }}
+        run: ./gradlew :app:bundleRelease
 
       - name: Write release notes
+        env:
+          NOTES: ${{ steps.version.outputs.notes }}
         run: |
           previous=$(git describe --tags --abbrev=0 --match 'v*' "$GITHUB_REF_NAME^" 2>/dev/null || true)
           {
-            if [ -n "$previous" ]; then
-              echo "Changes since $previous:"
-              range="$previous..$GITHUB_REF_NAME"
-            else
-              echo "Changes:"
-              range="$GITHUB_REF_NAME"
-            fi
-            echo
-            git log --no-merges --format='- %s' "$range"
+            cat "$NOTES"
             echo
             echo "Most phones need the \`arm64-v8a\` APK; \`universal\` works on all of them."
+            if [ -n "$previous" ]; then
+              echo
+              echo "All changes: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/$previous...$GITHUB_REF_NAME"
+            fi
           } > "$RUNNER_TEMP/notes.md"
           cat "$RUNNER_TEMP/notes.md"
 
@@ -108,19 +116,11 @@ jobs:
       - name: Upload to Google Play
         env:
           GOOGLE_PLAY_JSON_KEY: ${{ secrets.GOOGLE_PLAY_JSON_KEY }}
-          VERSION_CODE: ${{ steps.version.outputs.code }}
         run: |
           if [ -z "$GOOGLE_PLAY_JSON_KEY" ]; then
             echo "::error::The GOOGLE_PLAY_JSON_KEY secret is missing; see 'Releasing the Android app' in README.md."
             exit 1
           fi
-          # The commit list as "What's new", in whole lines up to Play's 500 characters.
-          changelogs=android/fastlane/metadata/android/en-US/changelogs
-          mkdir -p "$changelogs"
-          grep '^- ' "$RUNNER_TEMP/notes.md" \
-            | awk '{ n += length($0) + 1; if (n > 500) exit; print }' \
-            > "$changelogs/$VERSION_CODE.txt"
-          cat "$changelogs/$VERSION_CODE.txt"
           cd android
           bundle exec fastlane upload_internal \
             aab:"$PWD/app/build/outputs/bundle/release/app-release.aab"

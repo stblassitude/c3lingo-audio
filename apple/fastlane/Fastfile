@@ -1,12 +1,19 @@
-# Uploads the screenshots taken by apple/screenshots/capture.sh to the version of the
-# app that is being prepared in App Store Connect. See "Screenshots" in README.md.
+# Lanes for App Store Connect. See "Releasing the Apple app" and "Screenshots" in
+# README.md.
 #
-#   bundle exec fastlane upload_screenshots
-#
-# Uses the App Store Connect API key from APP_STORE_CONNECT_KEY_ID,
+# Both use the App Store Connect API key from APP_STORE_CONNECT_KEY_ID,
 # APP_STORE_CONNECT_ISSUER_ID and APP_STORE_CONNECT_KEY_PATH (the .p8 file).
 
 APP_IDENTIFIER = "org.c3lingo.audio"
+
+REPOSITORY = File.expand_path("../..", __dir__)
+
+# The Android app's version and its release notes are the ones for both apps.
+GRADLE = File.join(REPOSITORY, "android", "app", "build.gradle.kts")
+ANDROID_METADATA = File.join(REPOSITORY, "android", "fastlane", "metadata", "android")
+
+# App Store Connect locale and Google Play's, where they differ.
+PLAY_LOCALES = { "pl" => "pl-PL" }.freeze
 
 # App Store Connect platform and the folder in screenshots/ with its screenshots.
 PLATFORMS = {
@@ -15,12 +22,60 @@ PLATFORMS = {
   "osx" => "macos"
 }.freeze
 
-lane :upload_screenshots do |options|
-  api_key = app_store_connect_api_key(
+def api_key
+  app_store_connect_api_key(
     key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID"),
     issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
     key_filepath: ENV.fetch("APP_STORE_CONNECT_KEY_PATH")
   )
+end
+
+def gradle_value(name)
+  File.read(GRADLE)[/^ *#{name} = "?([^"\n]*)"?$/, 1] || UI.user_error!("No #{name} in #{GRADLE}")
+end
+
+# Uploads the texts in metadata/<locale>/ (name, subtitle, description, keywords) to the
+# version being prepared in App Store Connect, creating it if needed, with the release
+# notes of the Android version code. Languages without release notes get the English
+# ones. Called by .github/workflows/apple-testflight.yml for iOS.
+#
+#   bundle exec fastlane upload_metadata [platforms:ios,osx,xros]
+lane :upload_metadata do |options|
+  version = gradle_value("versionName")
+  code = gradle_value("versionCode")
+  notes = lambda do |locale|
+    path = File.join(ANDROID_METADATA, PLAY_LOCALES.fetch(locale, locale), "changelogs", "#{code}.txt")
+    File.exist?(path) ? File.read(path) : nil
+  end
+  locales = Dir.children(File.join(__dir__, "metadata")).sort
+  english = notes.call("en-US") || UI.user_error!("No release notes for version code #{code}")
+  release_notes = locales.to_h { |locale| [locale, notes.call(locale) || english] }
+
+  key = api_key
+  (options[:platforms]&.split(",") || ["ios"]).each do |platform|
+    UI.header("Uploading #{platform} metadata for #{version}")
+    deliver(
+      api_key: key,
+      app_identifier: APP_IDENTIFIER,
+      platform: platform,
+      app_version: version,
+      metadata_path: File.join(__dir__, "metadata"),
+      release_notes: release_notes,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      run_precheck_before_submit: false,
+      # No HTML preview to confirm.
+      force: true
+    )
+  end
+end
+
+# Uploads the screenshots taken by apple/screenshots/capture.sh to the version of the
+# app that is being prepared in App Store Connect. See "Screenshots" in README.md.
+#
+#   bundle exec fastlane upload_screenshots
+lane :upload_screenshots do |options|
+  key = api_key
   # Only the platforms named, e.g. `platforms:ios,osx`, or all that have screenshots.
   wanted = options[:platforms]&.split(",") || PLATFORMS.keys
   PLATFORMS.slice(*wanted).each do |platform, folder|
@@ -31,7 +86,7 @@ lane :upload_screenshots do |options|
     end
     UI.header("Uploading #{folder} screenshots")
     deliver(
-      api_key: api_key,
+      api_key: key,
       app_identifier: APP_IDENTIFIER,
       platform: platform,
       screenshots_path: path,

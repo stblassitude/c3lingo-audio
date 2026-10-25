@@ -4,6 +4,8 @@
 
     <string name="loading">Ładowanie…</string>
     <string name="load_error_title">Nie można załadować listy kanałów</string>
+    <string name="load_error_message">Skonfigurowany adres URL serwera nie wygląda na stronę audio c3lingo. Sprawdź połączenie sieciowe i wpisany adres URL.</string>
+    <string name="load_error_not_compatible">Strona nie jest zgodna.</string>
     <string name="try_again">Spróbuj ponownie</string>
     <string name="change_server">Zmień serwer…</string>
     <string name="status_connecting">Łączenie…</string>

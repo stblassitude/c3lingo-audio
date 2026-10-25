@@ -4,6 +4,8 @@
 
     <string name="loading">Wird geladen…</string>
     <string name="load_error_title">Die Kanalliste konnte nicht geladen werden</string>
+    <string name="load_error_message">Die eingestellte Server-URL scheint keine c3lingo-Audioseite zu sein. Prüfe bitte deine Netzwerkverbindung und die eingegebene URL.</string>
+    <string name="load_error_not_compatible">Die Seite ist nicht kompatibel.</string>
     <string name="try_again">Erneut versuchen</string>
     <string name="change_server">Server ändern…</string>
     <string name="status_connecting">Verbinde…</string>

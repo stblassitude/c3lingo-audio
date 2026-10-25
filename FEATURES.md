@@ -41,8 +41,15 @@ what isn't done yet in the table at the end.
 - **Launch screen matches the splash screen** (iOS: logo at the same position, so the
   handover is seamless; Android: the system splash screen shows the app icon, then the
   splash screen takes over).
-- **Load errors** replace the page with "Unable to load the channel list", the error,
-  the server URL, a **Try Again** button and a way to change the server.
+- **Only c3lingo frontends are shown.** A page the app loads itself (at launch, on Try
+  Again, pull to refresh or a server change) must declare
+  `<meta name="c3lingo-native-bridge">`, in any version; pages the user navigates to
+  from there aren't checked. The splash screen stays until the check has passed.
+- **Load errors** replace the page with "Unable to load the channel list", an
+  explanation (the server URL doesn't appear to be a c3lingo audio site; check the
+  network connection and the URL), then in small print the technical reason (the
+  network error, the HTTP status such as "HTTP 404", or "The site is not compatible.")
+  and the server URL, a **Try Again** button and a way to change the server.
 
 ## Playback
 

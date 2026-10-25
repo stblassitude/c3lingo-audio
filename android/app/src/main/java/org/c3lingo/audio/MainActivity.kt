@@ -213,8 +213,9 @@ private fun SplashView() {
     }
 }
 
+/** Explains in plain words what to check, with the technical [reason] and the URL below. */
 @Composable
-private fun LoadErrorView(message: String, url: Uri, onRetry: () -> Unit, onChangeServer: () -> Unit) {
+private fun LoadErrorView(reason: String, url: Uri, onRetry: () -> Unit, onChangeServer: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
@@ -234,16 +235,25 @@ private fun LoadErrorView(message: String, url: Uri, onRetry: () -> Unit, onChan
             stringResource(R.string.load_error_title),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
-        Text(message, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         Text(
-            url.toString(),
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace,
+            stringResource(R.string.load_error_message),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            val detailColor = MaterialTheme.colorScheme.onSurfaceVariant
+            Text(reason, style = MaterialTheme.typography.bodySmall, color = detailColor, textAlign = TextAlign.Center)
+            Text(
+                url.toString(),
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = FontFamily.Monospace,
+                color = detailColor,
+                textAlign = TextAlign.Center,
+            )
+        }
         Spacer(Modifier.height(8.dp))
         Button(onClick = onRetry) { Text(stringResource(R.string.try_again)) }
         TextButton(onClick = onChangeServer) { Text(stringResource(R.string.change_server)) }

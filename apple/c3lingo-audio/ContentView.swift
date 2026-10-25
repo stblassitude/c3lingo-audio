@@ -14,7 +14,7 @@ struct ContentView: View {
                     .id(ObjectIdentifier(frontend.webView))
                     .ignoresSafeArea(edges: player.channel == nil ? .all : .top)
                 if let error = frontend.loadError {
-                    LoadErrorView(message: error, url: settings.serverURL) {
+                    LoadErrorView(reason: error, url: settings.serverURL) {
                         frontend.reload()
                     }
                 } else if !frontend.hasLoaded {
@@ -62,8 +62,9 @@ private struct SplashView: View {
     }
 }
 
+/// Explains in plain words what to check, with the technical reason and the URL below.
 private struct LoadErrorView: View {
-    let message: String
+    let reason: String
     let url: URL
     let retry: () -> Void
 
@@ -78,11 +79,15 @@ private struct LoadErrorView: View {
                 .foregroundStyle(.secondary)
             Text("Unable to load the channel list")
                 .font(.title2.bold())
-            Text(message)
+            Text("The configured server URL doesn't appear to be a c3lingo audio site. Please check your network connection and the URL you entered.")
                 .foregroundStyle(.secondary)
-            Text(url.absoluteString)
-                .font(.footnote.monospaced())
-                .foregroundStyle(.secondary)
+            VStack(spacing: 4) {
+                Text(reason)
+                    .font(.footnote)
+                Text(url.absoluteString)
+                    .font(.footnote.monospaced())
+            }
+            .foregroundStyle(.secondary)
             Button("Try Again", action: retry)
                 .buttonStyle(.borderedProminent)
                 .padding(.top, 8)

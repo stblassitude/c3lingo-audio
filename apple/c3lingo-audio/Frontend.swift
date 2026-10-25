@@ -12,6 +12,7 @@ import WebKit
 final class Frontend: NSObject, ObservableObject {
     /// Replaced by a new one when the server changes, see `restart(_:)`.
     @Published private(set) var webView: WKWebView
+    /// Why the page couldn't be loaded, in technical terms, shown below the explanation.
     @Published private(set) var loadError: String?
     @Published private(set) var hasLoaded = false
     /// Hall, language and talk per channel name, if the page sends them.
@@ -20,6 +21,11 @@ final class Frontend: NSObject, ObservableObject {
     private var player: Player?
     private var playerObservation: AnyCancellable?
     private var url: URL?
+    /// Set for the pages the app loads itself, which must be a c3lingo frontend; pages
+    /// the user navigates to from there aren't checked.
+    private var verifyPage = false
+    /// The HTTP status of the page being loaded.
+    private var pageStatus: Int?
 
     private static let messageHandlerName = "c3lingo"
 
@@ -49,6 +55,10 @@ final class Frontend: NSObject, ObservableObject {
             viewport.content = [...kept, "maximum-scale=1", "user-scalable=no"].join(", ");
         })();
         """
+
+    /// Whether the page is a c3lingo frontend: they all declare the native bridge
+    /// version, whether or not they support the one the app speaks.
+    private static let isFrontendScript = #"document.querySelector('meta[name="c3lingo-native-bridge"]') !== null"#
 
     override init() {
         webView = Self.makeWebView()
@@ -106,6 +116,7 @@ final class Frontend: NSObject, ObservableObject {
         loadError = nil
         hasLoaded = false
         descriptions = [:]
+        verifyPage = true
         webView.load(URLRequest(url: url))
     }
 
@@ -134,6 +145,7 @@ final class Frontend: NSObject, ObservableObject {
 
     func reload() {
         loadError = nil
+        verifyPage = true
         if hasLoaded {
             webView.reload()
         } else if let url {
@@ -234,6 +246,13 @@ extension Frontend: WKNavigationDelegate, WKUIDelegate {
         return .allow
     }
 
+    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
+        if navigationResponse.isForMainFrame {
+            pageStatus = (navigationResponse.response as? HTTPURLResponse)?.statusCode
+        }
+        return .allow
+    }
+
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         if let url = navigationAction.request.url {
             openExternally(url)
@@ -242,9 +261,37 @@ extension Frontend: WKNavigationDelegate, WKUIDelegate {
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        endRefreshing()
+        guard verifyPage else {
+            pageLoaded()
+            return
+        }
+        verifyPage = false
+        if let status = pageStatus, status >= 400 {
+            Log.frontend.error("\(webView.url?.absoluteString ?? "-") returned HTTP \(status)")
+            notLoaded("HTTP \(status): \(HTTPURLResponse.localizedString(forStatusCode: status))")
+            return
+        }
+        // The splash screen stays until then, so a page that isn't a frontend never shows.
+        webView.evaluateJavaScript(Self.isFrontendScript) { [weak self] result, error in
+            guard let self, webView === self.webView else { return }
+            if result as? Bool == true {
+                pageLoaded()
+            } else {
+                Log.frontend.error("\(webView.url?.absoluteString ?? "-") is not a c3lingo frontend\(error.map { ": \($0)" } ?? "")")
+                notLoaded(String(localized: "The site is not compatible."))
+            }
+        }
+    }
+
+    private func notLoaded(_ reason: String) {
+        hasLoaded = false
+        loadError = reason
+    }
+
+    private func pageLoaded() {
         hasLoaded = true
         loadError = nil
-        endRefreshing()
         // For testing: `-autoplay <channel>` selects a channel once the page has loaded.
         if let channel = UserDefaults.standard.string(forKey: "autoplay"), !channel.isEmpty,
            let data = try? JSONSerialization.data(withJSONObject: [channel]),

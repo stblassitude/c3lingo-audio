@@ -817,6 +817,74 @@
         }
       }
     },
+    "The configured server URL doesn't appear to be a c3lingo audio site. Please check your network connection and the URL you entered.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die eingestellte Server-URL scheint keine c3lingo-Audioseite zu sein. Prüfe bitte deine Netzwerkverbindung und die eingegebene URL."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La URL del servidor configurada no parece ser un sitio de audio de c3lingo. Comprueba tu conexión de red y la URL introducida."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'URL du serveur configurée ne semble pas être un site audio c3lingo. Vérifiez votre connexion réseau et l'URL saisie."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skonfigurowany adres URL serwera nie wygląda na stronę audio c3lingo. Sprawdź połączenie sieciowe i wpisany adres URL."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O URL do servidor configurado não parece ser um site de áudio c3lingo. Verifique a ligação à rede e o URL introduzido."
+          }
+        }
+      }
+    },
+    "The site is not compatible.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Seite ist nicht kompatibel."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El sitio no es compatible."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le site n'est pas compatible."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strona nie jest zgodna."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O site não é compatível."
+          }
+        }
+      }
+    },
     "This channel isn't available right now. Retrying…": {
       "localizations": {
         "de": {

@@ -4,6 +4,8 @@
 
     <string name="loading">Chargement…</string>
     <string name="load_error_title">Impossible de charger la liste des canaux</string>
+    <string name="load_error_message">L\'URL du serveur configurée ne semble pas être un site audio c3lingo. Vérifiez votre connexion réseau et l\'URL saisie.</string>
+    <string name="load_error_not_compatible">Le site n\'est pas compatible.</string>
     <string name="try_again">Réessayer</string>
     <string name="change_server">Changer de serveur…</string>
     <string name="status_connecting">Connexion…</string>

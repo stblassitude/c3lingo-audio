@@ -14,6 +14,7 @@ import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -45,6 +46,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     }
 
     private val _loadError = MutableStateFlow<String?>(null)
+    /** Why the page couldn't be loaded, in technical terms, shown below the explanation. */
     val loadError: StateFlow<String?> = _loadError.asStateFlow()
     private val _hasLoaded = MutableStateFlow(false)
     val hasLoaded: StateFlow<Boolean> = _hasLoaded.asStateFlow()
@@ -60,6 +62,13 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     private var scriptHandler: ScriptHandler? = null
     private var listenerInstalled = false
     private var navigationFailed = false
+    /**
+     * Set for the pages the app loads itself, which must be a c3lingo frontend; pages
+     * the user navigates to from there aren't checked.
+     */
+    private var verifyPage = false
+    /** The HTTP error the page being loaded returned, if any. */
+    private var httpError: String? = null
     /** The bridge, told the app's UI language so the page uses the same one. */
     private val bridgeScript = "window.__c3lingoNativeConfig = " +
         JSONObject().put("language", context.getString(R.string.language_tag)) + ";\n" +
@@ -79,6 +88,8 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         _hasLoaded.value = false
         _descriptions.value = emptyMap()
         installBridge(url)
+        verifyPage = true
+        httpError = null
         webView.loadUrl(url.toString())
     }
 
@@ -99,6 +110,8 @@ class Frontend(private val context: Context, private val player: Player, scope: 
 
     fun reload() {
         _loadError.value = null
+        verifyPage = true
+        httpError = null
         if (_hasLoaded.value) {
             webView.reload()
         } else {
@@ -235,6 +248,40 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         override fun onPageFinished(view: WebView, url: String?) {
             this@Frontend.view.isRefreshing = false
             if (navigationFailed) return
+            if (!verifyPage) {
+                pageLoaded(url)
+                return
+            }
+            verifyPage = false
+            httpError?.let {
+                Log.e(TAG, "$url returned $it")
+                notLoaded(it)
+                return
+            }
+            // The splash screen stays until then, so a page that isn't a frontend never shows.
+            view.evaluateJavascript(IS_FRONTEND_SCRIPT) { result ->
+                if (view !== webView) return@evaluateJavascript
+                if (result == "true") {
+                    pageLoaded(url)
+                } else {
+                    Log.e(TAG, "$url is not a c3lingo frontend")
+                    notLoaded(context.getString(R.string.load_error_not_compatible))
+                }
+            }
+        }
+
+        private fun notLoaded(reason: String) {
+            _hasLoaded.value = false
+            _loadError.value = reason
+        }
+
+        override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse) {
+            if (!request.isForMainFrame) return
+            httpError = listOf("HTTP ${errorResponse.statusCode}", errorResponse.reasonPhrase)
+                .filterNot { it.isNullOrBlank() }.joinToString(" ")
+        }
+
+        private fun pageLoaded(url: String?) {
             Log.i(TAG, "loaded $url")
             _hasLoaded.value = true
             _loadError.value = null
@@ -268,6 +315,11 @@ class Frontend(private val context: Context, private val player: Player, scope: 
 
     private companion object {
         const val TAG = "frontend"
+        /**
+         * Whether the page is a c3lingo frontend: they all declare the native bridge
+         * version, whether or not they support the one the app speaks.
+         */
+        const val IS_FRONTEND_SCRIPT = "document.querySelector('meta[name=\"c3lingo-native-bridge\"]') !== null"
         /** Seen by the page as `window.c3lingoAndroid`, see FrontendBridge.js. */
         const val MESSAGE_LISTENER = "c3lingoAndroid"
     }

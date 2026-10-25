@@ -17,10 +17,11 @@ android {
     }
 
     // One APK per processor architecture, as WebRTC's native code makes up most of the
-    // size, and one universal APK with all of them.
+    // size, and one universal APK with all of them. Off for app bundles, which Play splits
+    // itself, and which fail to build with it, see https://issuetracker.google.com/402800800.
     splits {
         abi {
-            isEnable = true
+            isEnable = gradle.startParameter.taskNames.none { it.contains("bundle", ignoreCase = true) }
             reset()
             include("arm64-v8a", "armeabi-v7a", "x86_64")
             isUniversalApk = true

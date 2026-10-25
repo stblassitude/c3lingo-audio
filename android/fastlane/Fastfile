@@ -20,6 +20,9 @@ lane :upload_listing do
     package_name: PACKAGE_NAME,
     json_key: ENV.fetch("GOOGLE_PLAY_JSON_KEY_PATH"),
     metadata_path: METADATA_PATH,
+    # The listing is the same for all tracks, but supply needs one with a release, and
+    # the app has no production release yet.
+    track: "internal",
     skip_upload_apk: true,
     skip_upload_aab: true,
     skip_upload_changelogs: true,

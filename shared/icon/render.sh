@@ -4,7 +4,8 @@
 #
 # Needs rsvg-convert and ImageMagick 7 (brew install librsvg imagemagick).
 # Writes the PNGs for the Apple app (the asset catalogs' Contents.json files are kept in
-# git) and the vector drawables for the Android app.
+# git), the vector drawables for the Android app, and Google Play's icon and feature
+# graphic.
 set -eu
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -50,6 +51,18 @@ out=$stack/Front.solidimagestacklayer/Content.imageset/Front.png
 png "$tmp/vision-front.png"
 out=$stack/Back.solidimagestacklayer/Content.imageset/Back.png
 magick -size 1024x1024 xc:'#fff200' -alpha off -define png:exclude-chunks=date,time,tIME "PNG24:$out"
+
+# Google Play: full-bleed square like iOS, Play applies the mask; and the feature graphic,
+# the glyphs on the yellow background, small enough to survive Play's cropping
+play=$here/../../android/fastlane/metadata/android/en-US/images
+mkdir -p "$play"
+rsvg-convert -w 512 -h 512 "$svg" -o "$tmp/play-icon.png"
+out=$play/icon.png
+png "$tmp/play-icon.png"
+rsvg-convert -w 560 -h 560 "$tmp/vision-front.svg" -o "$tmp/feature-glyphs.png"
+out=$play/featureGraphic.png
+magick -size 1024x500 xc:'#fff200' "$tmp/feature-glyphs.png" -gravity center -composite \
+    -alpha off -define png:exclude-chunks=date,time,tIME "PNG24:$out"
 
 # Launch and splash screen logo: 128pt rounded tile, corner radius as on the iOS icon
 for scale in 1 2 3; do

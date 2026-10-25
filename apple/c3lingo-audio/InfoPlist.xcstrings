@@ -1,74 +1,116 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "NSCameraUsageDescription": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "c3lingo spielt nur Audio ab und verwendet nie die Kamera. Die enthaltene WebRTC-Bibliothek unterstützt auch Video, deshalb wird diese Berechtigung aufgeführt."
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "c3lingo"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "c3lingo-audio"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "Privacy - Camera Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "c3lingo spielt nur Audio ab und verwendet nie die Kamera. Die enthaltene WebRTC-Bibliothek unterstützt auch Video, deshalb wird diese Berechtigung aufgeführt."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "c3lingo solo reproduce audio y nunca usa la cámara. La biblioteca WebRTC que incluye también admite vídeo, por eso aparece este permiso."
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "c3lingo only plays audio and never uses the camera. The WebRTC library it includes also supports video, which is why this permission is listed."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "c3lingo lit uniquement de l'audio et n'utilise jamais la caméra. La bibliothèque WebRTC incluse prend aussi en charge la vidéo, c'est pourquoi cette autorisation est indiquée."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "c3lingo solo reproduce audio y nunca usa la cámara. La biblioteca WebRTC que incluye también admite vídeo, por eso aparece este permiso."
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "c3lingo odtwarza tylko dźwięk i nigdy nie używa kamery. Dołączona biblioteka WebRTC obsługuje też wideo, dlatego to uprawnienie jest wymienione."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "c3lingo lit uniquement de l'audio et n'utilise jamais la caméra. La bibliothèque WebRTC incluse prend aussi en charge la vidéo, c'est pourquoi cette autorisation est indiquée."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O c3lingo só reproduz áudio e nunca usa a câmara. A biblioteca WebRTC incluída também suporta vídeo, por isso esta permissão é indicada."
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "c3lingo odtwarza tylko dźwięk i nigdy nie używa kamery. Dołączona biblioteka WebRTC obsługuje też wideo, dlatego to uprawnienie jest wymienione."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O c3lingo só reproduz áudio e nunca usa a câmara. A biblioteca WebRTC incluída também suporta vídeo, por isso esta permissão é indicada."
           }
         }
       }
     },
-    "NSLocalNetworkUsageDescription": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verbindet sich mit einem Testserver in deinem lokalen Netzwerk, falls du einen eingerichtet hast."
+    "NSLocalNetworkUsageDescription" : {
+      "comment" : "Privacy - Local Network Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbindet sich mit einem Testserver in deinem lokalen Netzwerk, falls du einen eingerichtet hast."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se conecta a un servidor de pruebas en tu red local, si has configurado uno."
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connects to a test server on your local network, if you configured one."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se connecte à un serveur de test sur votre réseau local, si vous en avez configuré un."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se conecta a un servidor de pruebas en tu red local, si has configurado uno."
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Łączy się z serwerem testowym w Twojej sieci lokalnej, jeśli go skonfigurowano."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se connecte à un serveur de test sur votre réseau local, si vous en avez configuré un."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Liga-se a um servidor de testes na sua rede local, se tiver configurado um."
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Łączy się z serwerem testowym w Twojej sieci lokalnej, jeśli go skonfigurowano."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liga-se a um servidor de testes na sua rede local, se tiver configurado um."
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

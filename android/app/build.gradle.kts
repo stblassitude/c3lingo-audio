@@ -15,8 +15,8 @@ android {
         targetSdk = 36
         // The last release, written by ./release, which tags it as v<versionName>. F-Droid
         // reads both from here, so they must stay literals. See "Releasing" in README.md.
-        versionCode = 27
-        versionName = "0.9.5"
+        versionCode = 28
+        versionName = "0.9.6"
         if (singleAbi != null) {
             ndk { abiFilters += singleAbi }
             // F-Droid's scheme: the ABI in the last digit, in this order.

@@ -6,9 +6,10 @@
 
 PACKAGE_NAME = "org.c3lingo.audio"
 
-METADATA_PATH = File.join(__dir__, "metadata", "android")
+# Absolute, as actions run in android/, not in fastlane/ like the lanes.
+METADATA_PATH = File.expand_path("metadata/android", __dir__)
 
-GRADLE = File.join(__dir__, "..", "app", "build.gradle.kts")
+GRADLE = File.expand_path("../app/build.gradle.kts", __dir__)
 
 # Uploads the store listing, without a build, with the service account key in the file
 # GOOGLE_PLAY_JSON_KEY_PATH. For changes between releases; each release uploads it too.

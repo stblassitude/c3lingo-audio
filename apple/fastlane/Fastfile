@@ -8,6 +8,9 @@ APP_IDENTIFIER = "org.c3lingo.audio"
 
 REPOSITORY = File.expand_path("../..", __dir__)
 
+# Absolute, as actions run in apple/, not in fastlane/ like the lanes.
+METADATA_PATH = File.expand_path("metadata", __dir__)
+
 # The Android app's version and its release notes are the ones for both apps.
 GRADLE = File.join(REPOSITORY, "android", "app", "build.gradle.kts")
 ANDROID_METADATA = File.join(REPOSITORY, "android", "fastlane", "metadata", "android")
@@ -48,7 +51,7 @@ lane :upload_metadata do |options|
     File.exist?(path) ? File.read(path) : nil
   end
   # The language folders, not review_information/.
-  locales = Dir.glob("*/name.txt", base: File.join(__dir__, "metadata")).map { |path| File.dirname(path) }.sort
+  locales = Dir.glob("*/name.txt", base: METADATA_PATH).map { |path| File.dirname(path) }.sort
   english = notes.call("en-US") || UI.user_error!("No release notes for version code #{code}")
   release_notes = locales.to_h { |locale| [locale, notes.call(locale) || english] }
 
@@ -60,7 +63,7 @@ lane :upload_metadata do |options|
       app_identifier: APP_IDENTIFIER,
       platform: platform,
       app_version: version,
-      metadata_path: File.join(__dir__, "metadata"),
+      metadata_path: METADATA_PATH,
       release_notes: release_notes,
       skip_binary_upload: true,
       skip_screenshots: true,
@@ -80,7 +83,7 @@ lane :upload_screenshots do |options|
   # Only the platforms named, e.g. `platforms:ios,osx`, or all that have screenshots.
   wanted = options[:platforms]&.split(",") || PLATFORMS.keys
   PLATFORMS.slice(*wanted).each do |platform, folder|
-    path = File.join(__dir__, "screenshots", folder)
+    path = File.expand_path(File.join("screenshots", folder), __dir__)
     if Dir.glob(File.join(path, "*", "*.png")).empty?
       UI.important("No screenshots in #{path}, skipping #{platform}")
       next

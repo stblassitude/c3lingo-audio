@@ -283,6 +283,13 @@ and the three other variables to the same values, then run
 `./gradlew :app:assembleRelease` in `android/`. Without them, the release APKs are
 unsigned.
 
+Google Play takes an app bundle instead, built with `./gradlew :app:bundleRelease` and
+the same variables. For each bundle, Play warns that it contains native code without
+debug symbols. That warning can be ignored: the native code is WebRTC and AndroidX's
+`libandroidx.graphics.path.so`, which come stripped, so there are no symbols to upload.
+Crashes in the app's own code are decoded with R8's mapping file, which is part of the
+bundle.
+
 ## Releasing the Apple app
 
 The same `v*` tag also runs `.github/workflows/apple-testflight.yml`. It archives the iOS

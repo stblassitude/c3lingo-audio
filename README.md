@@ -158,12 +158,15 @@ in the Apple asset catalog and the Android vector drawables.
 
 The apps use `https://audio.c3lingo.org/` by default. For testing:
 
-- iOS, iPadOS, visionOS: Settings → Apps → c3lingo → Server URL
+- iOS, iPadOS, visionOS, Android: the cog in the bottom right corner of the page, or
+  Change Server… on the load error screen. The dialog checks that the URL leads to a
+  c3lingo frontend before it can be saved.
+- iOS, iPadOS, visionOS: also Settings → Apps → c3lingo → Server URL
 - macOS: c3lingo → Settings… (⌘,)
-- Android: Change Server… on the load error screen, or the gear on the app's App info
-  screen (long-press the icon → App info)
+- Android: also the gear on the app's App info screen (long-press the icon → App info)
 - for one run, from Xcode or the command line: `-serverURL http://localhost:8000/`
-  (Apple), `-e serverURL http://10.0.2.2:8000/` (Android, see below)
+  (Apple), `-e serverURL http://10.0.2.2:8000/` (Android, see below). This replaces
+  the default for that run; a URL saved in the app still takes precedence.
 
 Leave it empty to go back to the default. Plain `http` is allowed for local network
 addresses only (Apple), or in debug builds only (Android).

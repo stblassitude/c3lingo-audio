@@ -17,6 +17,8 @@ final class Frontend: NSObject, ObservableObject {
     @Published private(set) var hasLoaded = false
     /// Hall, language and talk per channel name, if the page sends them.
     @Published private(set) var descriptions: [String: ChannelDescription] = [:]
+    /// The server dialog, opened from the settings button on the page or the error screen.
+    @Published var isShowingServerDialog = false
 
     private var player: Player?
     private var playerObservation: AnyCancellable?
@@ -77,7 +79,11 @@ final class Frontend: NSObject, ObservableObject {
         }
         contentController.addUserScript(WKUserScript(source: Self.noZoomScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         configuration.userContentController = contentController
+        #if os(macOS)
         return WKWebView(frame: .zero, configuration: configuration)
+        #else
+        return FrontendWebView(frame: .zero, configuration: configuration)
+        #endif
     }
 
     private func configure(_ webView: WKWebView) {
@@ -94,6 +100,11 @@ final class Frontend: NSObject, ObservableObject {
         let refreshControl = UIRefreshControl()
         refreshControl.addAction(UIAction { [weak self] _ in self?.reload() }, for: .valueChanged)
         webView.scrollView.refreshControl = refreshControl
+        #endif
+        #if !os(macOS)
+        (webView as? FrontendWebView)?.settingsButton.addAction(UIAction { [weak self] _ in
+            self?.isShowingServerDialog = true
+        }, for: .primaryActionTriggered)
         #endif
     }
 
@@ -328,6 +339,55 @@ extension Frontend: WKNavigationDelegate, WKUIDelegate {
         #endif
     }
 }
+
+#if !os(macOS)
+/// The web view with a small settings button in the bottom right corner of the page,
+/// over the page and scrolling with it. On a page shorter than the view, it sits in the
+/// bottom right corner of the view.
+final class FrontendWebView: WKWebView {
+    let settingsButton: UIButton = {
+        var configuration = UIButton.Configuration.gray()
+        configuration.image = UIImage(systemName: "gearshape.fill")
+        configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(textStyle: .subheadline)
+        configuration.cornerStyle = .capsule
+        let button = UIButton(configuration: configuration)
+        button.accessibilityLabel = String(localized: "Server")
+        return button
+    }()
+    private var contentSizeObservation: NSKeyValueObservation?
+
+    override init(frame: CGRect, configuration: WKWebViewConfiguration) {
+        super.init(frame: frame, configuration: configuration)
+        scrollView.addSubview(settingsButton)
+        contentSizeObservation = scrollView.observe(\.contentSize) { [weak self] _, _ in
+            MainActor.assumeIsolated { self?.setNeedsLayout() }
+        }
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let size = settingsButton.intrinsicContentSize
+        let margin: CGFloat = 12
+        // The page may extend below the home indicator (viewport-fit=cover); stay clear of it.
+        let insets = scrollView.adjustedContentInset
+        let bottomInset = max(safeAreaInsets.bottom - insets.bottom, 0)
+        let visibleHeight = scrollView.bounds.height - insets.top - insets.bottom
+        let bottom = max(scrollView.contentSize.height, visibleHeight)
+        settingsButton.frame = CGRect(
+            x: scrollView.bounds.width - safeAreaInsets.right - margin - size.width,
+            y: bottom - bottomInset - margin - size.height,
+            width: size.width,
+            height: size.height)
+        // The web view adds its own content views as pages load.
+        scrollView.bringSubviewToFront(settingsButton)
+    }
+}
+#endif
 
 /// The user content controller keeps its message handlers alive; this avoids a retain cycle.
 private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {

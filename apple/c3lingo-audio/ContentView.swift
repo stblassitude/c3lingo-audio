@@ -16,6 +16,8 @@ struct ContentView: View {
                 if let error = frontend.loadError {
                     LoadErrorView(reason: error, url: settings.serverURL) {
                         frontend.reload()
+                    } changeServer: {
+                        frontend.isShowingServerDialog = true
                     }
                 } else if !frontend.hasLoaded {
                     SplashView()
@@ -29,6 +31,9 @@ struct ContentView: View {
             }
         }
         .animation(.default, value: player.channel != nil)
+        .sheet(isPresented: $frontend.isShowingServerDialog) {
+            ServerDialog(reload: frontend.reload)
+        }
         .onAppear {
             frontend.attach(player)
             frontend.load(settings.serverURL)
@@ -67,10 +72,7 @@ private struct LoadErrorView: View {
     let reason: String
     let url: URL
     let retry: () -> Void
-
-    #if !os(macOS)
-    @Environment(\.openURL) private var openURL
-    #endif
+    let changeServer: () -> Void
 
     var body: some View {
         VStack(spacing: 12) {
@@ -94,11 +96,7 @@ private struct LoadErrorView: View {
             #if os(macOS)
             OpenSettingsButton(title: "Change Server…")
             #else
-            Button("Change Server in Settings") {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    openURL(url)
-                }
-            }
+            Button("Change Server…", action: changeServer)
             #endif
         }
         .multilineTextAlignment(.center)

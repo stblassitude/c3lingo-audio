@@ -18,6 +18,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -30,6 +31,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import kotlin.math.roundToInt
+import kotlin.math.max
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.Modifier
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.size
+import android.widget.AbsoluteLayout
+import android.graphics.Canvas
 
 /**
  * Hosts the web frontend loaded from the server, and connects it to the native player
@@ -40,9 +56,17 @@ import org.json.JSONObject
  * player, and every state change, whatever caused it, is reported back in full.
  */
 class Frontend(private val context: Context, private val player: Player, scope: CoroutineScope) {
+    /**
+     * Holds the web view, which is replaced when the server changes. The pull to refresh
+     * container only ever lays out the child it saw first, so it gets this one, which stays.
+     */
+    private val webViewHost = FrameLayout(context)
+
     /** The web view inside a pull to refresh container; the container stays when the web view is replaced. */
     val view = SwipeRefreshLayout(context).apply {
         setOnRefreshListener { reload() }
+        addView(webViewHost)
+        setOnChildScrollUpCallback { _, _ -> webView.canScrollVertically(-1) }
     }
 
     private val _loadError = MutableStateFlow<String?>(null)
@@ -53,6 +77,9 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     private val _descriptions = MutableStateFlow<Map<String, ChannelDescription>>(emptyMap())
     /** Hall, language and talk per channel name, if the page sends them. */
     val descriptions: StateFlow<Map<String, ChannelDescription>> = _descriptions.asStateFlow()
+    private val _isShowingServerDialog = MutableStateFlow(false)
+    /** The server dialog, opened from the settings button on the page or the error screen. */
+    val isShowingServerDialog: StateFlow<Boolean> = _isShowingServerDialog.asStateFlow()
 
     /** For testing: selects this channel once the page has loaded. */
     var autoplay: String? = null
@@ -76,7 +103,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
 
     init {
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
-        view.addView(webView)
+        webViewHost.addView(webView)
         scope.launch { player.state.collect(::sendState) }
     }
 
@@ -119,13 +146,18 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         }
     }
 
+    fun showServerDialog(show: Boolean) {
+        _isShowingServerDialog.value = show
+    }
+
     fun destroy() {
         view.removeAllViews()
+        webViewHost.removeAllViews()
         webView.destroy()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun createWebView() = WebView(context).apply {
+    private fun createWebView() = FrontendWebView(context) { showServerDialog(true) }.apply {
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
@@ -137,12 +169,12 @@ class Frontend(private val context: Context, private val player: Player, scope: 
 
     /** Replaces the web view with a new one; the bridge is installed again on the next load. */
     private fun replaceWebView() {
-        view.removeView(webView)
+        webViewHost.removeView(webView)
         webView.destroy()
         scriptHandler = null
         listenerInstalled = false
         webView = createWebView()
-        view.addView(webView)
+        webViewHost.addView(webView)
     }
 
     // Bridge
@@ -322,5 +354,49 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         const val IS_FRONTEND_SCRIPT = "document.querySelector('meta[name=\"c3lingo-native-bridge\"]') !== null"
         /** Seen by the page as `window.c3lingoAndroid`, see FrontendBridge.js. */
         const val MESSAGE_LISTENER = "c3lingoAndroid"
+    }
+}
+
+/**
+ * The web view with a small settings button in the bottom right corner of the page, over
+ * the page and scrolling with it. On a page shorter than the view, it sits in the bottom
+ * right corner of the view.
+ */
+@SuppressLint("ViewConstructor")
+@Suppress("DEPRECATION") // A web view places its children with AbsoluteLayout, in page coordinates.
+private class FrontendWebView(context: Context, onSettings: () -> Unit) : WebView(context) {
+    private val buttonSize = (48 * resources.displayMetrics.density).roundToInt()
+    private val margin = (8 * resources.displayMetrics.density).roundToInt()
+    private val settingsButton = ComposeView(context).apply {
+        setContent {
+            C3lingoTheme {
+                FilledTonalIconButton(
+                    onClick = onSettings,
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                ) {
+                    Icon(Icons.Filled.Settings, stringResource(R.string.settings_title), Modifier.size(20.dp))
+                }
+            }
+        }
+    }
+
+    init {
+        addView(settingsButton, AbsoluteLayout.LayoutParams(buttonSize, buttonSize, 0, 0))
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        // The page's height changes as it renders, and there is no callback for that.
+        val params = settingsButton.layoutParams as AbsoluteLayout.LayoutParams
+        val x = width - buttonSize - margin
+        val y = max(computeVerticalScrollRange(), height) - buttonSize - margin
+        if (params.x != x || params.y != y) {
+            params.x = x
+            params.y = y
+            post { settingsButton.requestLayout() }
+        }
     }
 }

@@ -74,9 +74,7 @@ class MainActivity : ComponentActivity() {
         applyLaunchOptions(intent)
         setContent {
             C3lingoTheme {
-                AppScreen(frontend, app.player, app.settings) {
-                    startActivity(Intent(this, SettingsActivity::class.java))
-                }
+                AppScreen(frontend, app.player, app.settings)
             }
         }
 
@@ -130,17 +128,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettings, onChangeServer: () -> Unit) {
+private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettings) {
     val state by player.state.collectAsStateWithLifecycle()
     val loadError by frontend.loadError.collectAsStateWithLifecycle()
     val hasLoaded by frontend.hasLoaded.collectAsStateWithLifecycle()
     val serverURL by settings.serverURL.collectAsStateWithLifecycle()
     val descriptions by frontend.descriptions.collectAsStateWithLifecycle()
+    val isShowingServerDialog by frontend.isShowingServerDialog.collectAsStateWithLifecycle()
     val playing = state.channel != null
+
+    if (isShowingServerDialog) {
+        ServerDialog(settings, onReload = frontend::reload, onDismiss = { frontend.showServerDialog(false) })
+    }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
         FrontendArea(
-            frontend, loadError, hasLoaded, serverURL, playing, onChangeServer,
+            frontend, loadError, hasLoaded, serverURL, playing, { frontend.showServerDialog(true) },
             Modifier.weight(1f).fillMaxWidth(),
         )
         AnimatedVisibility(

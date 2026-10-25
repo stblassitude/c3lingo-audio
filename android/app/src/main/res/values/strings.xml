@@ -37,6 +37,14 @@
     <string name="settings_footer">For testing only. Leave empty to use %1$s. Currently using %2$s.</string>
     <string name="settings_use_default">Use Default</string>
     <string name="settings_apply">Apply</string>
+    <string name="server_save">Save</string>
+    <string name="server_use_default">Use the default server</string>
+    <string name="server_checking">Checking…</string>
+    <string name="server_invalid">This isn\'t a valid web address.</string>
+    <string name="server_http_error">The server reported an error (HTTP %1$d).</string>
+    <string name="server_not_c3lingo">This isn\'t a c3lingo audio site.</string>
+    <string name="server_not_found">Can\'t find a server with this name.</string>
+    <string name="server_cant_connect">Can\'t connect to the server: %1$s</string>
     <string name="back">Back</string>
 
     <string name="error_network">Can\'t connect. Make sure you are on the event Wi-Fi. Retrying…</string>

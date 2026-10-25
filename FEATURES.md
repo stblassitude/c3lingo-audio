@@ -102,13 +102,23 @@ what isn't done yet in the table at the end.
 - **Server URL**, empty for the default `https://audio.c3lingo.org/`. Input without a
   scheme gets `https://`, a trailing slash is added, only `http` and `https` are
   accepted. Changing it stops playback and loads the new frontend.
-  - iOS, iPadOS, visionOS: the Settings app. macOS: the Settings window, with validation,
-    Use Default and Apply. Android: the app's settings screen (from the load error screen
-    and from the gear on the system's App info screen), with the same validation and
-    buttons as on macOS.
+  - **Server dialog** (iOS, iPadOS, visionOS: a sheet; Android: a dialog), opened from a
+    small cog in the bottom right corner of the page, over the page and scrolling with
+    it, and from Change Server… on the load error screen. One field, showing the URL
+    without `https://` (`http://` stays), the default as placeholder, and a button that
+    empties it to restore the default. Once the host looks complete and typing pauses,
+    the page is fetched: a host that can't be found, a connection problem, an HTTP error
+    or a page that isn't a c3lingo frontend is shown below the field, and the confirm
+    button stays disabled until the check passes. The buttons are worded as each
+    platform does: Cancel and Done (iOS), Cancel and Save (Android). Confirming always
+    reloads the page.
+  - Also: iOS, iPadOS, visionOS: the Settings app. macOS: the Settings window, with
+    validation, Use Default and Apply. Android: the app's settings screen (from the gear
+    on the system's App info screen), with the same validation and buttons as on macOS.
 - **Plain `http`:** allowed for local network addresses (Apple); allowed in debug builds
   only (Android, which can't limit it to local addresses).
-- **`serverURL` launch option** uses another server for that run only.
+- **`serverURL` launch option** replaces the default for that run only, including the
+  dialog's placeholder; a URL saved in the app still takes precedence.
 - **`autoplay` launch option** selects a channel once the page has loaded, as if it had
   been clicked.
 

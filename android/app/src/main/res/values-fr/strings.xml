@@ -32,6 +32,14 @@
     <string name="settings_footer">Uniquement pour les tests. Laissez vide pour utiliser %1$s. Actuellement : %2$s.</string>
     <string name="settings_use_default">Utiliser la valeur par défaut</string>
     <string name="settings_apply">Appliquer</string>
+    <string name="server_save">Enregistrer</string>
+    <string name="server_use_default">Utiliser le serveur par défaut</string>
+    <string name="server_checking">Vérification…</string>
+    <string name="server_invalid">Ce n\'est pas une adresse web valide.</string>
+    <string name="server_http_error">Le serveur a signalé une erreur (HTTP %1$d).</string>
+    <string name="server_not_c3lingo">Ce n\'est pas un site audio c3lingo.</string>
+    <string name="server_not_found">Aucun serveur trouvé avec ce nom.</string>
+    <string name="server_cant_connect">Connexion au serveur impossible : %1$s</string>
     <string name="back">Retour</string>
     <string name="error_network">Connexion impossible. Vérifiez que vous êtes sur le Wi-Fi de l\'événement. Nouvelle tentative…</string>
     <string name="error_unavailable">Ce canal n\'est pas disponible pour le moment. Nouvelle tentative…</string>

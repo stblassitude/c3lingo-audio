@@ -87,7 +87,7 @@ private fun SettingsScreen(settings: ServerSettings, onBack: () -> Unit) {
                 value = draft,
                 onValueChange = { draft = it },
                 label = { Text(stringResource(R.string.settings_url_label)) },
-                placeholder = { Text(ServerSettings.DEFAULT_URL.toString()) },
+                placeholder = { Text(settings.defaultURL.toString()) },
                 singleLine = true,
                 isError = !valid,
                 keyboardOptions = KeyboardOptions(
@@ -107,7 +107,7 @@ private fun SettingsScreen(settings: ServerSettings, onBack: () -> Unit) {
                 )
             }
             Text(
-                stringResource(R.string.settings_footer, ServerSettings.DEFAULT_URL.toString(), serverURL.toString()),
+                stringResource(R.string.settings_footer, settings.defaultURL.toString(), serverURL.toString()),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
             )

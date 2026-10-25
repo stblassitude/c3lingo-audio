@@ -194,6 +194,17 @@ final class Player: ObservableObject {
                 MainActor.assumeIsolated { self?.interruptionEnded(shouldResume: options.contains(.shouldResume)) }
             })
         }
+        // Like Music and Podcasts, pause when the headphones go away instead of
+        // carrying on through the speaker.
+        observers.append(center.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] note in
+            let reason = (note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt).flatMap(AVAudioSession.RouteChangeReason.init)
+            guard reason == .oldDeviceUnavailable else { return }
+            MainActor.assumeIsolated {
+                guard let self, self.isActive else { return }
+                Log.player.info("audio output went away, pausing")
+                self.pause()
+            }
+        })
         observers.append(center.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self, self.isActive else { return }

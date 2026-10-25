@@ -47,7 +47,8 @@ lane :upload_metadata do |options|
     path = File.join(ANDROID_METADATA, PLAY_LOCALES.fetch(locale, locale), "changelogs", "#{code}.txt")
     File.exist?(path) ? File.read(path) : nil
   end
-  locales = Dir.children(File.join(__dir__, "metadata")).sort
+  # The language folders, not review_information/.
+  locales = Dir.glob("*/name.txt", base: File.join(__dir__, "metadata")).map { |path| File.dirname(path) }.sort
   english = notes.call("en-US") || UI.user_error!("No release notes for version code #{code}")
   release_notes = locales.to_h { |locale| [locale, notes.call(locale) || english] }
 

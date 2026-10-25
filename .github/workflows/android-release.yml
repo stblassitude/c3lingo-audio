@@ -104,9 +104,14 @@ jobs:
             cp "$apk" "dist/c3lingo-audio-$VERSION-${abi#app-}.apk"
           done
           ls -l dist
-          gh release create "$GITHUB_REF_NAME" dist/*.apk \
-            --title "c3lingo audio $VERSION" \
-            --notes-file "$RUNNER_TEMP/notes.md"
+          # A re-run, after a later step failed, replaces the APKs.
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/*.apk --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/*.apk \
+              --title "c3lingo audio $VERSION" \
+              --notes-file "$RUNNER_TEMP/notes.md"
+          fi
 
       - uses: ruby/setup-ruby@v1
         with:

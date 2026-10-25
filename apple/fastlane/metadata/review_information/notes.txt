@@ -1,0 +1,1 @@
+Please set the server URL in the app's settings to the testing server https://c3listen.lassitu.de. It offers three audio tracks for the hall "One": English, German and Portuguese. At the real event, these are the live audio from the conference's lecture hall; on the testing server, they are a recording played in a loop.

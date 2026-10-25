@@ -372,7 +372,8 @@ upload has a higher one.
 Then `bundle exec fastlane upload_metadata` uploads the texts in
 `apple/fastlane/metadata/` and the release notes as "What's New" to the iOS version
 with that number, creating it in App Store Connect if needed. It doesn't submit the
-version for review. For the Mac and Vision Pro versions, which are built by hand, run it
+version for review. App Review's notes come from
+`apple/fastlane/metadata/review_information/notes.txt`. For the Mac and Vision Pro versions, which are built by hand, run it
 with `platforms:osx,xros` in `apple/`, with the same variables as `upload_screenshots`
 (see [Screenshots](#apple)).
 

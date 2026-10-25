@@ -13,7 +13,7 @@ xcuserdata/
 # android/fastlane/metadata/ is committed, as F-Droid reads the store listing from there.
 /vendor/bundle/
 /apple/fastlane/screenshots/
-fastlane/report.xml
-fastlane/README.md
-fastlane/test_output/
+**/fastlane/report.xml
+**/fastlane/README.md
+**/fastlane/test_output/
 .envrc

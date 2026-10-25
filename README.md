@@ -284,7 +284,21 @@ and the three other variables to the same values, then run
 unsigned.
 
 Google Play takes an app bundle instead, built with `./gradlew :app:bundleRelease` and
-the same variables. For each bundle, Play warns that it contains native code without
+the same variables. The workflow builds it too and uploads it to the internal testing
+track with `bundle exec fastlane upload_internal`, with the commits as "What's new"
+(cut to Play's 500 characters). From there, it is promoted to other tracks in Play
+Console. Play signs with the same key as the APKs (it was uploaded on Play Console's
+App signing page, under Protected with Play), so the two can update each other.
+
+The upload uses the service account described under [Screenshots](#android), whose
+JSON key the workflow reads from a repository secret. In Play Console, the service
+account also needs permission to release to testing tracks.
+
+```sh
+gh secret set GOOGLE_PLAY_JSON_KEY < ~/keys/c3lingo-play.json
+```
+
+For each bundle, Play warns that it contains native code without
 debug symbols. That warning can be ignored: the native code is WebRTC and AndroidX's
 `libandroidx.graphics.path.so`, which come stripped, so there are no symbols to upload.
 Crashes in the app's own code are decoded with R8's mapping file, which is part of the

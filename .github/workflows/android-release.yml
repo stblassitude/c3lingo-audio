@@ -1,5 +1,6 @@
 # Builds signed APKs for a tag such as v1.2.0 and publishes them as a GitHub
-# release, with the commits since the previous v* tag as release notes.
+# release, with the commits since the previous v* tag as release notes. The app
+# bundle goes to Google Play's internal testing track.
 name: Android release
 
 on:
@@ -54,6 +55,18 @@ jobs:
           -PversionName=${{ steps.version.outputs.name }}
           -PversionCode=${{ steps.version.outputs.code }}
 
+      # A separate run, as the APKs are split by ABI only when no bundle is built.
+      - name: Build app bundle
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: >
+          ./gradlew :app:bundleRelease
+          -PversionName=${{ steps.version.outputs.name }}
+          -PversionCode=${{ steps.version.outputs.code }}
+
       - name: Write release notes
         run: |
           previous=$(git describe --tags --abbrev=0 --match 'v*' "$GITHUB_REF_NAME^" 2>/dev/null || true)
@@ -86,3 +99,28 @@ jobs:
           gh release create "$GITHUB_REF_NAME" dist/*.apk \
             --title "c3lingo audio $VERSION" \
             --notes-file "$RUNNER_TEMP/notes.md"
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+          bundler-cache: true
+
+      - name: Upload to Google Play
+        env:
+          GOOGLE_PLAY_JSON_KEY: ${{ secrets.GOOGLE_PLAY_JSON_KEY }}
+          VERSION_CODE: ${{ steps.version.outputs.code }}
+        run: |
+          if [ -z "$GOOGLE_PLAY_JSON_KEY" ]; then
+            echo "::error::The GOOGLE_PLAY_JSON_KEY secret is missing; see 'Releasing the Android app' in README.md."
+            exit 1
+          fi
+          # The commit list as "What's new", in whole lines up to Play's 500 characters.
+          changelogs=android/fastlane/metadata/android/en-US/changelogs
+          mkdir -p "$changelogs"
+          grep '^- ' "$RUNNER_TEMP/notes.md" \
+            | awk '{ n += length($0) + 1; if (n > 500) exit; print }' \
+            > "$changelogs/$VERSION_CODE.txt"
+          cat "$changelogs/$VERSION_CODE.txt"
+          cd android
+          bundle exec fastlane upload_internal \
+            aab:"$PWD/app/build/outputs/bundle/release/app-release.aab"

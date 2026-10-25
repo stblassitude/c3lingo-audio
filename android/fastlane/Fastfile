@@ -1,12 +1,11 @@
-# Uploads the screenshots taken by android/screenshots/capture.sh to the app's store
-# listing in Google Play. See "Screenshots" in README.md.
-#
-#   bundle exec fastlane upload_screenshots
-#
-# Uses the Google Play service account key in GOOGLE_PLAY_JSON_KEY_PATH.
+# Lanes for Google Play. See "Releasing the Android app" and "Screenshots" in README.md.
 
 PACKAGE_NAME = "org.c3lingo.audio"
 
+# Uploads the screenshots taken by android/screenshots/capture.sh to the app's store
+# listing, with the service account key in the file GOOGLE_PLAY_JSON_KEY_PATH.
+#
+#   bundle exec fastlane upload_screenshots
 lane :upload_screenshots do
   upload_to_play_store(
     package_name: PACKAGE_NAME,
@@ -19,5 +18,26 @@ lane :upload_screenshots do
     skip_upload_changelogs: true,
     skip_upload_images: true,
     skip_upload_screenshots: false
+  )
+end
+
+# Uploads an app bundle to the internal testing track, with the "What's new" text from
+# metadata/android/<language>/changelogs/<version code>.txt, if there is one. Called by
+# .github/workflows/android-release.yml with the key itself in GOOGLE_PLAY_JSON_KEY.
+#
+#   bundle exec fastlane upload_internal aab:/path/to/app-release.aab
+lane :upload_internal do |options|
+  upload_to_play_store(
+    package_name: PACKAGE_NAME,
+    json_key_data: ENV.fetch("GOOGLE_PLAY_JSON_KEY"),
+    track: "internal",
+    aab: options.fetch(:aab),
+    metadata_path: File.join(__dir__, "metadata", "android"),
+    # Only the build and its release notes; the store listing is edited in Play Console.
+    skip_upload_apk: true,
+    skip_upload_metadata: true,
+    skip_upload_changelogs: false,
+    skip_upload_images: true,
+    skip_upload_screenshots: true
   )
 end

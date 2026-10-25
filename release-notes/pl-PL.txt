@@ -1,0 +1,5 @@
+• Większe przyciski odtwarzania, wyśrodkowane na telefonach w pionie
+• Aplikacja pokazuje tylko strony audio c3lingo i wyjaśnia, dlaczego nie udało się załadować serwera
+• Do testów: zmień serwer kołem zębatym na dole strony; adres jest sprawdzany podczas wpisywania
+• Strona się przewija, ale nie powiększa się już przypadkiem
+• Android: zmiana serwera nie zostawia już pustego ekranu

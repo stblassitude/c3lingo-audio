@@ -1,0 +1,5 @@
+• Controles de reproducción más grandes, centrados en móviles en vertical
+• La app solo muestra sitios de audio de c3lingo y explica por qué no se pudo cargar un servidor
+• Para pruebas: cambia el servidor con el engranaje al final de la página; la dirección se comprueba al escribirla
+• La página se desplaza, pero ya no se amplía por accidente
+• Android: cambiar de servidor ya no deja la pantalla vacía

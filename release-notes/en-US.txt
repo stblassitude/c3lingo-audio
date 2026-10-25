@@ -1,0 +1,5 @@
+• Bigger playback controls, centred on phones held upright
+• The app only shows c3lingo audio sites, and explains why a server couldn't be loaded
+• For testing: change the server with the cog at the bottom of the page; the address is checked as you type
+• The page scrolls but no longer zooms by accident
+• Android: changing the server no longer leaves an empty screen

@@ -1,0 +1,5 @@
+• Größere Wiedergabe-Bedienelemente, auf Smartphones im Hochformat zentriert
+• Die App zeigt nur c3lingo-Audioseiten und erklärt, warum ein Server nicht geladen werden konnte
+• Zum Testen: Server über das Zahnrad unten auf der Seite ändern; die Adresse wird bei der Eingabe geprüft
+• Die Seite scrollt, zoomt aber nicht mehr versehentlich
+• Android: Nach einem Serverwechsel bleibt der Bildschirm nicht mehr leer

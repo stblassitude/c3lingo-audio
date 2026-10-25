@@ -1,0 +1,5 @@
+• Commandes de lecture plus grandes, centrées sur les téléphones en mode portrait
+• L'app n'affiche que des sites audio c3lingo et explique pourquoi un serveur n'a pas pu être chargé
+• Pour les tests : changez de serveur avec la roue dentée en bas de la page ; l'adresse est vérifiée pendant la saisie
+• La page défile mais ne zoome plus par accident
+• Android : changer de serveur ne laisse plus un écran vide

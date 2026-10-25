@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -41,9 +42,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.mediarouter.app.SystemOutputSwitcherDialogController
@@ -51,21 +54,20 @@ import androidx.mediarouter.app.SystemOutputSwitcherDialogController
 /**
  * The native playback controls, shown at the bottom while a channel is selected.
  *
- * Narrow (portrait phones): the hall and language on one line, status and controls
- * below. Wide: hall, language, status and the current talk on the left, the controls
- * on the right. Below that, if needed, a message that explains the status.
+ * Narrow (portrait phones): everything centred, the hall and language, the current
+ * talk, the status and, if needed, a message that explains it, with the controls below.
+ * Wide: the same information on the left, the controls on the right.
  */
 @Composable
 fun PlayerBar(state: Player.State, player: Player, description: ChannelDescription?) {
     Surface(tonalElevation = 3.dp) {
         BoxWithConstraints(
-            Modifier
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
-                .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+            Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)),
         ) {
             val title = description?.title ?: state.channel?.displayName.orEmpty()
             if (maxWidth >= WIDE_WIDTH) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // The buttons' own padding is enough at the end.
+                Row(Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Title(title, Modifier.weight(1f, fill = false))
@@ -77,13 +79,15 @@ fun PlayerBar(state: Player.State, player: Player, description: ChannelDescripti
                     Controls(state, player)
                 }
             } else {
-                Column {
-                    Title(title, Modifier.padding(end = 12.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Status(state, Modifier.weight(1f))
-                        Controls(state, player)
-                    }
-                    Message(state, Modifier.padding(end = 12.dp))
+                Column(
+                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Title(title)
+                    description?.talk?.let { Talk(it, TextAlign.Center) }
+                    Status(state)
+                    Message(state, TextAlign.Center)
+                    Controls(state, player)
                 }
             }
         }
@@ -106,7 +110,7 @@ private fun Title(title: String, modifier: Modifier = Modifier) {
 
 /** The current or next talk, a link to its page in the browser if the schedule has one. */
 @Composable
-private fun Talk(talk: ChannelDescription.Talk) {
+private fun Talk(talk: ChannelDescription.Talk, textAlign: TextAlign? = null) {
     val context = LocalContext.current
     val url = talk.url
     val modifier = if (url != null) {
@@ -124,6 +128,7 @@ private fun Talk(talk: ChannelDescription.Talk) {
         talkText(talk),
         style = MaterialTheme.typography.bodyMedium,
         color = if (url != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = textAlign,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,
@@ -146,7 +151,7 @@ private fun Status(state: Player.State, modifier: Modifier = Modifier) {
 
 /** Explains the status: that nothing is being broadcast, or why there's no connection. */
 @Composable
-private fun Message(state: Player.State, modifier: Modifier = Modifier) {
+private fun Message(state: Player.State, textAlign: TextAlign? = null) {
     val text = when (state.status) {
         Player.Status.WAITING -> stringResource(R.string.waiting_message)
         Player.Status.CONNECTING, Player.Status.RECONNECTING -> state.lastError
@@ -156,37 +161,39 @@ private fun Message(state: Player.State, modifier: Modifier = Modifier) {
         text,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = textAlign,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
     )
 }
 
 @Composable
 private fun Controls(state: Player.State, player: Player) {
     val context = LocalContext.current
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        IconButton(onClick = { player.setMuted(!state.isMuted) }) {
-            if (state.isMuted) {
-                Icon(Icons.AutoMirrored.Filled.VolumeOff, stringResource(R.string.unmute))
-            } else {
-                Icon(Icons.AutoMirrored.Filled.VolumeUp, stringResource(R.string.mute))
-            }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (state.isMuted) {
+            ControlButton(Icons.AutoMirrored.Filled.VolumeOff, stringResource(R.string.unmute)) { player.setMuted(false) }
+        } else {
+            ControlButton(Icons.AutoMirrored.Filled.VolumeUp, stringResource(R.string.mute)) { player.setMuted(true) }
         }
-        IconButton(onClick = player::togglePause) {
-            if (state.status == Player.Status.PAUSED) {
-                Icon(Icons.Filled.PlayArrow, stringResource(R.string.play))
-            } else {
-                Icon(Icons.Filled.Pause, stringResource(R.string.pause))
-            }
+        if (state.status == Player.Status.PAUSED) {
+            ControlButton(Icons.Filled.PlayArrow, stringResource(R.string.play), player::togglePause)
+        } else {
+            ControlButton(Icons.Filled.Pause, stringResource(R.string.pause), player::togglePause)
         }
         // Bluetooth, wired and other outputs, through the system's output switcher.
-        IconButton(onClick = { SystemOutputSwitcherDialogController.showDialog(context) }) {
-            Icon(Icons.Outlined.SpeakerGroup, stringResource(R.string.audio_output))
+        ControlButton(Icons.Outlined.SpeakerGroup, stringResource(R.string.audio_output)) {
+            SystemOutputSwitcherDialogController.showDialog(context)
         }
-        IconButton(onClick = player::stop) {
-            Icon(Icons.Filled.Close, stringResource(R.string.stop))
-        }
+        ControlButton(Icons.Filled.Close, stringResource(R.string.stop), player::stop)
+    }
+}
+
+/** A standard icon button at twice the usual size, so it is easy to hit. */
+@Composable
+private fun ControlButton(icon: ImageVector, description: String, onClick: () -> Unit) {
+    IconButton(onClick, Modifier.size(80.dp)) {
+        Icon(icon, description, Modifier.size(48.dp))
     }
 }
 

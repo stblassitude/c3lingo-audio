@@ -3,9 +3,9 @@ import SwiftUI
 
 /// The native playback controls, shown at the bottom while a channel is selected.
 ///
-/// Narrow (portrait phones): the hall and language on one line, status and controls
-/// below. Wide: hall, language, status and the current talk on the left, the controls
-/// on the right. Below that, if needed, a message that explains the status.
+/// Narrow (portrait phones): everything centred, the hall and language, the current
+/// talk, the status and, if needed, a message that explains it, with the controls below.
+/// Wide: the same information on the left, the controls on the right.
 struct PlayerBar: View {
     @EnvironmentObject private var player: Player
     /// What the frontend knows about the channel, if anything.
@@ -13,6 +13,8 @@ struct PlayerBar: View {
 
     @State private var isWide = false
     private static let wideWidth: CGFloat = 520
+    /// Twice the usual size of a `.title2` symbol, so the controls are easy to hit.
+    @ScaledMetric(relativeTo: .title2) private var controlSize: CGFloat = 44
 
     var body: some View {
         Group {
@@ -31,15 +33,15 @@ struct PlayerBar: View {
                     controls
                 }
             } else {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(spacing: 2) {
                     title
-                    HStack(spacing: 16) {
-                        status
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        controls
-                    }
+                    talk
+                    status
                     message
+                    controls
+                        .padding(.top, 8)
                 }
+                .multilineTextAlignment(.center)
             }
         }
         .labelStyle(.iconOnly)
@@ -54,6 +56,10 @@ struct PlayerBar: View {
             isWide = width >= Self.wideWidth
         }
         .background(.bar)
+        #if os(iOS)
+        // Separates the bar from the page, like a tab bar or toolbar.
+        .overlay(alignment: .top) { Divider() }
+        #endif
     }
 
     private var title: some View {
@@ -110,7 +116,7 @@ struct PlayerBar: View {
     }
 
     private var controls: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 24) {
             Button {
                 player.isMuted.toggle()
             } label: {
@@ -129,7 +135,7 @@ struct PlayerBar: View {
 
             #if os(iOS) || os(macOS)
             RoutePicker()
-                .frame(width: 28, height: 28)
+                .frame(width: controlSize * 1.25, height: controlSize * 1.25)
                 .accessibilityLabel("Audio output")
             #endif
 
@@ -139,7 +145,7 @@ struct PlayerBar: View {
                 Label("Stop", systemImage: "xmark")
             }
         }
-        .font(.title2)
+        .font(.system(size: controlSize))
     }
 
     @ViewBuilder private var statusIndicator: some View {

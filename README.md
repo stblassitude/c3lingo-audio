@@ -186,9 +186,10 @@ first build.
 
 **In Xcode:** open `apple/c3lingo-audio.xcodeproj`, pick the `c3lingo-audio` scheme and a
 destination in the toolbar (an iPhone or iPad simulator, Apple Vision Pro, or My Mac),
-and press ⌘R. Launch options such as `-serverURL` go under Product → Scheme → Edit
-Scheme… → Run → Arguments. Logs appear in Xcode's console; filter for the
-`org.c3lingo.audio` subsystem.
+and press ⌘R. The shared scheme runs the app against the test server
+`https://c3listen.lassitu.de/`. Launch options such as `-serverURL` go under Product →
+Scheme → Edit Scheme… → Run → Arguments; untick `-serverURL` there for the default server.
+Logs appear in Xcode's console; filter for the `org.c3lingo.audio` subsystem.
 
 **From the command line**, for an iPhone or iPad simulator:
 
@@ -225,10 +226,8 @@ emulator and a JDK. Then, in Android Studio:
    system image for API 37 (on Apple silicon, an arm64 image).
 
 **In Android Studio:** File → Open… the `android/` folder (not the repository root), wait
-for the Gradle sync, select the emulator in the toolbar and press Run (⌃R). There are
-two shared run configurations (in `android/.run/`): **app**, and
-**app (c3listen.lassitu.de)**, which uses the test server `https://c3listen.lassitu.de/`. Gradle uses
-the JDK bundled with Android Studio. The app needs Android 7.0 (API 24) or later, the
+for the Gradle sync, select the emulator in the toolbar and press Run (⌃R), which uses
+the shared run configuration **app** (in `android/.run/`). Gradle uses the JDK bundled with Android Studio. The app needs Android 7.0 (API 24) or later, the
 oldest version the AndroidX libraries it uses still support. To test on it, create a
 second virtual device with an API 24 system image.
 Logs are in the Logcat window; filter for `tag:galene tag:player tag:frontend`.

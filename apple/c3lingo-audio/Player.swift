@@ -237,16 +237,13 @@ final class Player: ObservableObject {
             self?.pause()
             return .success
         }
-        commands.stopCommand.addTarget { [weak self] _ in
-            self?.pause()
-            return .success
-        }
         commands.togglePlayPauseCommand.addTarget { [weak self] _ in
             guard let self, self.channel != nil else { return .noActionableNowPlayingItem }
             self.togglePause()
             return .success
         }
-        for command in [commands.nextTrackCommand, commands.previousTrackCommand, commands.skipForwardCommand, commands.skipBackwardCommand, commands.seekForwardCommand, commands.seekBackwardCommand, commands.changePlaybackPositionCommand] {
+        // With stop enabled, the lock screen shows stop instead of pause for a live stream.
+        for command in [commands.stopCommand, commands.nextTrackCommand, commands.previousTrackCommand, commands.skipForwardCommand, commands.skipBackwardCommand, commands.seekForwardCommand, commands.seekBackwardCommand, commands.changePlaybackPositionCommand] {
             command.isEnabled = false
         }
     }

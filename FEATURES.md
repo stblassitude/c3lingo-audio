@@ -81,8 +81,8 @@ what isn't done yet in the table at the end.
 - **Player bar** at the bottom while a channel is selected: channel name, status with a
   live indicator or progress, mute, play/pause, audio output, stop. Slides in and out.
 - **Lock screen, Control Center / notification and headset controls:** title (channel),
-  artist (server host), shown as a live stream. Play, pause and toggle work; stop
-  pauses, so the channel stays selected. Seeking and skipping are disabled.
+  artist (server host), shown as a live stream. Play, pause and toggle work. Seeking
+  and skipping are disabled; on iOS and macOS stop is too, so the lock screen shows pause.
 - **Audio output selection:** AirPlay and Bluetooth route picker (iOS, macOS); the system
   output switcher (Android).
 

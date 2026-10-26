@@ -71,7 +71,14 @@
     });
 
     // Called by the app with the full state.
+    let hadChannel = false;
     window.__c3lingoNativeState = function (detail) {
+        const hasChannel = detail != null && detail.channel != null;
+        // The page highlights the focused channel link like the selected one. Its own stop
+        // button takes the focus away from the link; the native one doesn't, so do it here.
+        if (hadChannel && !hasChannel && document.activeElement instanceof HTMLAnchorElement)
+            document.activeElement.blur();
+        hadChannel = hasChannel;
         window.dispatchEvent(new CustomEvent("c3lingo:state", { detail: detail }));
     };
 })();

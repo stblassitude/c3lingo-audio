@@ -1,0 +1,3 @@
+• Ekran blokady i sterowanie multimediami pokazują logo c3lingo
+• Ustawienia serwera zawierają link do polityki prywatności
+• Zatrzymanie odtwarzania usuwa wyróżnienie kanału

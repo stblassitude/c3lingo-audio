@@ -1,0 +1,3 @@
+• O ecrã de bloqueio e os controlos multimédia mostram o logótipo do c3lingo
+• As definições do servidor têm uma ligação para a política de privacidade
+• Ao parar a reprodução, o canal deixa de estar realçado

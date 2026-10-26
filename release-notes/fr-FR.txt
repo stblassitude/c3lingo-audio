@@ -1,0 +1,3 @@
+• L'écran de verrouillage et les commandes multimédia affichent le logo c3lingo
+• Les réglages du serveur renvoient à la politique de confidentialité
+• Arrêter la lecture retire la mise en évidence du canal

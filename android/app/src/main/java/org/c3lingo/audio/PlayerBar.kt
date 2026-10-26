@@ -27,9 +27,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.SpeakerGroup
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -185,7 +185,7 @@ private fun Controls(state: Player.State, player: Player) {
         ControlButton(Icons.Outlined.SpeakerGroup, stringResource(R.string.audio_output)) {
             SystemOutputSwitcherDialogController.showDialog(context)
         }
-        ControlButton(Icons.Filled.Close, stringResource(R.string.stop), player::stop)
+        ControlButton(Icons.Filled.Stop, stringResource(R.string.stop), player::stop)
     }
 }
 

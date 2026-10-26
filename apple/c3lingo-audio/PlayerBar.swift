@@ -142,7 +142,7 @@ struct PlayerBar: View {
             Button {
                 player.stop()
             } label: {
-                Label("Stop", systemImage: "xmark")
+                Label("Stop", systemImage: "stop.fill")
             }
         }
         .font(.system(size: controlSize))

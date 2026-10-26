@@ -60,6 +60,11 @@ private class SessionPlayer(
 ) : SimpleBasePlayer(Looper.getMainLooper()) {
     private val scope = MainScope()
 
+    /** The c3lingo logo in place of an album cover, on the lock screen and the watch. */
+    private val artwork: ByteArray by lazy {
+        context.resources.openRawResource(R.raw.artwork).use { it.readBytes() }
+    }
+
     init {
         scope.launch { player.state.collect { invalidateState() } }
         scope.launch { player.descriptions.collect { invalidateState() } }
@@ -77,6 +82,7 @@ private class SessionPlayer(
         val metadata = MediaMetadata.Builder()
             .setTitle(description?.title ?: channel.displayName)
             .setArtist(description?.talk?.text(context) ?: settings.serverURL.value.host ?: "c3lingo")
+            .setArtworkData(artwork, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
             .setIsPlayable(true)
             .setIsBrowsable(false)
             .build()

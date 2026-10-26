@@ -73,6 +73,13 @@ for scale in 1 2 3; do
     png "$tmp/rounded.png"
 done
 
+# Now Playing and media session artwork for the lock screen, Control Center and the
+# watch: full-bleed square like an album cover, the system rounds the corners
+rsvg-convert -w 512 -h 512 "$svg" -o "$tmp/artwork.png"
+for out in "$assets/Artwork.imageset/Artwork.png" "$android_res/raw/artwork.png"; do
+    magick "$tmp/artwork.png" -alpha off -define png:exclude-chunks=date,time,tIME "PNG24:$out"
+done
+
 # Android: vector drawables built from the SVG's paths
 paths() {
     grep -o ' d="[^"]*"' "$svg" | sed -e 's| d="|        <path android:fillColor="#000000" android:pathData="|' -e 's|$| />|'

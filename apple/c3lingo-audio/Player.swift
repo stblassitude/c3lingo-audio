@@ -3,6 +3,11 @@ import Combine
 import MediaPlayer
 import Network
 import os
+#if canImport(UIKit)
+import UIKit
+#else
+import AppKit
+#endif
 
 /// Plays one channel at a time and keeps it playing: reconnects with backoff when the
 /// connection drops, after network changes and after audio interruptions.
@@ -39,6 +44,16 @@ final class Player: ObservableObject {
     private let pathMonitor = NWPathMonitor()
     private var networkAvailable = true
     private var observers: [NSObjectProtocol] = []
+
+    /// The c3lingo logo in place of an album cover, on the lock screen and the watch.
+    private static let artwork: MPMediaItemArtwork? = {
+        #if canImport(UIKit)
+        guard let image = UIImage(named: "Artwork") else { return nil }
+        #else
+        guard let image = NSImage(named: "Artwork") else { return nil }
+        #endif
+        return MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+    }()
 
     init() {
         configureRemoteCommands()
@@ -267,13 +282,17 @@ final class Player: ObservableObject {
         }
         let running = status != .paused
         let description = descriptions[channel.name]
-        center.nowPlayingInfo = [
+        var info: [String: Any] = [
             MPMediaItemPropertyTitle: description?.title ?? channel.displayName,
             MPMediaItemPropertyArtist: description?.talkText ?? ServerSettings.shared.serverURL.host ?? "c3lingo",
             MPNowPlayingInfoPropertyIsLiveStream: true,
             MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.audio.rawValue,
             MPNowPlayingInfoPropertyPlaybackRate: running ? 1.0 : 0.0,
         ]
+        if let artwork = Self.artwork {
+            info[MPMediaItemPropertyArtwork] = artwork
+        }
+        center.nowPlayingInfo = info
         #if os(macOS)
         center.playbackState = running ? .playing : .paused
         #endif

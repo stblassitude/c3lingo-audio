@@ -375,9 +375,19 @@ Then `bundle exec fastlane upload_metadata` uploads the texts in
 `apple/fastlane/metadata/` and the release notes as "What's New" to the iOS version
 with that number, creating it in App Store Connect if needed. It doesn't submit the
 version for review. App Review's notes come from
-`apple/fastlane/metadata/review_information/notes.txt`. For the Mac and Vision Pro
-versions, which are built by hand, run it with `platforms:osx,xros` in `apple/`, with
-the same variables as `upload_screenshots` (see [Screenshots](#apple)).
+`apple/fastlane/metadata/review_information/notes.txt`, and its contact, which App Store
+Connect requires with them, from four repository secrets, as the repository is public:
+
+```sh
+gh secret set APP_REVIEW_FIRST_NAME --body Jane
+gh secret set APP_REVIEW_LAST_NAME --body Doe
+gh secret set APP_REVIEW_EMAIL --body jane@example.org
+gh secret set APP_REVIEW_PHONE --body "+49 30 1234567"
+```
+
+For the Mac and Vision Pro versions, which are built by hand, run it with
+`platforms:osx,xros` in `apple/`, with the same variables as `upload_screenshots` (see
+[Screenshots](#apple)) and the four `APP_REVIEW_…` ones.
 
 The app record for `org.c3lingo.audio` has to exist in App Store Connect before the first
 upload. The workflow signs with Xcode's automatic signing through an App Store Connect

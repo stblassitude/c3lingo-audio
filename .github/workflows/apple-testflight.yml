@@ -88,6 +88,11 @@ jobs:
 
       - name: Upload App Store metadata
         working-directory: apple
+        env:
+          APP_REVIEW_FIRST_NAME: ${{ secrets.APP_REVIEW_FIRST_NAME }}
+          APP_REVIEW_LAST_NAME: ${{ secrets.APP_REVIEW_LAST_NAME }}
+          APP_REVIEW_EMAIL: ${{ secrets.APP_REVIEW_EMAIL }}
+          APP_REVIEW_PHONE: ${{ secrets.APP_REVIEW_PHONE }}
         run: >
           APP_STORE_CONNECT_KEY_PATH="$AUTH_KEY_PATH"
           APP_STORE_CONNECT_KEY_ID="$AUTH_KEY_ID"

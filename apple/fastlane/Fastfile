@@ -4,6 +4,8 @@
 # Both use the App Store Connect API key from APP_STORE_CONNECT_KEY_ID,
 # APP_STORE_CONNECT_ISSUER_ID and APP_STORE_CONNECT_KEY_PATH (the .p8 file).
 
+require "open3"
+
 APP_IDENTIFIER = "org.c3lingo.audio"
 
 REPOSITORY = File.expand_path("../..", __dir__)
@@ -11,12 +13,23 @@ REPOSITORY = File.expand_path("../..", __dir__)
 # Absolute, as actions run in apple/, not in fastlane/ like the lanes.
 METADATA_PATH = File.expand_path("metadata", __dir__)
 
-# The Android app's version and its release notes are the ones for both apps.
+# The Android app's version is the one for both apps.
 GRADLE = File.join(REPOSITORY, "android", "app", "build.gradle.kts")
-ANDROID_METADATA = File.join(REPOSITORY, "android", "fastlane", "metadata", "android")
+
+# The release notes for all platforms, in release_notes/<version code>/<Google Play
+# locale>.txt, as ./release puts them, and the script that picks each platform's items.
+RELEASE_NOTES = File.expand_path("release_notes", __dir__)
+FILTER = File.join(REPOSITORY, "shared", "filter-release-notes")
 
 # App Store Connect locale and Google Play's, where they differ.
 PLAY_LOCALES = { "pl" => "pl-PL" }.freeze
+
+# App Store Connect platform and the filter's name for it.
+FILTER_PLATFORMS = {
+  "ios" => "ios",
+  "xros" => "visionos",
+  "osx" => "macos"
+}.freeze
 
 # App Store Connect platform and the folder in screenshots/ with its screenshots.
 PLATFORMS = {
@@ -52,24 +65,27 @@ end
 
 # Uploads the texts in metadata/<locale>/ (name, subtitle, description, keywords) to the
 # version being prepared in App Store Connect, creating it if needed, with the release
-# notes of the Android version code. Languages without release notes get the English
-# ones. Called by .github/workflows/apple-testflight.yml for iOS.
+# notes for that platform from release_notes/<version code>/. Languages without release
+# notes get the English ones. Called by .github/workflows/apple-testflight.yml.
 #
 #   bundle exec fastlane upload_metadata [platforms:ios,osx,xros]
 lane :upload_metadata do |options|
   version = gradle_value("versionName")
   code = gradle_value("versionCode")
-  notes = lambda do |locale|
-    path = File.join(ANDROID_METADATA, PLAY_LOCALES.fetch(locale, locale), "changelogs", "#{code}.txt")
-    File.exist?(path) ? File.read(path) : nil
+  notes = lambda do |locale, platform|
+    path = File.join(RELEASE_NOTES, code, "#{PLAY_LOCALES.fetch(locale, locale)}.txt")
+    next nil unless File.exist?(path)
+    text, status = Open3.capture2(FILTER, FILTER_PLATFORMS.fetch(platform), stdin_data: File.read(path))
+    UI.user_error!("#{FILTER} failed for #{path}") unless status.success?
+    text
   end
   # The language folders, not review_information/.
   locales = Dir.glob("*/name.txt", base: METADATA_PATH).map { |path| File.dirname(path) }.sort
-  english = notes.call("en-US") || UI.user_error!("No release notes for version code #{code}")
-  release_notes = locales.to_h { |locale| [locale, notes.call(locale) || english] }
 
   key = api_key
   (options[:platforms]&.split(",") || ["ios"]).each do |platform|
+    english = notes.call("en-US", platform) || UI.user_error!("No release notes in #{RELEASE_NOTES}/#{code}/en-US.txt")
+    release_notes = locales.to_h { |locale| [locale, notes.call(locale, platform) || english] }
     UI.header("Uploading #{platform} metadata for #{version}")
     deliver(
       api_key: key,

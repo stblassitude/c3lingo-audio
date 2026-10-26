@@ -1,6 +1,7 @@
 #!/bin/bash
-# Releases both apps: takes the release notes from release-notes/, sets the Android
-# version, commits, tags v<version> and pushes. The tag starts the release workflows.
+# Releases both apps: takes the release notes from release-notes/ and splits them for
+# Android and the Apple apps, sets the Android version, commits, tags v<version> and
+# pushes. The tag starts the release workflows.
 # See "Releasing" in README.md.
 #
 #   ./release 1.2.0        asks before pushing
@@ -23,7 +24,9 @@ tag=v$version
 
 gradle=android/app/build.gradle.kts
 metadata=android/fastlane/metadata/android
+apple_notes=apple/fastlane/release_notes
 notes=release-notes
+filter=shared/filter-release-notes
 
 fail() {
     echo "$0: $*" >&2
@@ -47,14 +50,25 @@ old_code=$(sed -n 's/^ *versionCode = \([0-9]*\)$/\1/p' "$gradle")
     && [ "$old_name" != "$version" ] || fail "$version isn't after $old_name"
 code=$((old_code + 1))
 
-# One file per language, named like the folders in android/fastlane/metadata/android/.
+# One file per language, named like the folders in android/fastlane/metadata/android/,
+# with items for single platforms marked as $filter describes.
 [ -s "$notes/en-US.txt" ] || fail "write the release notes into $notes/en-US.txt first"
 for file in "$notes"/*.txt; do
     locale=$(basename "$file" .txt)
     [ -d "$metadata/$locale" ] || fail "$file: no language $locale in $metadata"
+    for platform in android ios macos visionos; do
+        text=$("$filter" "$platform" < "$file")
+        [ -n "$(tr -d '[:space:]' <<< "$text")" ] || fail "$file: nothing left for $platform"
+    done
     # Google Play's and F-Droid's limit.
-    length=$(wc -m < "$file" | tr -d ' ')
-    [ "$length" -le 500 ] || fail "$file: $length characters, at most 500"
+    length=$("$filter" android < "$file" | wc -m | tr -d ' ')
+    [ "$length" -le 500 ] || fail "$file: $length characters for Android, at most 500"
+    # App Review rejects notes that name other platforms.
+    for platform in ios macos visionos; do
+        if "$filter" "$platform" < "$file" | grep -qiE 'android|google|f-droid'; then
+            fail "$file: the notes for $platform mention Android; mark the item with \"Android:\""
+        fi
+    done
 done
 
 echo "versionName $old_name -> $version"
@@ -64,16 +78,21 @@ sed -i.bak \
     -e "s/^\( *versionCode = \)[0-9]*$/\1$code/" \
     "$gradle"
 rm "$gradle.bak"
+# Android's for Google Play and F-Droid; all of them for the Apple apps, which the App
+# Store lane filters for each platform.
+mkdir -p "$apple_notes/$code"
 for file in "$notes"/*.txt; do
     locale=$(basename "$file" .txt)
     mkdir -p "$metadata/$locale/changelogs"
-    git mv "$file" "$metadata/$locale/changelogs/$code.txt"
-    echo "release notes: $metadata/$locale/changelogs/$code.txt"
+    "$filter" android < "$file" > "$metadata/$locale/changelogs/$code.txt"
+    git add "$metadata/$locale/changelogs/$code.txt"
+    git mv "$file" "$apple_notes/$code/$locale.txt"
+    echo "release notes: $metadata/$locale/changelogs/$code.txt, $apple_notes/$code/$locale.txt"
 done
 
 git add "$gradle"
 git commit --quiet -m "Release $version"
-git tag -a "$tag" -F "$metadata/en-US/changelogs/$code.txt"
+git tag -a "$tag" -F "$apple_notes/$code/en-US.txt"
 git log --oneline -1
 
 if [ -z "$yes" ]; then

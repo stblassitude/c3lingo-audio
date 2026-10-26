@@ -259,18 +259,37 @@ install).
 
 Both apps are released together, from one tag such as `v1.2.0`, made by `./release`:
 
-1. Write the release notes into `release-notes/<language>.txt`, at most 500 characters
-   each (Google Play's and F-Droid's limit), with the languages named like the folders
-   in `android/fastlane/metadata/android/`. `en-US.txt` is required; languages without
-   notes get the English ones.
+1. Write the release notes into `release-notes/<language>.txt`, with the languages named
+   like the folders in `android/fastlane/metadata/android/`. `en-US.txt` is required;
+   languages without notes get the English ones. One item per line, starting with `• `.
+   An item for some platforms only starts with their names and a colon, which are left
+   out of the notes for those platforms, and the item out of all others:
+
+   ```
+   • Bigger playback controls
+   • Android: Changing the server no longer leaves an empty screen
+   • iOS, macOS: AirPlay output remembers the last speaker
+   ```
+
+   The names are `Android`; `Apple` for all three Apple platforms; `iOS`, `iPadOS`,
+   `iPhone`, `iPad`; `macOS`, `Mac`; `visionOS`, `Vision Pro`, `Apple Vision Pro`.
+   `shared/filter-release-notes <platform> < release-notes/en-US.txt` shows what a
+   platform (`android`, `ios`, `macos`, `visionos`) gets.
 2. Commit them to `main`, push, and run `./release 1.2.0` (`-y` to push without asking).
 
 The script sets `versionName` to the new version and increments `versionCode` in
-`android/app/build.gradle.kts`, moves the release notes to
-`android/fastlane/metadata/android/<language>/changelogs/<versionCode>.txt`, commits
-"Release 1.2.0", tags it `v1.2.0` with the English notes as the tag message, and pushes
-`main` and the tag. It refuses to run outside an up-to-date `main` without local
-changes, or for a version that isn't higher than the last.
+`android/app/build.gradle.kts`, writes the Android notes to
+`android/fastlane/metadata/android/<language>/changelogs/<versionCode>.txt` (for Google
+Play and F-Droid), moves the notes as written to
+`apple/fastlane/release_notes/<versionCode>/<language>.txt` (the App Store lane picks
+each Apple platform's items from them), commits "Release 1.2.0", tags it `v1.2.0` with
+the English notes as written as the tag message, and pushes `main` and the tag.
+
+It refuses to run outside an up-to-date `main` without local changes, or for a version
+that isn't higher than the last. It also refuses notes that leave nothing for a
+platform, Android notes over 500 characters (Google Play's and F-Droid's limit), and
+Apple notes that mention Android, Google or F-Droid, which App Review rejects: mark
+such an item with `Android:`.
 
 The tag starts the two release workflows, which check it against `versionName`:
 
@@ -286,7 +305,7 @@ commit and goes out with the next release:
 | | Android (Google Play, F-Droid) | Apple (App Store) |
 |---|---|---|
 | texts | `android/fastlane/metadata/android/<language>/`: `title.txt`, `short_description.txt` (80 characters), `full_description.txt` | `apple/fastlane/metadata/<language>/`: `name.txt`, `subtitle.txt` (30 characters), `description.txt`, `keywords.txt` (100 characters), `support_url.txt`, `privacy_url.txt`; `apple/fastlane/metadata/copyright.txt` |
-| release notes | `…/changelogs/<versionCode>.txt` | the same files as Android |
+| release notes | `…/changelogs/<versionCode>.txt` | `apple/fastlane/release_notes/<versionCode>/`, filtered for each platform |
 | icon, feature graphic | `…/images/`, from `shared/icon/render.sh` | in the app |
 | screenshots | `…/images/*Screenshots/`, committed | `apple/fastlane/screenshots/`, not committed |
 
@@ -374,8 +393,8 @@ build number is the number of commits, so every upload has a higher one. A platf
 fails doesn't stop the others' uploads.
 
 Once all three are uploaded, `bundle exec fastlane upload_metadata platforms:ios,osx,xros`
-uploads the texts in `apple/fastlane/metadata/` and the release notes as "What's New" to
-the version with that number on each platform, creating it in App Store Connect if
+uploads the texts in `apple/fastlane/metadata/` and each platform's release notes as
+"What's New" to the version with that number on that platform, creating it in App Store Connect if
 needed. It doesn't submit anything for review. If a build failed, it doesn't run; run it
 by hand in `apple/` after fixing the build, with the same variables as
 `upload_screenshots` (see [Screenshots](#apple)) and the four `APP_REVIEW_…` ones. App Review's notes come from

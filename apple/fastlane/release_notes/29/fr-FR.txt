@@ -1,0 +1,3 @@
+• L'écran de verrouillage et la notification affichent la salle, la langue et la conférence en cours, comme le lecteur
+• Les horaires des conférences sont affichés dans votre fuseau horaire
+• Le lecteur s'arrête avec un bouton stop, comme sur le web

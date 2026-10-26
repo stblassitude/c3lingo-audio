@@ -1,0 +1,3 @@
+• O ecrã de bloqueio e a notificação mostram a sala, o idioma e a palestra atual, como o leitor
+• As horas das palestras são mostradas no seu fuso horário
+• O leitor para com um botão de parar, como na web

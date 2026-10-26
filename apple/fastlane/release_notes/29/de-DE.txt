@@ -1,0 +1,3 @@
+• Sperrbildschirm und Benachrichtigung zeigen Saal, Sprache und aktuellen Vortrag, wie die Wiedergabeleiste
+• Vortragszeiten werden in deiner Zeitzone angezeigt
+• Die Wiedergabe wird wie im Web mit einer Stopp-Taste beendet

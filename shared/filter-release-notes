@@ -1,0 +1,49 @@
+#!/bin/bash
+# Prints the release notes read from stdin for one platform. See "Releasing" in README.md.
+#
+#   shared/filter-release-notes android|ios|macos|visionos < release-notes/en-US.txt
+#
+# An item that starts with platform names and a colon, such as "• Android: …" or
+# "• iOS, macOS: …", is only for those platforms, and the names are left out. Everything
+# else is for all of them. The names: Android; Apple (iOS, macOS and visionOS); iOS,
+# iPadOS, iPhone, iPad; macOS, Mac; visionOS, Vision Pro, Apple Vision Pro.
+set -euo pipefail
+
+case ${1:-} in
+    android | ios | macos | visionos) ;;
+    *)
+        echo "usage: $0 android|ios|macos|visionos < notes" >&2
+        exit 2
+        ;;
+esac
+
+exec awk -v platform="$1" '
+    function platforms(name) {
+        if (name == "Android") return " android "
+        if (name == "Apple") return " ios macos visionos "
+        if (name == "iOS" || name == "iPadOS" || name == "iPhone" || name == "iPad") return " ios "
+        if (name == "macOS" || name == "Mac") return " macos "
+        if (name == "visionOS" || name == "Vision Pro" || name == "Apple Vision Pro") return " visionos "
+        return ""
+    }
+
+    {
+        item = $0
+        if (sub(/^• /, "", item) && match(item, /^[^:]+: /)) {
+            count = split(substr(item, 1, RLENGTH - 2), names, / *, */)
+            targets = ""
+            for (i = 1; i <= count; i++) {
+                found = platforms(names[i])
+                # Not a list of platforms, such as "• Talk times: …": for everyone.
+                if (found == "") {
+                    print
+                    next
+                }
+                targets = targets found
+            }
+            if (index(targets, " " platform " ")) print "• " substr(item, RLENGTH + 1)
+            next
+        }
+        print
+    }
+'

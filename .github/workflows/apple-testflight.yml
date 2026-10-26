@@ -1,7 +1,7 @@
-# Builds the iOS app for a tag such as v1.2.0, as made by ./release, and uploads it to
-# App Store Connect, where it shows up in TestFlight once Apple has processed it. The
-# texts in apple/fastlane/metadata/ and the release notes go to the iOS version being
-# prepared for the App Store.
+# Builds the app for iOS, macOS and visionOS for a tag such as v1.2.0, as made by
+# ./release, and uploads each to App Store Connect, where they show up in TestFlight once
+# Apple has processed them. Then the texts in apple/fastlane/metadata/ and the release
+# notes go to the version being prepared for the App Store on each platform.
 name: Apple TestFlight
 
 on:
@@ -13,6 +13,12 @@ permissions:
 
 jobs:
   testflight:
+    strategy:
+      # A failing platform doesn't hold up the others' uploads.
+      fail-fast: false
+      matrix:
+        platform: [iOS, macOS, visionOS]
+    name: testflight (${{ matrix.platform }})
     # Xcode 27 is still a preview image; macos-26 only goes up to Xcode 26.
     runs-on: xcode-27
     steps:
@@ -38,6 +44,14 @@ jobs:
           # Grows with every commit, as App Store Connect requires for each upload.
           echo "build=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
 
+      # Xcode doesn't always come with the visionOS SDK.
+      - name: Install the visionOS SDK
+        if: matrix.platform == 'visionOS'
+        run: |
+          if ! xcodebuild -showsdks | grep -q xros; then
+            xcodebuild -downloadPlatform visionOS
+          fi
+
       - name: Set up App Store Connect API key
         env:
           APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
@@ -60,7 +74,7 @@ jobs:
         run: >
           xcodebuild archive
           -scheme c3lingo-audio
-          -destination 'generic/platform=iOS'
+          -destination 'generic/platform=${{ matrix.platform }}'
           -archivePath build/c3lingo-audio.xcarchive
           -allowProvisioningUpdates
           -authenticationKeyPath "$AUTH_KEY_PATH"
@@ -81,6 +95,14 @@ jobs:
           -authenticationKeyID "$AUTH_KEY_ID"
           -authenticationKeyIssuerID "$AUTH_ISSUER_ID"
 
+  # Once for all platforms, after the builds: the platforms share the app's information
+  # in App Store Connect, so uploading it from each build at the same time would conflict.
+  metadata:
+    needs: testflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "4.0"
@@ -89,12 +111,13 @@ jobs:
       - name: Upload App Store metadata
         working-directory: apple
         env:
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_REVIEW_FIRST_NAME: ${{ secrets.APP_REVIEW_FIRST_NAME }}
           APP_REVIEW_LAST_NAME: ${{ secrets.APP_REVIEW_LAST_NAME }}
           APP_REVIEW_EMAIL: ${{ secrets.APP_REVIEW_EMAIL }}
           APP_REVIEW_PHONE: ${{ secrets.APP_REVIEW_PHONE }}
-        run: >
-          APP_STORE_CONNECT_KEY_PATH="$AUTH_KEY_PATH"
-          APP_STORE_CONNECT_KEY_ID="$AUTH_KEY_ID"
-          APP_STORE_CONNECT_ISSUER_ID="$AUTH_ISSUER_ID"
-          bundle exec fastlane upload_metadata
+        run: |
+          echo "$APP_STORE_CONNECT_KEY" > "$RUNNER_TEMP/AuthKey.p8"
+          APP_STORE_CONNECT_KEY_PATH="$RUNNER_TEMP/AuthKey.p8" bundle exec fastlane upload_metadata platforms:ios,osx,xros

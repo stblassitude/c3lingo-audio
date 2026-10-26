@@ -277,7 +277,7 @@ The tag starts the two release workflows, which check it against `versionName`:
 - **Android:** signed APKs as a GitHub release, and an app bundle on Google Play's
   internal testing track, see [Releasing the Android app](#releasing-the-android-app).
   F-Droid builds the tag itself, see [F-Droid](#f-droid).
-- **Apple:** an iOS build in TestFlight, see
+- **Apple:** iOS, macOS and visionOS builds in TestFlight, see
   [Releasing the Apple app](#releasing-the-apple-app).
 
 Everything shown in the stores comes from the repository, so it is changed with a
@@ -291,7 +291,7 @@ commit and goes out with the next release:
 | screenshots | `…/images/*Screenshots/`, committed | `apple/fastlane/screenshots/`, not committed |
 
 The descriptions are plain text, with `•` for lists, which all three stores show as
-written. Other fields, such as the support URL, categories and privacy details, are kept
+written. Other fields, such as categories, age ratings and privacy details, are kept
 in Play Console and App Store Connect. The privacy policy is [`PRIVACY.md`](PRIVACY.md),
 linked from both stores and from the apps' server settings by its URL on GitHub.
 
@@ -366,16 +366,19 @@ changelogs) comes from `android/fastlane/metadata/android/`.
 
 ## Releasing the Apple app
 
-The tag also runs `.github/workflows/apple-testflight.yml`. It archives the iOS app and
-uploads it to App Store Connect with the settings in `apple/ExportOptions.plist`; after
-Apple has processed it (usually 10 to 30 minutes), the build appears in TestFlight.
-The version comes from the tag and the build number is the number of commits, so every
-upload has a higher one.
+The tag also runs `.github/workflows/apple-testflight.yml`. It archives the app for
+iOS, macOS and visionOS, one job each, and uploads them to App Store Connect with the
+settings in `apple/ExportOptions.plist`; after Apple has processed them (usually 10 to
+30 minutes), the builds appear in TestFlight. The version comes from the tag and the
+build number is the number of commits, so every upload has a higher one. A platform that
+fails doesn't stop the others' uploads.
 
-Then `bundle exec fastlane upload_metadata` uploads the texts in
-`apple/fastlane/metadata/` and the release notes as "What's New" to the iOS version
-with that number, creating it in App Store Connect if needed. It doesn't submit the
-version for review. App Review's notes come from
+Once all three are uploaded, `bundle exec fastlane upload_metadata platforms:ios,osx,xros`
+uploads the texts in `apple/fastlane/metadata/` and the release notes as "What's New" to
+the version with that number on each platform, creating it in App Store Connect if
+needed. It doesn't submit anything for review. If a build failed, it doesn't run; run it
+by hand in `apple/` after fixing the build, with the same variables as
+`upload_screenshots` (see [Screenshots](#apple)) and the four `APP_REVIEW_…` ones. App Review's notes come from
 `apple/fastlane/metadata/review_information/notes.txt`, and its contact, which App Store
 Connect requires with them, from four repository secrets, as the repository is public:
 
@@ -384,27 +387,6 @@ gh secret set APP_REVIEW_FIRST_NAME --body Jane
 gh secret set APP_REVIEW_LAST_NAME --body Doe
 gh secret set APP_REVIEW_EMAIL --body jane@example.org
 gh secret set APP_REVIEW_PHONE --body "+49 30 1234567"
-```
-
-For the Mac and Vision Pro versions, which are built by hand, run it with
-`platforms:osx,xros` in `apple/`, with the same variables as `upload_screenshots` (see
-[Screenshots](#apple)) and the four `APP_REVIEW_…` ones.
-
-The Mac and Vision Pro builds need the same version and build number as the workflow
-gives the iOS build; the project itself says 1.0 (1), which App Store Connect won't take
-for the version being prepared. From the release tag, in `apple/`:
-
-```sh
-version=$(git describe --tags --exact-match | sed 's/^v//')
-build=$(git rev-list --count HEAD)
-for platform in macOS visionOS; do
-    xcodebuild archive -scheme c3lingo-audio -destination "generic/platform=$platform" \
-        -archivePath "build/$platform.xcarchive" -allowProvisioningUpdates \
-        MARKETING_VERSION="$version" CURRENT_PROJECT_VERSION="$build"
-    xcodebuild -exportArchive -archivePath "build/$platform.xcarchive" \
-        -exportOptionsPlist ExportOptions.plist -exportPath "build/$platform" \
-        -allowProvisioningUpdates
-done
 ```
 
 The app record for `org.c3lingo.audio` has to exist in App Store Connect before the first
@@ -420,10 +402,13 @@ gh secret set APP_STORE_CONNECT_KEY_ID --body XXXXXXXXXX
 gh secret set APP_STORE_CONNECT_ISSUER_ID --body 00000000-0000-0000-0000-000000000000
 ```
 
-To upload from a Mac instead, archive in Xcode (destination Any iOS Device, then
-Product → Archive) and choose Distribute App → TestFlight & App Store in the Organizer,
-or run the two `xcodebuild` commands from the workflow. Without the `-authentication…`
-options they use the Apple ID signed in to Xcode.
+To upload from a Mac instead, archive in Xcode (destination Any iOS Device, Any Mac or
+Any visionOS Device, then Product → Archive) and choose Distribute App → TestFlight &
+App Store in the Organizer, or run the two `xcodebuild` commands from the workflow with
+the platform as the destination. Without the `-authentication…` options they use the
+Apple ID signed in to Xcode. Either way, pass the version and build number as the
+workflow does: the project itself says 1.0 (1), which App Store Connect won't take for
+the version being prepared.
 
 ## Screenshots
 

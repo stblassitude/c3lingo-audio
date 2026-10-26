@@ -285,7 +285,7 @@ commit and goes out with the next release:
 
 | | Android (Google Play, F-Droid) | Apple (App Store) |
 |---|---|---|
-| texts | `android/fastlane/metadata/android/<language>/`: `title.txt`, `short_description.txt` (80 characters), `full_description.txt` | `apple/fastlane/metadata/<language>/`: `name.txt`, `subtitle.txt` (30 characters), `description.txt`, `keywords.txt` (100 characters) |
+| texts | `android/fastlane/metadata/android/<language>/`: `title.txt`, `short_description.txt` (80 characters), `full_description.txt` | `apple/fastlane/metadata/<language>/`: `name.txt`, `subtitle.txt` (30 characters), `description.txt`, `keywords.txt` (100 characters), `support_url.txt`, `privacy_url.txt`; `apple/fastlane/metadata/copyright.txt` |
 | release notes | `…/changelogs/<versionCode>.txt` | the same files as Android |
 | icon, feature graphic | `…/images/`, from `shared/icon/render.sh` | in the app |
 | screenshots | `…/images/*Screenshots/`, committed | `apple/fastlane/screenshots/`, not committed |

@@ -57,7 +57,8 @@ nonisolated struct ChannelDescription: Equatable, Sendable {
         /// The talk's page in the schedule, only if it is an `http` or `https` URL.
         let url: URL?
         /// The start date and time in ISO 8601 with the event's UTC offset, e.g.
-        /// `2026-12-27T14:30:00+01:00`; older frontends send only the local time, e.g. `14:30`.
+        /// `2026-12-27T14:30:00+01:00`, from `startdt`; older frontends send only the local time in
+        /// `start`, e.g. `14:30`.
         let start: String
         let started: Bool
         /// The schedule day, if the talk isn't today.
@@ -77,7 +78,7 @@ nonisolated struct ChannelDescription: Equatable, Sendable {
         let language = json["language"] as? [String: Any]
         self.language = string(language, "name").map { Language(name: $0, flag: string(language, "flag")) }
         let talk = json["talk"] as? [String: Any]
-        if let title = string(talk, "title"), let start = string(talk, "start") {
+        if let title = string(talk, "title"), let start = string(talk, "startdt") ?? string(talk, "start") {
             let url = string(talk, "url").flatMap(URL.init(string:)).flatMap { ["http", "https"].contains($0.scheme?.lowercased()) ? $0 : nil }
             self.talk = Talk(title: title, url: url, start: start, started: talk?["started"] as? Bool ?? false, day: talk?["day"] as? Int)
         } else {

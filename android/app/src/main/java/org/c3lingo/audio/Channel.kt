@@ -80,7 +80,8 @@ data class ChannelDescription(
         val url: Uri?,
         /**
          * The start date and time in ISO 8601 with the event's UTC offset, e.g.
-         * `2026-12-27T14:30:00+01:00`; older frontends send only the local time, e.g. `14:30`.
+         * `2026-12-27T14:30:00+01:00`, from `startdt`; older frontends send only the local time in
+         * `start`, e.g. `14:30`.
          */
         val start: String,
         val started: Boolean,
@@ -135,7 +136,7 @@ data class ChannelDescription(
             val language = json.optJSONObject("language")
             val talk = json.optJSONObject("talk")
             val title = talk?.string("title")
-            val start = talk?.string("start")
+            val start = talk?.string("startdt") ?: talk?.string("start")
             return ChannelDescription(
                 room = json.string("room"),
                 language = language?.string("name")?.let { Language(it, language.string("flag")) },

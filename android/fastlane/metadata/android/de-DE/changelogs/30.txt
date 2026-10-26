@@ -1,0 +1,3 @@
+• Sperrbildschirm und Mediensteuerung zeigen das c3lingo-Logo
+• Die Server-Einstellungen verlinken die Datenschutzerklärung
+• Beim Beenden der Wiedergabe verschwindet die Hervorhebung des Kanals

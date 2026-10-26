@@ -1,0 +1,3 @@
+• The lock screen and media controls show the c3lingo logo
+• The server settings link to the privacy policy
+• Stopping playback removes the highlight from the channel

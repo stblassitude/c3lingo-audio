@@ -1,6 +1,7 @@
 package org.c3lingo.audio
 
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.os.Looper
 import androidx.annotation.OptIn
@@ -29,7 +30,7 @@ class PlaybackService : MediaSessionService() {
         val openApp = PendingIntent.getActivity(
             this, 0, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        session = MediaSession.Builder(this, SessionPlayer(app.player, app.settings))
+        session = MediaSession.Builder(this, SessionPlayer(this, app.player, app.settings))
             .setSessionActivity(openApp)
             .build()
     }
@@ -48,10 +49,12 @@ class PlaybackService : MediaSessionService() {
 
 /**
  * Presents the [Player] to media3 as a live stream that can be paused and resumed. Stopping
- * from the system controls pauses, as on iOS, so the channel stays selected.
+ * from the system controls pauses, as on iOS, so the channel stays selected. Like the player
+ * bar, it shows the hall, language and talk when the frontend has described the channel.
  */
 @OptIn(UnstableApi::class)
 private class SessionPlayer(
+    private val context: Context,
     private val player: Player,
     private val settings: ServerSettings,
 ) : SimpleBasePlayer(Looper.getMainLooper()) {
@@ -59,6 +62,7 @@ private class SessionPlayer(
 
     init {
         scope.launch { player.state.collect { invalidateState() } }
+        scope.launch { player.descriptions.collect { invalidateState() } }
     }
 
     override fun getState(): State {
@@ -69,9 +73,10 @@ private class SessionPlayer(
                 .setPlaybackState(Media3Player.STATE_IDLE)
                 .setPlayWhenReady(false, Media3Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
                 .build()
+        val description = player.descriptions.value[channel.name]
         val metadata = MediaMetadata.Builder()
-            .setTitle(channel.displayName)
-            .setArtist(settings.serverURL.value.host ?: "c3lingo")
+            .setTitle(description?.title ?: channel.displayName)
+            .setArtist(description?.talk?.text(context) ?: settings.serverURL.value.host ?: "c3lingo")
             .setIsPlayable(true)
             .setIsBrowsable(false)
             .build()

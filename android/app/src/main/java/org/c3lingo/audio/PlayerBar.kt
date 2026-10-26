@@ -125,7 +125,7 @@ private fun Talk(talk: ChannelDescription.Talk, textAlign: TextAlign? = null) {
         Modifier
     }
     Text(
-        talkText(talk),
+        talk.text(context),
         style = MaterialTheme.typography.bodyMedium,
         color = if (url != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = textAlign,
@@ -195,16 +195,6 @@ private fun ControlButton(icon: ImageVector, description: String, onClick: () ->
     IconButton(onClick, Modifier.size(80.dp)) {
         Icon(icon, description, Modifier.size(48.dp))
     }
-}
-
-/**
- * The current or next talk, e.g. "Since 14:30: Opening" or "Next: Day 2, 10:00: Keynote",
- * worded like the frontend's hall cards.
- */
-@Composable
-private fun talkText(talk: ChannelDescription.Talk): String {
-    val time = talk.day?.let { stringResource(R.string.talk_day, it, talk.start) } ?: talk.start
-    return stringResource(if (talk.started) R.string.talk_since else R.string.talk_next, time, talk.title)
 }
 
 @Composable

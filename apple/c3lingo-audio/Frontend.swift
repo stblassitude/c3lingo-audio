@@ -16,7 +16,9 @@ final class Frontend: NSObject, ObservableObject {
     @Published private(set) var loadError: String?
     @Published private(set) var hasLoaded = false
     /// Hall, language and talk per channel name, if the page sends them.
-    @Published private(set) var descriptions: [String: ChannelDescription] = [:]
+    @Published private(set) var descriptions: [String: ChannelDescription] = [:] {
+        didSet { player?.descriptions = descriptions }
+    }
     /// The server dialog, opened from the settings button on the page or the error screen.
     @Published var isShowingServerDialog = false
 
@@ -111,6 +113,7 @@ final class Frontend: NSObject, ObservableObject {
     func attach(_ player: Player) {
         guard self.player !== player else { return }
         self.player = player
+        player.descriptions = descriptions
         // objectWillChange fires before the change; deliver on the next turn of the run loop.
         playerObservation = player.objectWillChange
             .receive(on: RunLoop.main)

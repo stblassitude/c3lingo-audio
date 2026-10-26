@@ -25,6 +25,14 @@ final class Player: ObservableObject {
         didSet { session?.isMuted = isMuted }
     }
 
+    /// Hall, language and talk per channel name, if the frontend sends them, for the
+    /// system controls. Only for display, so not published as part of the state.
+    var descriptions: [String: ChannelDescription] = [:] {
+        didSet {
+            if descriptions != oldValue { updateNowPlaying() }
+        }
+    }
+
     private var session: GaleneSession?
     private var reconnectTask: Task<Void, Never>?
     private var attempt = 0
@@ -258,9 +266,10 @@ final class Player: ObservableObject {
             return
         }
         let running = status != .paused
+        let description = descriptions[channel.name]
         center.nowPlayingInfo = [
-            MPMediaItemPropertyTitle: channel.displayName,
-            MPMediaItemPropertyArtist: ServerSettings.shared.serverURL.host ?? "c3lingo",
+            MPMediaItemPropertyTitle: description?.title ?? channel.displayName,
+            MPMediaItemPropertyArtist: description?.talkText ?? ServerSettings.shared.serverURL.host ?? "c3lingo",
             MPNowPlayingInfoPropertyIsLiveStream: true,
             MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.audio.rawValue,
             MPNowPlayingInfoPropertyPlaybackRate: running ? 1.0 : 0.0,

@@ -74,9 +74,6 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     val loadError: StateFlow<String?> = _loadError.asStateFlow()
     private val _hasLoaded = MutableStateFlow(false)
     val hasLoaded: StateFlow<Boolean> = _hasLoaded.asStateFlow()
-    private val _descriptions = MutableStateFlow<Map<String, ChannelDescription>>(emptyMap())
-    /** Hall, language and talk per channel name, if the page sends them. */
-    val descriptions: StateFlow<Map<String, ChannelDescription>> = _descriptions.asStateFlow()
     private val _isShowingServerDialog = MutableStateFlow(false)
     /** The server dialog, opened from the settings button on the page or the error screen. */
     val isShowingServerDialog: StateFlow<Boolean> = _isShowingServerDialog.asStateFlow()
@@ -113,7 +110,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         this.url = url
         _loadError.value = null
         _hasLoaded.value = false
-        _descriptions.value = emptyMap()
+        player.describe(emptyMap())
         installBridge(url)
         verifyPage = true
         httpError = null
@@ -240,7 +237,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
                 if (player.state.value.isMuted != muted) player.setMuted(muted)
             }
             // Only information for display; it doesn't change the player's state.
-            "describe" -> _descriptions.value = ChannelDescription.all(message.optJSONObject("channels"))
+            "describe" -> player.describe(ChannelDescription.all(message.optJSONObject("channels")))
             else -> Log.w(TAG, "unknown bridge command $command")
         }
     }

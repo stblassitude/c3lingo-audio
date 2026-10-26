@@ -1,9 +1,14 @@
 package org.c3lingo.audio
 
+import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
 import java.io.IOException
 import java.net.URI
+import java.text.ParsePosition
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -73,12 +78,49 @@ data class ChannelDescription(
         val title: String,
         /** The talk's page in the schedule, only if it is an `http` or `https` URL. */
         val url: Uri?,
-        /** The start time as the schedule gives it, e.g. `14:30`. */
+        /**
+         * The start date and time in ISO 8601 with the event's UTC offset, e.g.
+         * `2026-12-27T14:30:00+01:00`; older frontends send only the local time, e.g. `14:30`.
+         */
         val start: String,
         val started: Boolean,
         /** The schedule day, if the talk isn't today. */
         val day: Int?,
-    )
+    ) {
+        /**
+         * The current or next talk, e.g. "Since 14:30: Opening" or "Next: Day 2, 10:00: Keynote",
+         * worded like the frontend's hall cards.
+         */
+        fun text(context: Context): String {
+            val start = startText(context)
+            val time = day?.let { context.getString(R.string.talk_day, it, start) } ?: start
+            return context.getString(if (started) R.string.talk_since else R.string.talk_next, time, title)
+        }
+
+        /**
+         * The start time in the device's time zone, as people write it in the app's language:
+         * `1:45pm` in English, `13:45` otherwise.
+         */
+        private fun startText(context: Context): String {
+            val (hour, minute) = startTime() ?: return start
+            return if (context.getString(R.string.language_tag) == "en") {
+                "%d:%02d%s".format(Locale.ROOT, if (hour % 12 == 0) 12 else hour % 12, minute, if (hour < 12) "am" else "pm")
+            } else {
+                "%02d:%02d".format(Locale.ROOT, hour, minute)
+            }
+        }
+
+        /** The hour and minute [start] gives, in the device's time zone. */
+        private fun startTime(): Pair<Int, Int>? {
+            Regex("""(\d{1,2}):(\d{2})""").matchEntire(start)?.destructured?.let { (hour, minute) ->
+                return (hour.toInt() to minute.toInt()).takeIf { it.first in 0..23 && it.second in 0..59 }
+            }
+            // java.time needs API 26; SimpleDateFormat parses the offset from API 24 on.
+            val date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ROOT).parse(start, ParsePosition(0)) ?: return null
+            val calendar = Calendar.getInstance().apply { time = date }
+            return calendar.get(Calendar.HOUR_OF_DAY) to calendar.get(Calendar.MINUTE)
+        }
+    }
 
     /** The hall and language, e.g. "One · 🇬🇧 English", or null if the language isn't known. */
     val title: String?

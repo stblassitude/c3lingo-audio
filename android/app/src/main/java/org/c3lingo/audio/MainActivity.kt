@@ -133,7 +133,7 @@ private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettin
     val loadError by frontend.loadError.collectAsStateWithLifecycle()
     val hasLoaded by frontend.hasLoaded.collectAsStateWithLifecycle()
     val serverURL by settings.serverURL.collectAsStateWithLifecycle()
-    val descriptions by frontend.descriptions.collectAsStateWithLifecycle()
+    val descriptions by player.descriptions.collectAsStateWithLifecycle()
     val isShowingServerDialog by frontend.isShowingServerDialog.collectAsStateWithLifecycle()
     val playing = state.channel != null
 

@@ -59,6 +59,12 @@ class Player(private val context: Context, private val settings: ServerSettings)
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
+    private val _descriptions = MutableStateFlow<Map<String, ChannelDescription>>(emptyMap())
+    /**
+     * Hall, language and talk per channel name, if the frontend sends them, for the
+     * player bar and the system controls. Only for display, so not part of [state].
+     */
+    val descriptions: StateFlow<Map<String, ChannelDescription>> = _descriptions.asStateFlow()
 
     private val scope = MainScope()
     private val http = OkHttpClient()
@@ -136,6 +142,10 @@ class Player(private val context: Context, private val settings: ServerSettings)
     fun setMuted(muted: Boolean) {
         session?.isMuted = muted
         _state.update { it.copy(isMuted = muted) }
+    }
+
+    fun describe(descriptions: Map<String, ChannelDescription>) {
+        _descriptions.value = descriptions
     }
 
     // Connection handling

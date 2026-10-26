@@ -41,6 +41,7 @@
     <string name="server_not_found">Nie znaleziono serwera o tej nazwie.</string>
     <string name="server_cant_connect">Nie można połączyć z serwerem: %1$s</string>
     <string name="back">Wstecz</string>
+    <string name="privacy_policy">Polityka prywatności</string>
     <string name="error_network">Nie można połączyć. Upewnij się, że korzystasz z Wi-Fi wydarzenia. Ponawianie…</string>
     <string name="error_unavailable">Ten kanał jest teraz niedostępny. Ponawianie…</string>
 </resources>

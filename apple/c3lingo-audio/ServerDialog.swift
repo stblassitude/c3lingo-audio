@@ -54,6 +54,9 @@ struct ServerDialog: View {
                 } footer: {
                     statusText
                 }
+                Section {
+                    Link("Privacy Policy", destination: ServerSettings.privacyPolicyURL)
+                }
             }
             .navigationTitle("Server")
             #if !os(macOS)

@@ -3,6 +3,7 @@ package org.c3lingo.audio
 import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -60,6 +62,7 @@ import okhttp3.Response
 @Composable
 fun ServerDialog(settings: ServerSettings, onReload: () -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     var draft by rememberSaveable {
         val url = ServerSettings.urlFrom(settings.customURLString)
         mutableStateOf(url?.takeIf { it != settings.defaultURL }?.let(ServerSettings::displayString).orEmpty())
@@ -102,45 +105,50 @@ fun ServerDialog(settings: ServerSettings, onReload: () -> Unit, onDismiss: () -
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.settings_title)) },
         text = {
-            OutlinedTextField(
-                value = draft,
-                onValueChange = { draft = it },
-                label = { Text(stringResource(R.string.settings_url_label)) },
-                placeholder = { Text(ServerSettings.displayString(settings.defaultURL)) },
-                trailingIcon = if (draft.isNotEmpty()) {
-                    {
-                        IconButton(onClick = { draft = "" }) {
-                            Icon(Icons.Filled.Clear, stringResource(R.string.server_use_default))
-                        }
-                    }
-                } else {
-                    null
-                },
-                supportingText = when (val current = status) {
-                    is ServerStatus.Problem -> {
-                        { Text(current.message) }
-                    }
-                    ServerStatus.Checking -> {
+            Column {
+                OutlinedTextField(
+                    value = draft,
+                    onValueChange = { draft = it },
+                    label = { Text(stringResource(R.string.settings_url_label)) },
+                    placeholder = { Text(ServerSettings.displayString(settings.defaultURL)) },
+                    trailingIcon = if (draft.isNotEmpty()) {
                         {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                CircularProgressIndicator(Modifier.size(12.dp), strokeWidth = 1.5.dp)
-                                Text(stringResource(R.string.server_checking))
+                            IconButton(onClick = { draft = "" }) {
+                                Icon(Icons.Filled.Clear, stringResource(R.string.server_use_default))
                             }
                         }
-                    }
-                    else -> null
-                },
-                isError = status is ServerStatus.Problem,
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrectEnabled = false,
-                    keyboardType = KeyboardType.Uri,
-                    imeAction = ImeAction.Done,
-                ),
-                keyboardActions = KeyboardActions(onDone = { save() }),
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-            )
+                    } else {
+                        null
+                    },
+                    supportingText = when (val current = status) {
+                        is ServerStatus.Problem -> {
+                            { Text(current.message) }
+                        }
+                        ServerStatus.Checking -> {
+                            {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    CircularProgressIndicator(Modifier.size(12.dp), strokeWidth = 1.5.dp)
+                                    Text(stringResource(R.string.server_checking))
+                                }
+                            }
+                        }
+                        else -> null
+                    },
+                    isError = status is ServerStatus.Problem,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.None,
+                        autoCorrectEnabled = false,
+                        keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(onDone = { save() }),
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                )
+                TextButton(onClick = { uriHandler.openUri(ServerSettings.PRIVACY_POLICY_URL) }) {
+                    Text(stringResource(R.string.privacy_policy))
+                }
+            }
         },
         confirmButton = {
             TextButton(onClick = ::save, enabled = canSave) { Text(stringResource(R.string.server_save)) }

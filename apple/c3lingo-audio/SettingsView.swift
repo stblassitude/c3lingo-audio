@@ -37,6 +37,7 @@ struct SettingsView: View {
                     .keyboardShortcut(.defaultAction)
                     .disabled(!draft.isEmpty && parsedDraft == nil)
             }
+            Link("Privacy Policy", destination: ServerSettings.privacyPolicyURL)
         }
         .groupedFormStyle()
         .padding()

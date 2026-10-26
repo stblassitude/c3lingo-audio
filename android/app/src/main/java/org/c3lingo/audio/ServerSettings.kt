@@ -56,6 +56,8 @@ class ServerSettings(context: Context) {
 
     companion object {
         val BUILT_IN_URL: Uri = "https://audio.c3lingo.org/".toUri()
+        /** Linked from the server settings; the stores also require it to be in the app. */
+        const val PRIVACY_POLICY_URL = "https://github.com/stblassitude/c3lingo-audio/blob/main/PRIVACY.md"
         private const val KEY = "serverURL"
 
         /**

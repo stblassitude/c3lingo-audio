@@ -46,6 +46,7 @@
     <string name="server_not_found">Can\'t find a server with this name.</string>
     <string name="server_cant_connect">Can\'t connect to the server: %1$s</string>
     <string name="back">Back</string>
+    <string name="privacy_policy">Privacy Policy</string>
 
     <string name="error_network">Can\'t connect. Make sure you are on the event Wi-Fi. Retrying…</string>
     <string name="error_unavailable">This channel isn\'t available right now. Retrying…</string>

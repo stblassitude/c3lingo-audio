@@ -41,6 +41,7 @@
     <string name="server_not_found">Aucun serveur trouvé avec ce nom.</string>
     <string name="server_cant_connect">Connexion au serveur impossible : %1$s</string>
     <string name="back">Retour</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
     <string name="error_network">Connexion impossible. Vérifiez que vous êtes sur le Wi-Fi de l\'événement. Nouvelle tentative…</string>
     <string name="error_unavailable">Ce canal n\'est pas disponible pour le moment. Nouvelle tentative…</string>
 </resources>

@@ -41,6 +41,7 @@
     <string name="server_not_found">No se encuentra ningún servidor con este nombre.</string>
     <string name="server_cant_connect">No se puede conectar con el servidor: %1$s</string>
     <string name="back">Atrás</string>
+    <string name="privacy_policy">Política de privacidad</string>
     <string name="error_network">No se puede conectar. Comprueba que estás en la wifi del evento. Reintentando…</string>
     <string name="error_unavailable">Este canal no está disponible ahora mismo. Reintentando…</string>
 </resources>

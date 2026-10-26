@@ -292,7 +292,8 @@ commit and goes out with the next release:
 
 The descriptions are plain text, with `•` for lists, which all three stores show as
 written. Other fields, such as the support URL, categories and privacy details, are kept
-in Play Console and App Store Connect.
+in Play Console and App Store Connect. The privacy policy is [`PRIVACY.md`](PRIVACY.md),
+linked from both stores and from the apps' server settings by its URL on GitHub.
 
 The version name is the only version number to choose. The Android version code
 counts the releases; the Apple build number is the number of commits.
@@ -388,6 +389,23 @@ gh secret set APP_REVIEW_PHONE --body "+49 30 1234567"
 For the Mac and Vision Pro versions, which are built by hand, run it with
 `platforms:osx,xros` in `apple/`, with the same variables as `upload_screenshots` (see
 [Screenshots](#apple)) and the four `APP_REVIEW_…` ones.
+
+The Mac and Vision Pro builds need the same version and build number as the workflow
+gives the iOS build; the project itself says 1.0 (1), which App Store Connect won't take
+for the version being prepared. From the release tag, in `apple/`:
+
+```sh
+version=$(git describe --tags --exact-match | sed 's/^v//')
+build=$(git rev-list --count HEAD)
+for platform in macOS visionOS; do
+    xcodebuild archive -scheme c3lingo-audio -destination "generic/platform=$platform" \
+        -archivePath "build/$platform.xcarchive" -allowProvisioningUpdates \
+        MARKETING_VERSION="$version" CURRENT_PROJECT_VERSION="$build"
+    xcodebuild -exportArchive -archivePath "build/$platform.xcarchive" \
+        -exportOptionsPlist ExportOptions.plist -exportPath "build/$platform" \
+        -allowProvisioningUpdates
+done
+```
 
 The app record for `org.c3lingo.audio` has to exist in App Store Connect before the first
 upload. The workflow signs with Xcode's automatic signing through an App Store Connect

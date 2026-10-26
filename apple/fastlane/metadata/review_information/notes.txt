@@ -1,1 +1,11 @@
-Please set the server URL in the app's settings to the testing server https://c3listen.lassitu.de. It offers three audio tracks for the hall "One": English, German and Portuguese. At the real event, these are the live audio from the conference's lecture hall; on the testing server, they are a recording played in a loop.
+c3lingo is the volunteer team that interprets the talks at the Chaos Communication Congress live into other languages. Attendees listen with this app, on their own phones and headphones, in the lecture halls. The audio only exists while an event is on, so outside of events the default server shows "No event right now". For review, please use our testing server, which plays a recording in a loop:
+
+1. Open the server settings:
+   • iPhone, iPad, Apple Vision Pro: tap the gear button at the bottom right of the page (or Change Server… if an error is shown).
+   • Mac: choose c3lingo → Settings… (⌘,).
+2. Enter c3listen.lassitu.de and tap Done (Mac: Apply).
+3. Under the hall "One", tap English, Deutsch or Português. The Soundcheck button at the top plays as well. The channels of the hall "Two" are silent on purpose: they show how the app looks when a hall isn't broadcasting.
+
+The channel list is a web page from the server, so it always matches the event's halls and schedule. Playback is native: it continues in the background and with the screen locked, shows Now Playing on the lock screen and in Control Center, can be sent to AirPlay and Bluetooth devices, and reconnects after network changes and phone calls. The app only plays audio; it never uses the microphone or the camera, and collects no data.
+
+To return to the default server, open the server settings again and clear the field.

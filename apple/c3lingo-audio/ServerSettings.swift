@@ -14,6 +14,8 @@ final class ServerSettings: ObservableObject {
     static let shared = ServerSettings()
 
     static let builtInURL = URL(string: "https://audio.c3lingo.org/")!
+    /// Linked from the server settings; the stores also require it to be in the app.
+    static let privacyPolicyURL = URL(string: "https://github.com/stblassitude/c3lingo-audio/blob/main/PRIVACY.md")!
     static let key = "serverURL"
 
     /// The server used when no custom URL is stored.

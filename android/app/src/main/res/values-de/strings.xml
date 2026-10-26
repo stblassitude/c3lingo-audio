@@ -41,6 +41,7 @@
     <string name="server_not_found">Kein Server mit diesem Namen gefunden.</string>
     <string name="server_cant_connect">Keine Verbindung zum Server: %1$s</string>
     <string name="back">Zurück</string>
+    <string name="privacy_policy">Datenschutzerklärung</string>
     <string name="error_network">Keine Verbindung. Prüfe, ob du im Event-WLAN bist. Neuer Versuch…</string>
     <string name="error_unavailable">Dieser Kanal ist gerade nicht verfügbar. Neuer Versuch…</string>
 </resources>

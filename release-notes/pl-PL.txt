@@ -1,0 +1,3 @@
+• Ekran blokady i powiadomienie pokazują salę, język i bieżący wykład, tak jak odtwarzacz
+• Godziny wykładów są wyświetlane w Twojej strefie czasowej
+• Odtwarzacz zatrzymuje się przyciskiem stop, tak jak w wersji internetowej

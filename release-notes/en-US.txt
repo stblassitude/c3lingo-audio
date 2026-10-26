@@ -1,0 +1,3 @@
+• The lock screen and notification show the hall, language and current talk, like the player
+• Talk times are shown in your time zone
+• Stop the player with a stop button, like on the web

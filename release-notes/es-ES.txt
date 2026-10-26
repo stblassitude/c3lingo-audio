@@ -1,0 +1,3 @@
+• La pantalla de bloqueo y la notificación muestran la sala, el idioma y la charla actual, como el reproductor
+• Las horas de las charlas se muestran en tu zona horaria
+• El reproductor se detiene con un botón de parada, como en la web

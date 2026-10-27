@@ -1,0 +1,3 @@
+• The help opens in the app: by itself the first time, and from the ? button on the page
+• Links to a channel, hall or talk open the app, which plays the channel or highlights the hall
+• Talk times are shown in the event's time zone, like on the page

@@ -1,0 +1,58 @@
+// Renovate keeps the dependencies of both apps current: the Gradle version catalog and
+// wrapper of the Android app, the Swift packages of the Apple app, fastlane and the
+// GitHub Actions. Nothing builds on pull requests, so nothing merges automatically.
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
+  timezone: "Europe/Berlin",
+  schedule: ["before 6am on monday"],
+  // Updates the gems fastlane pulls in, which the Gemfile doesn't name.
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ["before 6am on monday"],
+  },
+  customManagers: [
+    // Renovate's swift manager only reads Package.swift, not Xcode projects. The
+    // requirement in the project and the pin in Package.resolved change together.
+    // SwiftPM drops leading zeros (tag 150.7871.03 is version 150.7871.3), so the new
+    // version is written without them.
+    {
+      customType: "regex",
+      description: "Swift packages in the Xcode project",
+      managerFilePatterns: ["/^apple/.*\\.xcodeproj/project\\.pbxproj$/"],
+      matchStringsStrategy: "recursive",
+      matchStrings: [
+        'repositoryURL = "https://github\\.com/(?<depName>[^"]+?)(?:\\.git)?";\\s*requirement = \\{[^}]*\\}',
+        "minimumVersion = (?<currentValue>[^;]+);",
+      ],
+      datasourceTemplate: "github-tags",
+      versioningTemplate: "loose",
+      autoReplaceStringTemplate: "minimumVersion = {{{replace '\\.0+(\\d)' '.$1' newValue}}};",
+    },
+    {
+      customType: "regex",
+      description: "Swift packages pinned in Package.resolved",
+      managerFilePatterns: ["/^apple/.*/Package\\.resolved$/"],
+      matchStringsStrategy: "recursive",
+      matchStrings: [
+        '"location" : "https://github\\.com/(?<depName>[^"]+?)(?:\\.git)?",\\s*"state" : \\{[^}]*\\}',
+        '"revision" : "(?<currentDigest>[0-9a-f]{40})",\\s*"version" : "(?<currentValue>[^"]+)"',
+      ],
+      datasourceTemplate: "github-tags",
+      versioningTemplate: "loose",
+      autoReplaceStringTemplate: "\"revision\" : \"{{{newDigest}}}\",\n        \"version\" : \"{{{replace '\\.0+(\\d)' '.$1' newValue}}}\"",
+    },
+  ],
+  packageRules: [
+    {
+      // Both apps use the same LiveKit WebRTC build.
+      groupName: "WebRTC",
+      matchPackageNames: ["io.github.webrtc-sdk:android", "livekit/webrtc-xcframework"],
+    },
+    {
+      groupName: "GitHub Actions",
+      matchManagers: ["github-actions"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
+    },
+  ],
+}

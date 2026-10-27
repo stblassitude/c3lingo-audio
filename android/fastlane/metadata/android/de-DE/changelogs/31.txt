@@ -1,0 +1,3 @@
+• Die Hilfe öffnet sich in der App: beim ersten Start von selbst und über die ?-Taste auf der Seite
+• Links auf einen Kanal, Saal oder Vortrag öffnen die App, die den Kanal abspielt oder den Saal hervorhebt
+• Vortragszeiten werden in der Zeitzone der Veranstaltung angezeigt, wie auf der Seite

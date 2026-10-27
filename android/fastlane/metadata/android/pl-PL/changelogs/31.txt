@@ -1,0 +1,3 @@
+• Pomoc otwiera się w aplikacji: sama za pierwszym razem i przyciskiem ? na stronie
+• Linki do kanału, sali lub wykładu otwierają aplikację, która odtwarza kanał lub wyróżnia salę
+• Godziny wykładów są podawane w strefie czasowej wydarzenia, tak jak na stronie

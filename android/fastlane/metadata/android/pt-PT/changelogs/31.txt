@@ -1,0 +1,3 @@
+• A ajuda abre na app: sozinha na primeira vez, e com o botão ? da página
+• Links para um canal, sala ou palestra abrem a app, que reproduz o canal ou destaca a sala
+• Os horários das palestras são mostrados no fuso horário do evento, como na página

@@ -102,7 +102,7 @@ nonisolated struct ChannelDescription: Equatable, Sendable {
         return talk.started ? String(localized: "Since \(when): \(talk.title)") : String(localized: "Next: \(when): \(talk.title)")
     }
 
-    /// The start time in the device's time zone, as people write it in the app's language:
+    /// The start time in the event's time zone, as people write it in the app's language:
     /// `1:45pm` in English, `13:45` otherwise.
     private static func startText(_ start: String) -> String {
         guard let (hour, minute) = startTime(start) else { return start }
@@ -112,10 +112,12 @@ nonisolated struct ChannelDescription: Equatable, Sendable {
         return String(format: "%02d:%02d", hour, minute)
     }
 
-    /// The hour and minute `start` gives, in the device's time zone.
+    /// The hour and minute `start` gives, in the event's time zone.
     private static func startTime(_ start: String) -> (Int, Int)? {
         if let date = ISO8601DateFormatter().date(from: start) {
-            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = eventTimeZone(start)
+            let components = calendar.dateComponents([.hour, .minute], from: date)
             guard let hour = components.hour, let minute = components.minute else { return nil }
             return (hour, minute)
         }
@@ -126,6 +128,19 @@ nonisolated struct ChannelDescription: Equatable, Sendable {
             return nil
         }
         return (hour, minute)
+    }
+
+    /// The time zone `start` is written in, which is the event's: its UTC offset, or
+    /// Europe/Berlin if it is in UTC (`Z`), which says nothing about where the event is.
+    private static func eventTimeZone(_ start: String) -> TimeZone {
+        let offset = start.suffix(6)
+        let parts = offset.dropFirst().split(separator: ":")
+        if let sign = offset.first, sign == "+" || sign == "-", parts.count == 2,
+           let hours = Int(parts[0]), let minutes = Int(parts[1]),
+           let zone = TimeZone(secondsFromGMT: (sign == "-" ? -1 : 1) * (hours * 60 + minutes) * 60) {
+            return zone
+        }
+        return TimeZone(identifier: "Europe/Berlin")!
     }
 
     /// Parses the `channels` object of a `describe` message, keyed by channel name.

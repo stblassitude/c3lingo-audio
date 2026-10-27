@@ -9,6 +9,7 @@ import java.text.ParsePosition
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -99,7 +100,7 @@ data class ChannelDescription(
         }
 
         /**
-         * The start time in the device's time zone, as people write it in the app's language:
+         * The start time in the event's time zone, as people write it in the app's language:
          * `1:45pm` in English, `13:45` otherwise.
          */
         private fun startText(context: Context): String {
@@ -111,15 +112,24 @@ data class ChannelDescription(
             }
         }
 
-        /** The hour and minute [start] gives, in the device's time zone. */
+        /** The hour and minute [start] gives, in the event's time zone. */
         private fun startTime(): Pair<Int, Int>? {
             Regex("""(\d{1,2}):(\d{2})""").matchEntire(start)?.destructured?.let { (hour, minute) ->
                 return (hour.toInt() to minute.toInt()).takeIf { it.first in 0..23 && it.second in 0..59 }
             }
             // java.time needs API 26; SimpleDateFormat parses the offset from API 24 on.
             val date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ROOT).parse(start, ParsePosition(0)) ?: return null
-            val calendar = Calendar.getInstance().apply { time = date }
+            val calendar = Calendar.getInstance(eventTimeZone()).apply { time = date }
             return calendar.get(Calendar.HOUR_OF_DAY) to calendar.get(Calendar.MINUTE)
+        }
+
+        /**
+         * The time zone [start] is written in, which is the event's: its UTC offset, or
+         * Europe/Berlin if it is in UTC (`Z`), which says nothing about where the event is.
+         */
+        private fun eventTimeZone(): TimeZone {
+            val offset = Regex("""[+-]\d{2}:\d{2}$""").find(start)?.value
+            return TimeZone.getTimeZone(if (offset != null) "GMT$offset" else "Europe/Berlin")
         }
     }
 

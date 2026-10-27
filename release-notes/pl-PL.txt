@@ -1,0 +1,1 @@
+• Bez zmian w samej aplikacji: ta wersja zmienia tylko sposób jej budowania i publikowania

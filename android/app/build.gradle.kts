@@ -46,6 +46,14 @@ android {
         includeInBundle = false
     }
 
+    // The native libraries come stripped. Stripping again needs the NDK, which F-Droid's
+    // buildserver may not have, so the APKs would differ from the GitHub ones it compares.
+    packaging {
+        jniLibs {
+            keepDebugSymbols += "**/*.so"
+        }
+    }
+
     // Release signing comes from the environment; without it, release APKs are unsigned.
     val keystore = providers.environmentVariable("ANDROID_KEYSTORE_FILE").orNull
     signingConfigs {

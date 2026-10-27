@@ -23,7 +23,9 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 25
+          # The same as F-Droid's buildserver, so its APKs match these; see
+          # android/gradle/gradle-daemon-jvm.properties.
+          java-version: 21
 
       - uses: gradle/actions/setup-gradle@v4
 
@@ -60,13 +62,24 @@ jobs:
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
           echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
 
+      # One build per ABI, the way F-Droid builds them, with the same version codes, so
+      # F-Droid can check that its builds match these and ship them with our signature.
+      # The ABI splits of a single build would all have the plain versionCode.
       - name: Build APKs
         working-directory: android
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew :app:assembleRelease
+          VERSION: ${{ steps.version.outputs.name }}
+        run: |
+          mkdir ../dist
+          for abi in armeabi-v7a arm64-v8a x86_64; do
+            ./gradlew :app:assembleRelease -Pabi=$abi
+            cp app/build/outputs/apk/release/app-release.apk "../dist/c3lingo-audio-$VERSION-$abi.apk"
+          done
+          ./gradlew :app:assembleRelease
+          cp app/build/outputs/apk/release/app-universal-release.apk "../dist/c3lingo-audio-$VERSION-universal.apk"
 
       # A separate run, as the APKs are split by ABI only when no bundle is built.
       - name: Build app bundle
@@ -98,11 +111,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.name }}
         run: |
-          mkdir dist
-          for apk in android/app/build/outputs/apk/release/app-*-release.apk; do
-            abi=$(basename "$apk" -release.apk)
-            cp "$apk" "dist/c3lingo-audio-$VERSION-${abi#app-}.apk"
-          done
           ls -l dist
           # A re-run, after a later step failed, replaces the APKs.
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then

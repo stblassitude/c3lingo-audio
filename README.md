@@ -141,8 +141,8 @@ files in [`shared/well-known/`](shared/well-known/) served from
   app is installed or updated, and caches it for a while.
 - `assetlinks.json`, with the SHA-256 fingerprints of every key the app is signed with:
   the release key from the keystore (`keytool -list -v -keystore c3lingo-release.jks`),
-  Google Play's app signing key (Play Console → Test and release → App integrity), and
-  F-Droid's key for the app (`apksigner verify --print-certs` on its APK). Android
+  and Google Play's app signing key (Play Console → Test and release → App integrity);
+  F-Droid ships the APKs with the release key, see [F-Droid](#f-droid). Android
   checks it when the app is installed; `adb shell pm get-app-links org.c3lingo.audio`
   shows the result, and `adb shell pm verify-app-links --re-verify org.c3lingo.audio`
   checks again.
@@ -422,16 +422,22 @@ bundle.
 ### F-Droid
 
 F-Droid builds the app itself from the `v*` tags, using the build recipe in
-[fdroiddata](https://gitlab.com/fdroid/fdroiddata/-/blob/master/metadata/org.c3lingo.audio.yml),
-and signs it with its own key, so it can't update the APKs from GitHub or Google Play
-or be updated by them. It notices new tags by itself, usually within a few days, and
-reads the version from `android/app/build.gradle.kts` in the tagged commit. That's why
-the version is committed there by `./release` rather than only known to the workflow.
+[fdroiddata](https://gitlab.com/fdroid/fdroiddata/-/blob/master/metadata/org.c3lingo.audio.yml).
+It notices new tags by itself, usually within a few days, and reads the version from
+`android/app/build.gradle.kts` in the tagged commit. That's why the version is committed
+there by `./release` rather than only known to the workflow.
 
 F-Droid builds one APK per ABI with `./gradlew :app:assembleRelease -Pabi=<ABI>`, with
 version code `10 * versionCode + n`, n being 1 for `armeabi-v7a`, 2 for `arm64-v8a`
-and 4 for `x86_64`. The store listing (title, descriptions, icon, screenshots and
-changelogs) comes from `android/fastlane/metadata/android/`.
+and 4 for `x86_64`. The release workflow builds the GitHub APKs the same way, with
+JDK 21 like F-Droid's buildserver. The builds are
+[reproducible](https://f-droid.org/docs/Reproducible_Builds/): F-Droid compares its
+APKs with the ones from the GitHub release and, if they match apart from the
+signature, ships them with the release key. So the APKs from GitHub, Google Play and
+F-Droid update each other. If they don't match, F-Droid doesn't publish that version.
+
+The store listing (title, descriptions, icon, screenshots and changelogs) comes from
+`android/fastlane/metadata/android/`.
 
 ## Releasing the Apple app
 

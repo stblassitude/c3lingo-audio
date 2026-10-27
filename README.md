@@ -28,6 +28,7 @@ android/   Gradle project for Android
   fastlane/           store listing and release notes, also for F-Droid; uploads them
 shared/    used by both apps
   FrontendBridge.js   injected into the frontend, see below
+  well-known/         the server's app link files, see Links to the app
   icon/               logo and the script that renders all app icons
 release-notes/        notes for the next release, see "Releasing"
 release               releases both apps
@@ -91,6 +92,8 @@ In short:
   channel's `displayName`.
 - The app answers `ready()` and reports every state change, whatever caused it, as a
   `c3lingo:state` event with the full state `{state, channel, muted, error}`.
+- When a link opened the app, the app sends a `c3lingo:link` event with what it points
+  to, see [Links to the app](#links-to-the-app).
 
 The app's player states map onto the protocol like this:
 
@@ -104,6 +107,48 @@ The app's player states map onto the protocol like this:
 
 An offered stream that doesn't connect within 15 s (ICE failing, e.g. because UDP is
 blocked) counts as a network problem, like in the frontend's own player.
+
+## Links to the app
+
+Links to the channel list open the app if it is installed, and the website otherwise:
+iOS Universal Links and Android App Links for `https://audio.c3lingo.org/`, and the
+`c3lingo:` scheme for other apps and for testing. What to open is in the fragment, like
+the frontend's own channel links:
+
+| link | `c3lingo:link` event | the app |
+|---|---|---|
+| `https://audio.c3lingo.org/#Saal_1_0_Floor` (a channel) | `{channel: "Saal_1_0_Floor"}` | plays the channel |
+| `https://audio.c3lingo.org/#Saal_1` (a hall) | `{hall: "Saal_1"}` | |
+| `https://audio.c3lingo.org/#4f9e1c2a-…` (a talk's GUID) | `{talk: "4f9e1c2a-…"}` | |
+| `https://audio.c3lingo.org/` | none | just opens |
+
+`c3lingo://#Saal_1_0_Floor` works the same. A fragment in the form of a UUID is a talk;
+any other is a channel if the page described a channel by that name, or else a hall. So
+the app waits for the page's `ready()` and `describe()` before it handles the link, and
+then sends the event; the page shows the channel, hall or talk, e.g. by highlighting its
+card. A page that doesn't describe its channels never gets a link.
+
+The system only opens https links in the app if the server vouches for it, with the
+files in [`shared/well-known/`](shared/well-known/) served from
+`https://audio.c3lingo.org/.well-known/`, over https without redirects:
+
+- `apple-app-site-association` as `application/json`. Apple's CDN fetches it when the
+  app is installed or updated, and caches it for a while.
+- `assetlinks.json`, with the SHA-256 fingerprints of every key the app is signed with:
+  the release key from the keystore (`keytool -list -v -keystore c3lingo-release.jks`),
+  Google Play's app signing key (Play Console → Test and release → App integrity), and
+  F-Droid's key for the app (`apksigner verify --print-certs` on its APK). Android
+  checks it when the app is installed; `adb shell pm get-app-links org.c3lingo.audio`
+  shows the result, and `adb shell pm verify-app-links --re-verify org.c3lingo.audio`
+  checks again.
+
+People can still open the website: a typed address, a bookmark and links within the
+site stay in the browser. On iOS, long-pressing a link offers "Open in Safari", and
+Safari's banner leads back to the app. On Android, turning off "Open supported links"
+in the app's settings keeps all links in the browser.
+
+To try a link: `xcrun simctl openurl booted 'c3lingo://#Saal_1_0_Floor'` or
+`adb shell am start -a android.intent.action.VIEW -d 'c3lingo://#Saal_1_0_Floor'`.
 
 ## Translations
 

@@ -31,6 +31,21 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Links to the channel list, e.g. https://audio.c3lingo.org/#Saal_1_0_Floor, see AppLink. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="audio.c3lingo.org" />
+                <data android:path="/" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="c3lingo" />
+            </intent-filter>
         </activity>
 
         <!-- Also reachable from the system's App info screen, like the iOS Settings app. -->

@@ -24,6 +24,12 @@ what isn't done yet in the table at the end.
   so audio keeps playing across reloads.
 - **Links leaving the frontend open in the browser**, e.g. the schedule. Links within
   the server stay in the app.
+- **Links open the app**: `https://audio.c3lingo.org/` (once the server has the app link
+  files) and `c3lingo:`, with a channel, a hall or a talk's GUID in the fragment. Once
+  the page has called `ready()` and `describe()`, a channel the page described plays,
+  unless it already is, and the page gets a `c3lingo:link` event with `{channel}`,
+  `{hall}` or `{talk}`, so it can show it. A link without a fragment just opens the app.
+  See the README.
 - **Pull to refresh** reloads the page (iOS, Android).
 - **No zooming:** the page scrolls, but pinching and double tapping don't zoom it.
 - **The web content process may crash**; the page is then reloaded without user
@@ -129,6 +135,7 @@ what isn't done yet in the table at the end.
 | Frontend with bridge, main frame and own origin only | ✓ | ✓ |
 | State reported on every change and on `ready()` | ✓ | ✓ |
 | External links open in the browser | ✓ | ✓ |
+| Links open the app (`https`, `c3lingo:`) | ✓ | ✓ |
 | Pull to refresh | ✓ (iOS) | ✓ |
 | Reload after web content crash | ✓ | ✓ |
 | App icon | ✓ | ✓ |

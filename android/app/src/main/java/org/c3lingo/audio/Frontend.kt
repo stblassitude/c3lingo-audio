@@ -93,6 +93,10 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     private var verifyPage = false
     /** The HTTP error the page being loaded returned, if any. */
     private var httpError: String? = null
+    /** Whether the page has called `ready()` since it was last loaded. */
+    private var isPageReady = false
+    /** A link that opened the app, kept until the page can take it, see [open]. */
+    private var pendingLink: AppLink? = null
     /** The bridge, told the app's UI language so the page uses the same one. */
     private val bridgeScript = "window.__c3lingoNativeConfig = " +
         JSONObject().put("language", context.getString(R.string.language_tag)) + ";\n" +
@@ -111,6 +115,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         _loadError.value = null
         _hasLoaded.value = false
         player.describe(emptyMap())
+        isPageReady = false
         installBridge(url)
         verifyPage = true
         httpError = null
@@ -134,6 +139,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
 
     fun reload() {
         _loadError.value = null
+        isPageReady = false
         verifyPage = true
         httpError = null
         if (_hasLoaded.value) {
@@ -196,6 +202,39 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         }
     }
 
+    /**
+     * Opens a link to the app, e.g. `https://audio.c3lingo.org/#Saal_1_0_Floor`: plays the
+     * channel it names, and tells the page which channel, hall or talk it points to.
+     */
+    fun open(url: Uri) {
+        val link = AppLink.fromUri(url) ?: return
+        Log.i(TAG, "opening $url")
+        pendingLink = link
+        openPendingLink()
+    }
+
+    /**
+     * Hands the pending link to the page once the page is ready and has described its
+     * channels, which tells a channel's name from a hall's.
+     */
+    private fun openPendingLink() {
+        val link = pendingLink ?: return
+        val descriptions = player.descriptions.value
+        if (!isPageReady || descriptions.isEmpty()) return
+        pendingLink = null
+        val detail = when (link) {
+            is AppLink.Talk -> JSONObject().put("talk", link.guid)
+            is AppLink.Name -> if (link.name in descriptions) {
+                val state = player.state.value
+                if (state.channel?.name != link.name || state.status == Player.Status.PAUSED) player.play(Channel(link.name))
+                JSONObject().put("channel", link.name)
+            } else {
+                JSONObject().put("hall", link.name)
+            }
+        }
+        evaluate("window.__c3lingoNativeLink && window.__c3lingoNativeLink($detail)")
+    }
+
     private fun sendState(state: Player.State) {
         val protocolState = when (state.status) {
             Player.Status.IDLE, Player.Status.PAUSED -> "stopped"
@@ -222,7 +261,11 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         Log.d(TAG, "bridge command $command")
         when (command) {
             // Also brings a reloaded page up to date while audio keeps playing.
-            "ready" -> sendState(player.state.value)
+            "ready" -> {
+                sendState(player.state.value)
+                isPageReady = true
+                openPendingLink()
+            }
             "play" -> {
                 val channel = message.optJSONObject("channel")?.let { Channel.fromJson(it, webView.url?.toUri()) }
                 if (channel == null) {
@@ -237,7 +280,10 @@ class Frontend(private val context: Context, private val player: Player, scope: 
                 if (player.state.value.isMuted != muted) player.setMuted(muted)
             }
             // Only information for display; it doesn't change the player's state.
-            "describe" -> player.describe(ChannelDescription.all(message.optJSONObject("channels")))
+            "describe" -> {
+                player.describe(ChannelDescription.all(message.optJSONObject("channels")))
+                openPendingLink()
+            }
             else -> Log.w(TAG, "unknown bridge command $command")
         }
     }
@@ -394,6 +440,25 @@ private class FrontendWebView(context: Context, onSettings: () -> Unit) : WebVie
             params.x = x
             params.y = y
             post { settingsButton.requestLayout() }
+        }
+    }
+}
+
+/**
+ * What a link that opens the app points to, from its fragment: a talk by its GUID, e.g.
+ * `https://audio.c3lingo.org/#4f9e1c2a-…`, or a channel or hall by its name, e.g.
+ * `https://audio.c3lingo.org/#Saal_1_0_Floor` or `c3lingo://#Saal_1`.
+ */
+sealed interface AppLink {
+    data class Talk(val guid: String) : AppLink
+    data class Name(val name: String) : AppLink
+
+    companion object {
+        private val GUID = Regex("""[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}""")
+
+        fun fromUri(url: Uri): AppLink? {
+            val fragment = url.fragment?.takeIf { it.isNotEmpty() } ?: return null
+            return if (GUID.matches(fragment)) Talk(fragment) else Name(fragment)
         }
     }
 }

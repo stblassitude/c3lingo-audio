@@ -72,6 +72,8 @@ class MainActivity : ComponentActivity() {
 
         frontend = Frontend(this, app.player, lifecycleScope)
         applyLaunchOptions(intent)
+        // A recreated activity gets the intent that opened it again.
+        if (savedInstanceState == null) intent.data?.let(frontend::open)
         setContent {
             C3lingoTheme {
                 AppScreen(frontend, app.player, app.settings)
@@ -96,6 +98,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         applyLaunchOptions(intent)
+        intent.data?.let(frontend::open)
     }
 
     override fun onStart() {

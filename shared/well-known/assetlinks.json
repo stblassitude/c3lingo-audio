@@ -1,0 +1,14 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.c3lingo.audio",
+      "sha256_cert_fingerprints": [
+        "RELEASE_KEY_SHA256",
+        "GOOGLE_PLAY_APP_SIGNING_KEY_SHA256",
+        "F_DROID_KEY_SHA256"
+      ]
+    }
+  }
+]

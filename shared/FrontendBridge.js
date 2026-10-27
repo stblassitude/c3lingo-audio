@@ -8,7 +8,10 @@
  * stop(), setMuted(muted) and the optional describe(channels), which tells the app the
  * hall, language and current talk of each channel for its player controls. App → page:
  * "c3lingo:state" events with the full state, dispatched through
- * window.__c3lingoNativeState().
+ * window.__c3lingoNativeState(), and "c3lingo:link" events with the channel, hall or talk
+ * a link that opened the app points to ({channel}, {hall} or {talk}, the talk's GUID),
+ * dispatched through window.__c3lingoNativeLink() after the page has called ready() and
+ * describe(). The app plays a linked channel itself; the event lets the page show it.
  *
  * Only pages that declare <meta name="c3lingo-native-bridge" content="2"> see
  * window.c3lingoNative; any other page is left alone and plays audio itself. The meta
@@ -80,5 +83,10 @@
             document.activeElement.blur();
         hadChannel = hasChannel;
         window.dispatchEvent(new CustomEvent("c3lingo:state", { detail: detail }));
+    };
+
+    // Called by the app with what a link that opened the app points to.
+    window.__c3lingoNativeLink = function (detail) {
+        window.dispatchEvent(new CustomEvent("c3lingo:link", { detail: detail }));
     };
 })();

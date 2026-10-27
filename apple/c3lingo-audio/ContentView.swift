@@ -38,6 +38,9 @@ struct ContentView: View {
             frontend.attach(player)
             frontend.load(settings.serverURL)
         }
+        .onOpenURL { url in
+            frontend.open(url)
+        }
         .onReceive(settings.$serverURL.dropFirst().removeDuplicates()) { url in
             player.stop()
             frontend.restart(url)

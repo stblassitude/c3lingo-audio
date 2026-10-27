@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["PJ7B4RMRCG.org.c3lingo.audio"],
+        "components": [
+          { "/": "/", "comment": "The channel list, with a channel, hall or talk in the fragment" }
+        ]
+      }
+    ]
+  }
+}

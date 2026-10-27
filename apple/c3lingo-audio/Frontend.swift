@@ -30,6 +30,10 @@ final class Frontend: NSObject, ObservableObject {
     private var verifyPage = false
     /// The HTTP status of the page being loaded.
     private var pageStatus: Int?
+    /// Whether the page has called `ready()` since it was last loaded.
+    private var isPageReady = false
+    /// A link that opened the app, kept until the page can take it, see `open(_:)`.
+    private var pendingLink: AppLink?
 
     private static let messageHandlerName = "c3lingo"
 
@@ -130,6 +134,7 @@ final class Frontend: NSObject, ObservableObject {
         loadError = nil
         hasLoaded = false
         descriptions = [:]
+        isPageReady = false
         verifyPage = true
         webView.load(URLRequest(url: url))
     }
@@ -147,6 +152,7 @@ final class Frontend: NSObject, ObservableObject {
         loadError = nil
         hasLoaded = false
         descriptions = [:]
+        isPageReady = false
         let dataStore = WKWebsiteDataStore.default()
         dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) { [weak self] in
             guard let self else { return }
@@ -159,12 +165,46 @@ final class Frontend: NSObject, ObservableObject {
 
     func reload() {
         loadError = nil
+        isPageReady = false
         verifyPage = true
         if hasLoaded {
             webView.reload()
         } else if let url {
             webView.load(URLRequest(url: url))
         }
+    }
+
+    /// Opens a link to the app, e.g. `https://audio.c3lingo.org/#Saal_1_0_Floor`: plays the
+    /// channel it names, and tells the page which channel, hall or talk it points to.
+    func open(_ url: URL) {
+        guard let link = AppLink(url: url) else { return }
+        Log.frontend.info("opening \(url)")
+        pendingLink = link
+        openPendingLink()
+    }
+
+    /// Hands the pending link to the page once the page is ready and has described its
+    /// channels, which tells a channel's name from a hall's.
+    private func openPendingLink() {
+        guard let link = pendingLink, isPageReady, !descriptions.isEmpty else { return }
+        pendingLink = nil
+        let detail: [String: String]
+        switch link {
+        case .talk(let guid):
+            detail = ["talk": guid]
+        case .name(let name) where descriptions[name] != nil:
+            if let player, player.channel?.name != name || !player.isActive {
+                player.play(Channel(name: name))
+            }
+            detail = ["channel": name]
+        case .name(let name):
+            detail = ["hall": name]
+        }
+        guard let data = try? JSONSerialization.data(withJSONObject: detail),
+              let json = String(data: data, encoding: .utf8) else {
+            return
+        }
+        evaluate("window.__c3lingoNativeLink && window.__c3lingoNativeLink(\(json))")
     }
 
     // MARK: - Native to web
@@ -214,6 +254,8 @@ final class Frontend: NSObject, ObservableObject {
             if let player {
                 sendState(of: player)
             }
+            isPageReady = true
+            openPendingLink()
         case "play":
             guard let json = body["channel"] as? [String: Any],
                   let channel = Channel(json: json, relativeTo: webView.url) else {
@@ -230,6 +272,7 @@ final class Frontend: NSObject, ObservableObject {
         case "describe":
             // Only information for display; it doesn't change the player's state.
             descriptions = ChannelDescription.all(json: body["channels"])
+            openPendingLink()
         default:
             Log.frontend.warning("unknown bridge command \(command)")
         }
@@ -420,3 +463,18 @@ struct FrontendView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {}
 }
 #endif
+
+/// What a link that opens the app points to, from its fragment: a talk by its GUID, e.g.
+/// `https://audio.c3lingo.org/#4f9e1c2a-…`, or a channel or hall by its name, e.g.
+/// `https://audio.c3lingo.org/#Saal_1_0_Floor` or `c3lingo://#Saal_1`.
+nonisolated enum AppLink: Equatable, Sendable {
+    case talk(String)
+    case name(String)
+
+    init?(url: URL) {
+        guard let fragment = URLComponents(url: url, resolvingAgainstBaseURL: false)?.fragment, !fragment.isEmpty else {
+            return nil
+        }
+        self = UUID(uuidString: fragment) != nil ? .talk(fragment) : .name(fragment)
+    }
+}

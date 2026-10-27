@@ -471,6 +471,20 @@ gh secret set APP_STORE_CONNECT_KEY_ID --body XXXXXXXXXX
 gh secret set APP_STORE_CONNECT_ISSUER_ID --body 00000000-0000-0000-0000-000000000000
 ```
 
+Automatic signing archives with an Apple Development certificate, and creates one if
+the keychain has none. Each job starts with an empty keychain, so without one it would
+create three on every release, until the account has as many as Apple allows ("Your
+account has reached the maximum number of certificates"). So the workflow imports one
+from two more secrets. Any Apple Development certificate of the team will do, e.g. your
+own: in Keychain Access, under My Certificates, export "Apple Development: …" with its
+key as a `.p12` with a password. It is valid for a year; export the renewed one then.
+The export step still signs for the App Store with Apple's cloud signing.
+
+```sh
+base64 -i Certificates.p12 | gh secret set APPLE_SIGNING_CERTIFICATE
+gh secret set APPLE_SIGNING_CERTIFICATE_PASSWORD
+```
+
 To upload from a Mac instead, archive in Xcode (destination Any iOS Device, Any Mac or
 Any visionOS Device, then Product → Archive) and choose Distribute App → TestFlight &
 App Store in the Organizer, or run the two `xcodebuild` commands from the workflow with

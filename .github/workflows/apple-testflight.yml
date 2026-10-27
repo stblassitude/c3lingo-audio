@@ -69,6 +69,32 @@ jobs:
             echo "AUTH_ISSUER_ID=$APP_STORE_CONNECT_ISSUER_ID"
           } >> "$GITHUB_ENV"
 
+      # Automatic signing archives with a development certificate. Without one in the
+      # keychain, Xcode creates a new one on every run, until the account has as many as
+      # Apple allows. The export signs for the App Store with Apple's cloud signing.
+      - name: Set up the signing certificate
+        env:
+          APPLE_SIGNING_CERTIFICATE: ${{ secrets.APPLE_SIGNING_CERTIFICATE }}
+          APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
+        run: |
+          if [ -z "$APPLE_SIGNING_CERTIFICATE" ] || [ -z "$APPLE_SIGNING_CERTIFICATE_PASSWORD" ]; then
+            echo "::error::The signing certificate secrets are missing; see 'Releasing the Apple app' in README.md."
+            exit 1
+          fi
+          keychain=$RUNNER_TEMP/signing.keychain-db
+          password=$(uuidgen)
+          echo "$APPLE_SIGNING_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/signing.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/signing.p12" -k "$keychain" -f pkcs12 \
+            -P "$APPLE_SIGNING_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          rm "$RUNNER_TEMP/signing.p12"
+          # Lets codesign use the key without asking.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" >/dev/null
+          security list-keychains -d user | xargs security list-keychains -d user -s "$keychain"
+          echo "SIGNING_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+
       - name: Archive
         working-directory: apple
         run: >
@@ -94,6 +120,10 @@ jobs:
           -authenticationKeyPath "$AUTH_KEY_PATH"
           -authenticationKeyID "$AUTH_KEY_ID"
           -authenticationKeyIssuerID "$AUTH_ISSUER_ID"
+
+      - name: Remove the signing keychain
+        if: always() && env.SIGNING_KEYCHAIN != ''
+        run: security delete-keychain "$SIGNING_KEYCHAIN"
 
   # Once for all platforms, after the builds: the platforms share the app's information
   # in App Store Connect, so uploading it from each build at the same time would conflict.

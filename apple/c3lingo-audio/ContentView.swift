@@ -25,6 +25,11 @@ struct ContentView: View {
                 }
             }
             .animation(.easeOut, value: frontend.hasLoaded)
+            .sheet(isPresented: $frontend.isShowingHelp) {
+                if let help = frontend.help {
+                    HelpView(help: help)
+                }
+            }
             if let channel = player.channel {
                 PlayerBar(description: frontend.descriptions[channel.name])
                     .transition(.move(edge: .bottom).combined(with: .opacity))

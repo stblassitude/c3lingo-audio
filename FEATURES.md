@@ -30,6 +30,11 @@ what isn't done yet in the table at the end.
   unless it already is, and the page gets a `c3lingo:link` event with `{channel}`,
   `{hall}` or `{talk}`, so it can show it. A link without a fragment just opens the app.
   See the README.
+- **Native help.** The page's help text (`help(content)`: headings, paragraphs and
+  bulleted lists, with bold labels and `https`/`mailto` links) shows in a sheet (Apple)
+  or dialog (Android) with a Done button. It shows by itself once, the first time a page
+  that has it has loaded, and whenever the page's help button calls `showHelp()`.
+  Unknown block types and run fields are left out.
 - **Pull to refresh** reloads the page (iOS, Android).
 - **No zooming:** the page scrolls, but pinching and double tapping don't zoom it.
 - **The web content process may crash**; the page is then reloaded without user
@@ -136,6 +141,7 @@ what isn't done yet in the table at the end.
 | State reported on every change and on `ready()` | ✓ | ✓ |
 | External links open in the browser | ✓ | ✓ |
 | Links open the app (`https`, `c3lingo:`) | ✓ | ✓ |
+| Native help, first launch and help button | ✓ | ✓ |
 | Pull to refresh | ✓ (iOS) | ✓ |
 | Reload after web content crash | ✓ | ✓ |
 | App icon | ✓ | ✓ |

@@ -122,11 +122,13 @@ class MainActivity : ComponentActivity() {
 
     /**
      * For testing: `adb shell am start -n org.c3lingo.audio/.MainActivity -e serverURL <url> -e autoplay <channel>`
-     * uses another server for this run and selects a channel once the page has loaded.
+     * uses another server for this run and selects a channel once the page has loaded;
+     * `--ez helpShown true` keeps the help from showing by itself.
      */
     private fun applyLaunchOptions(intent: Intent) {
         intent.getStringExtra("serverURL")?.let(app.settings::setOverride)
         intent.getStringExtra("autoplay")?.let { frontend.autoplay = it }
+        if (intent.getBooleanExtra("helpShown", false)) frontend.helpShown = true
     }
 }
 
@@ -138,10 +140,15 @@ private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettin
     val serverURL by settings.serverURL.collectAsStateWithLifecycle()
     val descriptions by player.descriptions.collectAsStateWithLifecycle()
     val isShowingServerDialog by frontend.isShowingServerDialog.collectAsStateWithLifecycle()
+    val help by frontend.help.collectAsStateWithLifecycle()
+    val isShowingHelp by frontend.isShowingHelp.collectAsStateWithLifecycle()
     val playing = state.channel != null
 
     if (isShowingServerDialog) {
         ServerDialog(settings, onReload = frontend::reload, onDismiss = { frontend.showServerDialog(false) })
+    }
+    help?.takeIf { isShowingHelp }?.let {
+        HelpDialog(it, onDismiss = { frontend.showHelp(false) })
     }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {

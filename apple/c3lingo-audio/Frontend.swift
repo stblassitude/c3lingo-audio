@@ -21,6 +21,10 @@ final class Frontend: NSObject, ObservableObject {
     }
     /// The server dialog, opened from the settings button on the page or the error screen.
     @Published var isShowingServerDialog = false
+    /// The page's help text, if it sends one.
+    @Published private(set) var help: Help?
+    /// The help, opened from the page's help button, and by itself on the first launch.
+    @Published var isShowingHelp = false
 
     private var player: Player?
     private var playerObservation: AnyCancellable?
@@ -134,6 +138,7 @@ final class Frontend: NSObject, ObservableObject {
         loadError = nil
         hasLoaded = false
         descriptions = [:]
+        help = nil
         isPageReady = false
         verifyPage = true
         webView.load(URLRequest(url: url))
@@ -152,6 +157,7 @@ final class Frontend: NSObject, ObservableObject {
         loadError = nil
         hasLoaded = false
         descriptions = [:]
+        help = nil
         isPageReady = false
         let dataStore = WKWebsiteDataStore.default()
         dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) { [weak self] in
@@ -172,6 +178,15 @@ final class Frontend: NSObject, ObservableObject {
         } else if let url {
             webView.load(URLRequest(url: url))
         }
+    }
+
+    /// Shows the help by itself once, the first time the app has it, after the page has
+    /// loaded. For testing, `-helpShown YES` on the command line skips it.
+    private func showHelpForFirstTime() {
+        let key = "helpShown"
+        guard help != nil, hasLoaded, !isShowingServerDialog, !UserDefaults.standard.bool(forKey: key) else { return }
+        UserDefaults.standard.set(true, forKey: key)
+        isShowingHelp = true
     }
 
     /// Opens a link to the app, e.g. `https://audio.c3lingo.org/#Saal_1_0_Floor`: plays the
@@ -273,6 +288,11 @@ final class Frontend: NSObject, ObservableObject {
             // Only information for display; it doesn't change the player's state.
             descriptions = ChannelDescription.all(json: body["channels"])
             openPendingLink()
+        case "help":
+            help = Help(json: body["content"])
+            showHelpForFirstTime()
+        case "showHelp":
+            isShowingHelp = help != nil
         default:
             Log.frontend.warning("unknown bridge command \(command)")
         }
@@ -349,6 +369,7 @@ extension Frontend: WKNavigationDelegate, WKUIDelegate {
     private func pageLoaded() {
         hasLoaded = true
         loadError = nil
+        showHelpForFirstTime()
         // For testing: `-autoplay <channel>` selects a channel once the page has loaded.
         if let channel = UserDefaults.standard.string(forKey: "autoplay"), !channel.isEmpty,
            let data = try? JSONSerialization.data(withJSONObject: [channel]),

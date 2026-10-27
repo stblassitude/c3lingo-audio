@@ -40,6 +40,7 @@
     <string name="server_not_c3lingo">Das ist keine c3lingo-Audioseite.</string>
     <string name="server_not_found">Kein Server mit diesem Namen gefunden.</string>
     <string name="server_cant_connect">Keine Verbindung zum Server: %1$s</string>
+    <string name="done">Fertig</string>
     <string name="back">Zurück</string>
     <string name="privacy_policy">Datenschutzerklärung</string>
     <string name="error_network">Keine Verbindung. Prüfe, ob du im Event-WLAN bist. Neuer Versuch…</string>

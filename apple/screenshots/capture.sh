@@ -119,7 +119,7 @@ shoot() {
         while read -r -u 3 name channel; do
             file=$out/$dir/$locale/$prefix-$name.png
             xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
-            args=(-serverURL "$SERVER_URL" -AppleLanguages "($lang)" -AppleLocale "$region")
+            args=(-serverURL "$SERVER_URL" -helpShown YES -AppleLanguages "($lang)" -AppleLocale "$region")
             [ "$channel" = - ] || args+=(-autoplay "$channel")
             xcrun simctl launch "$udid" "$BUNDLE_ID" "${args[@]}" >/dev/null
             sleep "$WAIT"
@@ -231,7 +231,7 @@ for key in plistlib.load(open(sys.argv[1], "rb")):
     # argument overrides for one run. Launch once, if needed, so that it exists.
     key=$(frame_key)
     if [ -z "$key" ]; then
-        "$app" -serverURL "$SERVER_URL" >/dev/null 2>&1 & pid=$!
+        "$app" -serverURL "$SERVER_URL" -helpShown YES >/dev/null 2>&1 & pid=$!
         sleep 5; kill "$pid"; wait "$pid" 2>/dev/null || true
         key=$(frame_key)
         [ -n "$key" ] || die "Can't find the window frame the app saved in $plist"
@@ -245,7 +245,7 @@ for key in plistlib.load(open(sys.argv[1], "rb")):
         while read -r -u 3 name channel; do
             file=$out/macos/$locale/mac-$name.png
             # 1440 × 900 points, 16:10, gives 2880 × 1800 pixels on a Retina display.
-            args=(-serverURL "$SERVER_URL" -AppleLanguages "($lang)" -AppleLocale "$region"
+            args=(-serverURL "$SERVER_URL" -helpShown YES -AppleLanguages "($lang)" -AppleLocale "$region"
                   -ApplePersistenceIgnoreState YES "-$key" "100 100 1440 900 $screen ")
             [ "$channel" = - ] || args+=(-autoplay "$channel")
             "$app" "${args[@]}" >/dev/null 2>&1 & pid=$!

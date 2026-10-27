@@ -77,6 +77,17 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     private val _isShowingServerDialog = MutableStateFlow(false)
     /** The server dialog, opened from the settings button on the page or the error screen. */
     val isShowingServerDialog: StateFlow<Boolean> = _isShowingServerDialog.asStateFlow()
+    private val _help = MutableStateFlow<Help?>(null)
+    /** The page's help text, if it sends one. */
+    val help: StateFlow<Help?> = _help.asStateFlow()
+    private val _isShowingHelp = MutableStateFlow(false)
+    /** The help, opened from the page's help button, and by itself on the first launch. */
+    val isShowingHelp: StateFlow<Boolean> = _isShowingHelp.asStateFlow()
+    /** Whether the help has been shown by itself, see [showHelpForFirstTime]. */
+    var helpShown: Boolean
+        get() = preferences.getBoolean("helpShown", false)
+        set(value) = preferences.edit().putBoolean("helpShown", value).apply()
+    private val preferences = context.getSharedPreferences("help", Context.MODE_PRIVATE)
 
     /** For testing: selects this channel once the page has loaded. */
     var autoplay: String? = null
@@ -115,6 +126,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         _loadError.value = null
         _hasLoaded.value = false
         player.describe(emptyMap())
+        _help.value = null
         isPageReady = false
         installBridge(url)
         verifyPage = true
@@ -151,6 +163,17 @@ class Frontend(private val context: Context, private val player: Player, scope: 
 
     fun showServerDialog(show: Boolean) {
         _isShowingServerDialog.value = show
+    }
+
+    fun showHelp(show: Boolean) {
+        _isShowingHelp.value = show && _help.value != null
+    }
+
+    /** Shows the help by itself once, the first time the app has it, after the page has loaded. */
+    private fun showHelpForFirstTime() {
+        if (_help.value == null || !_hasLoaded.value || _isShowingServerDialog.value || helpShown) return
+        helpShown = true
+        showHelp(true)
     }
 
     fun destroy() {
@@ -284,6 +307,11 @@ class Frontend(private val context: Context, private val player: Player, scope: 
                 player.describe(ChannelDescription.all(message.optJSONObject("channels")))
                 openPendingLink()
             }
+            "help" -> {
+                _help.value = Help.fromJson(message.optJSONObject("content"))
+                showHelpForFirstTime()
+            }
+            "showHelp" -> showHelp(true)
             else -> Log.w(TAG, "unknown bridge command $command")
         }
     }
@@ -360,6 +388,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
             Log.i(TAG, "loaded $url")
             _hasLoaded.value = true
             _loadError.value = null
+            showHelpForFirstTime()
             autoplay?.takeIf { it.isNotEmpty() }?.let { channel ->
                 autoplay = null
                 evaluate("setTimeout(() => { location.hash = ${JSONObject.quote(channel)}; }, 500)")

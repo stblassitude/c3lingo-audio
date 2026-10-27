@@ -92,6 +92,11 @@ In short:
   channel's `displayName`.
 - The app answers `ready()` and reports every state change, whatever caused it, as a
   `c3lingo:state` event with the full state `{state, channel, muted, error}`.
+- If the page calls the optional `help(content)`, the app shows that help natively: by
+  itself once, the first time the page has loaded with it, and whenever the page calls
+  `showHelp()` from its help button. The page then never shows its own help dialog.
+  `-helpShown YES` (Apple) or `--ez helpShown true` (Android) skips the first time, as
+  the screenshot scripts do.
 - When a link opened the app, the app sends a `c3lingo:link` event with what it points
   to, see [Links to the app](#links-to-the-app).
 

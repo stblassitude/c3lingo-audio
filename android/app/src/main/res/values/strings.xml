@@ -45,6 +45,7 @@
     <string name="server_not_c3lingo">This isn\'t a c3lingo audio site.</string>
     <string name="server_not_found">Can\'t find a server with this name.</string>
     <string name="server_cant_connect">Can\'t connect to the server: %1$s</string>
+    <string name="done">Done</string>
     <string name="back">Back</string>
     <string name="privacy_policy">Privacy Policy</string>
 

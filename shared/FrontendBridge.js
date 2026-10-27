@@ -5,8 +5,10 @@
  * Injected at document start, after the app has set window.__c3lingoNativeConfig to
  * {language}, the app's UI language as a BCP 47 tag; the page uses it for its own texts.
  * Page → app: window.c3lingoNative.ready(), play(channel),
- * stop(), setMuted(muted) and the optional describe(channels), which tells the app the
- * hall, language and current talk of each channel for its player controls. App → page:
+ * stop(), setMuted(muted), the optional describe(channels), which tells the app the
+ * hall, language and current talk of each channel for its player controls, and the
+ * optional help(content) and showHelp(), which give the app the page's help text and
+ * ask it to show it, instead of the page's own help dialog. App → page:
  * "c3lingo:state" events with the full state, dispatched through
  * window.__c3lingoNativeState(), and "c3lingo:link" events with the channel, hall or talk
  * a link that opened the app points to ({channel}, {hall} or {talk}, the talk's GUID),
@@ -50,8 +52,8 @@
     }
 
     // Plain data only: the apps validate each field themselves.
-    function descriptions(channels) {
-        return JSON.parse(JSON.stringify(channels ?? {}));
+    function plainData(value) {
+        return JSON.parse(JSON.stringify(value ?? {}));
     }
 
     const bridge = Object.freeze({
@@ -60,7 +62,9 @@
         play: (channel) => post({ cmd: "play", channel: channelInfo(channel) }),
         stop: () => post({ cmd: "stop" }),
         setMuted: (muted) => post({ cmd: "setMuted", muted: !!muted }),
-        describe: (channels) => post({ cmd: "describe", channels: descriptions(channels) }),
+        describe: (channels) => post({ cmd: "describe", channels: plainData(channels) }),
+        help: (content) => post({ cmd: "help", content: plainData(content) }),
+        showHelp: () => post({ cmd: "showHelp" }),
     });
 
     function pageSupportsBridge() {

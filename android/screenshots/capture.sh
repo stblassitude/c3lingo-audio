@@ -151,7 +151,7 @@ capture() {
         while read -r -u 3 screen channel; do
             file=$out/$locale/images/$type/$screen.png
             adb shell am force-stop "$PACKAGE"
-            args=(-e serverURL "$SERVER_URL")
+            args=(-e serverURL "$SERVER_URL" --ez helpShown true)
             [ "$channel" = - ] || args+=(-e autoplay "$channel")
             adb shell am start -W -n "$PACKAGE/.MainActivity" "${args[@]}" >/dev/null
             demo_mode

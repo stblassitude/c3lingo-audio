@@ -3,9 +3,9 @@
 # phone and on 7" and 10" tablets, each in an emulator of its own. They end up where
 # `bundle exec fastlane upload_screenshots` (see android/fastlane/Fastfile) picks them up:
 #
-#   android/fastlane/metadata/android/<locale>/images/phoneScreenshots/
-#   android/fastlane/metadata/android/<locale>/images/sevenInchScreenshots/
-#   android/fastlane/metadata/android/<locale>/images/tenInchScreenshots/
+#   fastlane/metadata/android/<locale>/images/phoneScreenshots/
+#   fastlane/metadata/android/<locale>/images/sevenInchScreenshots/
+#   fastlane/metadata/android/<locale>/images/tenInchScreenshots/
 #
 # Usage: android/screenshots/capture.sh [phone] [tablet7] [tablet10]
 # Without arguments, all of them. See "Screenshots" in README.md.
@@ -27,7 +27,7 @@ export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH
 PACKAGE=org.c3lingo.audio
 here=$(cd "$(dirname "$0")" && pwd)
 android=$(dirname "$here")
-out=$android/fastlane/metadata/android
+out=$(dirname "$android")/fastlane/metadata/android
 avds=${ANDROID_AVD_HOME:-~/.android/avd}
 # A port of its own, so a running emulator doesn't get in the way.
 port=5580

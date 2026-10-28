@@ -1,13 +1,13 @@
 # Lanes for Google Play. See "Releasing the Android app" and "Screenshots" in README.md.
 #
-# The store listing comes from metadata/android/<language>/: title, short and full
-# description, icon, feature graphic, screenshots, and the release notes in
-# changelogs/<version code>.txt. F-Droid reads the same files.
+# The store listing comes from fastlane/metadata/android/<language>/ at the top of the
+# repository, where F-Droid looks for it: title, short and full description, icon,
+# feature graphic, screenshots, and the release notes in changelogs/<version code>.txt.
 
 PACKAGE_NAME = "org.c3lingo.audio"
 
 # Absolute, as actions run in android/, not in fastlane/ like the lanes.
-METADATA_PATH = File.expand_path("metadata/android", __dir__)
+METADATA_PATH = File.expand_path("../../fastlane/metadata/android", __dir__)
 
 GRADLE = File.expand_path("../app/build.gradle.kts", __dir__)
 

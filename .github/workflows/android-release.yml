@@ -1,7 +1,7 @@
 # Builds signed APKs for a tag such as v1.2.0, as made by ./release, and publishes them
 # as a GitHub release, with the release notes committed for F-Droid. The app bundle goes
 # to Google Play's internal testing track, together with the store listing from
-# android/fastlane/metadata/android/.
+# fastlane/metadata/android/.
 name: Android release
 
 on:
@@ -40,7 +40,7 @@ jobs:
             echo "::error::The tag $GITHUB_REF_NAME doesn't match versionName $name in $gradle."
             exit 1
           fi
-          notes=android/fastlane/metadata/android/en-US/changelogs/$code.txt
+          notes=fastlane/metadata/android/en-US/changelogs/$code.txt
           if [ ! -s "$notes" ]; then
             echo "::error::No release notes in $notes; see 'Releasing' in README.md."
             exit 1

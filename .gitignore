@@ -10,7 +10,7 @@ xcuserdata/
 *.p8
 
 # fastlane: gems, generated screenshots, and what fastlane writes on each run.
-# android/fastlane/metadata/ is committed, as F-Droid reads the store listing from there.
+# fastlane/metadata/ is committed, as F-Droid reads the store listing from there.
 /vendor/bundle/
 /apple/fastlane/screenshots/
 **/fastlane/report.xml

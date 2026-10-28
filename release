@@ -23,7 +23,7 @@ version=$1
 tag=v$version
 
 gradle=android/app/build.gradle.kts
-metadata=android/fastlane/metadata/android
+metadata=fastlane/metadata/android
 apple_notes=apple/fastlane/release_notes
 notes=release-notes
 filter=shared/filter-release-notes
@@ -50,7 +50,7 @@ old_code=$(sed -n 's/^ *versionCode = \([0-9]*\)$/\1/p' "$gradle")
     && [ "$old_name" != "$version" ] || fail "$version isn't after $old_name"
 code=$((old_code + 1))
 
-# One file per language, named like the folders in android/fastlane/metadata/android/,
+# One file per language, named like the folders in fastlane/metadata/android/,
 # with items for single platforms marked as $filter describes.
 [ -s "$notes/en-US.txt" ] || fail "write the release notes into $notes/en-US.txt first"
 for file in "$notes"/*.txt; do
@@ -78,14 +78,19 @@ sed -i.bak \
     -e "s/^\( *versionCode = \)[0-9]*$/\1$code/" \
     "$gradle"
 rm "$gradle.bak"
-# Android's for Google Play and F-Droid; all of them for the Apple apps, which the App
-# Store lane filters for each platform.
+# Android's for Google Play and F-Droid, under each one's version codes; all of them for
+# the Apple apps, which the App Store lane filters for each platform.
 mkdir -p "$apple_notes/$code"
 for file in "$notes"/*.txt; do
     locale=$(basename "$file" .txt)
     mkdir -p "$metadata/$locale/changelogs"
     "$filter" android < "$file" > "$metadata/$locale/changelogs/$code.txt"
     git add "$metadata/$locale/changelogs/$code.txt"
+    # F-Droid's version codes, one per ABI, see android/app/build.gradle.kts.
+    for abi in 1 2 4; do
+        cp "$metadata/$locale/changelogs/$code.txt" "$metadata/$locale/changelogs/$code$abi.txt"
+        git add "$metadata/$locale/changelogs/$code$abi.txt"
+    done
     git mv "$file" "$apple_notes/$code/$locale.txt"
     echo "release notes: $metadata/$locale/changelogs/$code.txt, $apple_notes/$code/$locale.txt"
 done

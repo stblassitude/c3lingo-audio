@@ -54,7 +54,7 @@ magick -size 1024x1024 xc:'#fff200' -alpha off -define png:exclude-chunks=date,t
 
 # Google Play: full-bleed square like iOS, Play applies the mask; and the feature graphic,
 # the glyphs on the yellow background, small enough to survive Play's cropping
-play=$here/../../android/fastlane/metadata/android/en-US/images
+play=$here/../../fastlane/metadata/android/en-US/images
 mkdir -p "$play"
 rsvg-convert -w 512 -h 512 "$svg" -o "$tmp/play-icon.png"
 out=$play/icon.png

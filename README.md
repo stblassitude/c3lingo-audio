@@ -310,7 +310,7 @@ install).
 Both apps are released together, from one tag such as `v1.2.0`, made by `./release`:
 
 1. Write the release notes into `release-notes/<language>.txt`, with the languages named
-   like the folders in `android/fastlane/metadata/android/`. `en-US.txt` is required;
+   like the folders in `fastlane/metadata/android/`. `en-US.txt` is required;
    languages without notes get the English ones. One item per line, starting with `• `.
    An item for some platforms only starts with their names and a colon, which are left
    out of the notes for those platforms, and the item out of all others:
@@ -329,8 +329,9 @@ Both apps are released together, from one tag such as `v1.2.0`, made by `./relea
 
 The script sets `versionName` to the new version and increments `versionCode` in
 `android/app/build.gradle.kts`, writes the Android notes to
-`android/fastlane/metadata/android/<language>/changelogs/<versionCode>.txt` (for Google
-Play and F-Droid), moves the notes as written to
+`fastlane/metadata/android/<language>/changelogs/<versionCode>.txt` for Google Play
+and to `<versionCode>1.txt`, `<versionCode>2.txt` and `<versionCode>4.txt` for
+F-Droid's version codes (see [F-Droid](#f-droid)), moves the notes as written to
 `apple/fastlane/release_notes/<versionCode>/<language>.txt` (the App Store lane picks
 each Apple platform's items from them), commits "Release 1.2.0", tags it `v1.2.0` with
 the English notes as written as the tag message, and pushes `main` and the tag.
@@ -354,7 +355,7 @@ commit and goes out with the next release:
 
 | | Android (Google Play, F-Droid) | Apple (App Store) |
 |---|---|---|
-| texts | `android/fastlane/metadata/android/<language>/`: `title.txt`, `short_description.txt` (80 characters), `full_description.txt` | `apple/fastlane/metadata/<language>/`: `name.txt`, `subtitle.txt` (30 characters), `description.txt`, `keywords.txt` (100 characters), `support_url.txt`, `privacy_url.txt`; `apple/fastlane/metadata/copyright.txt` |
+| texts | `fastlane/metadata/android/<language>/`: `title.txt`, `short_description.txt` (80 characters), `full_description.txt` | `apple/fastlane/metadata/<language>/`: `name.txt`, `subtitle.txt` (30 characters), `description.txt`, `keywords.txt` (100 characters), `support_url.txt`, `privacy_url.txt`; `apple/fastlane/metadata/copyright.txt` |
 | release notes | `…/changelogs/<versionCode>.txt` | `apple/fastlane/release_notes/<versionCode>/`, filtered for each platform |
 | icon, feature graphic | `…/images/`, from `shared/icon/render.sh` | in the app |
 | screenshots | `…/images/*Screenshots/`, committed | `apple/fastlane/screenshots/`, not committed |
@@ -437,7 +438,9 @@ signature, ships them with the release key. So the APKs from GitHub, Google Play
 F-Droid update each other. If they don't match, F-Droid doesn't publish that version.
 
 The store listing (title, descriptions, icon, screenshots and changelogs) comes from
-`android/fastlane/metadata/android/`.
+`fastlane/metadata/android/`. F-Droid looks for it only at the top of the repository
+or in the build's `subdir` (`android/app`), and only in the commit of the latest build,
+so a change reaches F-Droid with the next release.
 
 ## Releasing the Apple app
 
@@ -594,7 +597,7 @@ The phone has a 16:9 screen because Google Play doesn't take screenshots longer 
 (`c3lingo_screenshots_…`), use the newest Google Play system image installed, and start
 from scratch each time. The status bar shows 9:41 (demo mode), and the app's language
 is set as in the system's per-app language setting. The screenshots go to
-`android/fastlane/metadata/android/<language>/images/`, where fastlane expects them.
+`fastlane/metadata/android/<language>/images/`, where fastlane expects them.
 Commit them: F-Droid takes its screenshots from the repository.
 
 The upload needs:

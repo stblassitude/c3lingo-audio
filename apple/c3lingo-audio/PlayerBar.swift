@@ -5,21 +5,31 @@ import SwiftUI
 ///
 /// Narrow (portrait phones): everything centred, the hall and language, the current
 /// talk, the status and, if needed, a message that explains it, with the controls below.
-/// Wide: the same information on the left, the controls on the right.
+/// Wide: the same information on the left, the controls on the right, once the
+/// information has at least twice as much room as the controls take.
 struct PlayerBar: View {
     @EnvironmentObject private var player: Player
     /// What the frontend knows about the channel, if anything.
     let description: ChannelDescription?
 
-    @State private var isWide = false
-    private static let wideWidth: CGFloat = 520
+    /// The bar's width, and that of the controls, which grow with the text size.
+    @State private var width: CGFloat = 0
+    @State private var controlsWidth: CGFloat = 0
+    private static let padding: CGFloat = 16
+    private static let spacing: CGFloat = 16
+
+    private var isWide: Bool {
+        guard controlsWidth > 0 else { return false }
+        let informationWidth = width - 2 * Self.padding - Self.spacing - controlsWidth
+        return informationWidth >= 2 * controlsWidth
+    }
     /// Twice the usual size of a `.title2` symbol, so the controls are easy to hit.
     @ScaledMetric(relativeTo: .title2) private var controlSize: CGFloat = 44
 
     var body: some View {
         Group {
             if isWide {
-                HStack(spacing: 16) {
+                HStack(spacing: Self.spacing) {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 12) {
                             title
@@ -46,15 +56,14 @@ struct PlayerBar: View {
         }
         .labelStyle(.iconOnly)
         .buttonStyle(.borderless)
-        .padding(.horizontal)
+        .padding(.horizontal, Self.padding)
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity)
         .background(GeometryReader { geometry in
             Color.clear.preference(key: WidthKey.self, value: geometry.size.width)
         })
-        .onPreferenceChange(WidthKey.self) { width in
-            isWide = width >= Self.wideWidth
-        }
+        .onPreferenceChange(WidthKey.self) { width = $0 }
+        .onPreferenceChange(ControlsWidthKey.self) { controlsWidth = $0 }
         .background(.bar)
         #if os(iOS)
         // Separates the bar from the page, like a tab bar or toolbar.
@@ -146,6 +155,11 @@ struct PlayerBar: View {
             }
         }
         .font(.system(size: controlSize))
+        // The same in both layouts, so measuring it doesn't change the layout it is measured in.
+        .fixedSize()
+        .background(GeometryReader { geometry in
+            Color.clear.preference(key: ControlsWidthKey.self, value: geometry.size.width)
+        })
     }
 
     @ViewBuilder private var statusIndicator: some View {
@@ -181,6 +195,14 @@ struct PlayerBar: View {
 }
 
 private nonisolated struct WidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+private nonisolated struct ControlsWidthKey: PreferenceKey {
     static let defaultValue: CGFloat = 0
 
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {

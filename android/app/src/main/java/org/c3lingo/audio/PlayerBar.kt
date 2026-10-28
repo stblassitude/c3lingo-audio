@@ -56,7 +56,8 @@ import androidx.mediarouter.app.SystemOutputSwitcherDialogController
  *
  * Narrow (portrait phones): everything centred, the hall and language, the current
  * talk, the status and, if needed, a message that explains it, with the controls below.
- * Wide: the same information on the left, the controls on the right.
+ * Wide: the same information on the left, the controls on the right, once the
+ * information has at least twice as much room as the controls take.
  */
 @Composable
 fun PlayerBar(state: Player.State, player: Player, description: ChannelDescription?) {
@@ -65,9 +66,9 @@ fun PlayerBar(state: Player.State, player: Player, description: ChannelDescripti
             Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)),
         ) {
             val title = description?.title ?: state.channel?.displayName.orEmpty()
-            if (maxWidth >= WIDE_WIDTH) {
+            if (maxWidth - WIDE_START_PADDING - CONTROLS_WIDTH >= CONTROLS_WIDTH * 2) {
                 // The buttons' own padding is enough at the end.
-                Row(Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.padding(start = WIDE_START_PADDING, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Title(title, Modifier.weight(1f, fill = false))
@@ -94,8 +95,13 @@ fun PlayerBar(state: Player.State, player: Player, description: ChannelDescripti
     }
 }
 
-/** From this width on, the bar puts the controls beside the channel information. */
-private val WIDE_WIDTH = 520.dp
+private val WIDE_START_PADDING = 16.dp
+/** Twice the usual size of an icon button, so they are easy to hit. */
+private val BUTTON_SIZE = 80.dp
+private val BUTTON_SPACING = 8.dp
+private const val BUTTON_COUNT = 4
+/** The width of [Controls], which the bar uses to decide where they go. */
+private val CONTROLS_WIDTH = BUTTON_SIZE * BUTTON_COUNT + BUTTON_SPACING * (BUTTON_COUNT - 1)
 
 @Composable
 private fun Title(title: String, modifier: Modifier = Modifier) {
@@ -170,7 +176,7 @@ private fun Message(state: Player.State, textAlign: TextAlign? = null) {
 @Composable
 private fun Controls(state: Player.State, player: Player) {
     val context = LocalContext.current
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(BUTTON_SPACING)) {
         if (state.isMuted) {
             ControlButton(Icons.AutoMirrored.Filled.VolumeOff, stringResource(R.string.unmute)) { player.setMuted(false) }
         } else {
@@ -189,10 +195,10 @@ private fun Controls(state: Player.State, player: Player) {
     }
 }
 
-/** A standard icon button at twice the usual size, so it is easy to hit. */
+/** A standard icon button at [BUTTON_SIZE]. */
 @Composable
 private fun ControlButton(icon: ImageVector, description: String, onClick: () -> Unit) {
-    IconButton(onClick, Modifier.size(80.dp)) {
+    IconButton(onClick, Modifier.size(BUTTON_SIZE)) {
         Icon(icon, description, Modifier.size(48.dp))
     }
 }

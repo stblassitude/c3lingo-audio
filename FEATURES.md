@@ -101,7 +101,8 @@ what isn't done yet in the table at the end.
   live indicator or progress, mute, play/pause, audio output, stop. Slides in and out.
   The controls are the platform's standard borderless icon buttons at twice the usual
   size. Narrow (portrait phones): hall, language, talk, status and message centred, with
-  the controls centred below. Wide: the information on the left, the controls on the right.
+  the controls centred below. Wide, once the information would have at least twice as
+  much room as the controls take: the information on the left, the controls on the right.
 - **Lock screen, Control Center / notification and headset controls:** title (channel),
   artist (server host), shown as a live stream. Play, pause and toggle work. Seeking
   and skipping are disabled; on iOS and macOS stop is too, so the lock screen shows pause.

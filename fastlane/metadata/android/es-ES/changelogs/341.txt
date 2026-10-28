@@ -1,0 +1,1 @@
+• Sin cambios en la app: esta versión solo cambia cómo se compila y se publica

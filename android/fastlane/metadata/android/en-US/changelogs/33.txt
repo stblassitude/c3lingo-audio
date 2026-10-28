@@ -1,0 +1,2 @@
+• Uses less battery in the background: the page stays paused while the screen is off or the app is hidden
+• The player bar puts the hall and talk beside the controls only when there's enough room for them

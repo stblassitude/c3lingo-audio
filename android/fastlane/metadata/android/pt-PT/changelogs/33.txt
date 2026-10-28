@@ -1,0 +1,2 @@
+• Gasta menos bateria em segundo plano: a página fica em pausa enquanto o ecrã está desligado ou a app oculta
+• A barra de reprodução mostra a sala e a palestra ao lado dos botões apenas quando há espaço suficiente

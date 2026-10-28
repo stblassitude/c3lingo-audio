@@ -1,0 +1,2 @@
+• Consomme moins de batterie en arrière-plan : la page reste en pause tant que l'écran est éteint ou l'app masquée
+• La barre de lecture n'affiche la salle et la conférence à côté des boutons que s'il y a assez de place

@@ -25,6 +25,19 @@ final class Frontend: NSObject, ObservableObject {
     @Published private(set) var help: Help?
     /// The help, opened from the page's help button, and by itself on the first launch.
     @Published var isShowingHelp = false
+    /// Whether the app is in the background, e.g. with the screen locked. Playback doesn't
+    /// need the page, and WebKit suspends it there unless the app runs a script in it, so
+    /// it isn't sent the player's state until it can be seen again. The page catches up on
+    /// its own then; the app sends it the current state.
+    var isInBackground = false {
+        didSet {
+            guard isInBackground != oldValue else { return }
+            Log.frontend.info("\(self.isInBackground ? "entering" : "leaving") the background")
+            if !isInBackground {
+                catchUp()
+            }
+        }
+    }
 
     private var player: Player?
     private var playerObservation: AnyCancellable?
@@ -38,6 +51,9 @@ final class Frontend: NSObject, ObservableObject {
     private var isPageReady = false
     /// A link that opened the app, kept until the page can take it, see `open(_:)`.
     private var pendingLink: AppLink?
+    /// The web content process went away in the background; the page is loaded again
+    /// when the app returns to the foreground.
+    private var needsReload = false
 
     private static let messageHandlerName = "c3lingo"
 
@@ -222,9 +238,19 @@ final class Frontend: NSObject, ObservableObject {
         evaluate("window.__c3lingoNativeLink && window.__c3lingoNativeLink(\(json))")
     }
 
+    private func catchUp() {
+        if needsReload {
+            needsReload = false
+            webView.reload()
+        } else if let player {
+            sendState(of: player)
+        }
+    }
+
     // MARK: - Native to web
 
     private func sendState(of player: Player) {
+        guard !isInBackground else { return }
         let state: String
         switch player.status {
         case .idle, .paused: state = "stopped"
@@ -387,6 +413,12 @@ extension Frontend: WKNavigationDelegate, WKUIDelegate {
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        // Nobody sees the page in the background; load it when it can be seen again.
+        guard !isInBackground else {
+            Log.frontend.error("web content process terminated, reloading in the foreground")
+            needsReload = true
+            return
+        }
         Log.frontend.error("web content process terminated, reloading")
         webView.reload()
     }

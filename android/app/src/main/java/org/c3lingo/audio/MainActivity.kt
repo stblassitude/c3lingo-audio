@@ -103,6 +103,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        frontend.resume()
         // Connecting to the session starts the playback service, which then keeps itself
         // running in the foreground while a channel is playing.
         controller = MediaController.Builder(this, SessionToken(this, ComponentName(this, PlaybackService::class.java)))
@@ -110,6 +111,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        // Playback runs without the page, which is paused while it can't be seen.
+        frontend.pause()
         controller?.let(MediaController::releaseFuture)
         controller = null
         super.onStop()

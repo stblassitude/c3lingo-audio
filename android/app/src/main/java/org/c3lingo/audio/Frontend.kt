@@ -108,6 +108,10 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     private var isPageReady = false
     /** A link that opened the app, kept until the page can take it, see [open]. */
     private var pendingLink: AppLink? = null
+    /** Whether the page is paused because nobody can see it, see [pause]. */
+    private var isPaused = false
+    /** The web content process went away while paused; the page is loaded again on [resume]. */
+    private var needsReload = false
     /** The bridge, told the app's UI language so the page uses the same one. */
     private val bridgeScript = "window.__c3lingoNativeConfig = " +
         JSONObject().put("language", context.getString(R.string.language_tag)) + ";\n" +
@@ -176,7 +180,41 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         showHelp(true)
     }
 
+    /**
+     * Pauses the page while the app isn't visible, e.g. in the background or with the
+     * screen locked: playback doesn't need it, so its timers, network requests and
+     * rendering stop, and it isn't sent the player's state. The page catches up on its
+     * own when it is visible again; [resume] sends it the current state.
+     */
+    fun pause() {
+        if (isPaused) return
+        Log.i(TAG, "pausing the page")
+        isPaused = true
+        webView.onPause()
+        // Pauses all web views in the app; this is the only one.
+        webView.pauseTimers()
+    }
+
+    fun resume() {
+        if (!isPaused) return
+        Log.i(TAG, "resuming the page")
+        isPaused = false
+        webView.resumeTimers()
+        webView.onResume()
+        if (needsReload) {
+            needsReload = false
+            url?.let {
+                this.url = null
+                load(it)
+            }
+        } else {
+            sendState(player.state.value)
+        }
+    }
+
     fun destroy() {
+        // Timers are paused for the whole app, which would include the next activity's web view.
+        if (isPaused) webView.resumeTimers()
         view.removeAllViews()
         webViewHost.removeAllViews()
         webView.destroy()
@@ -200,6 +238,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         scriptHandler = null
         listenerInstalled = false
         webView = createWebView()
+        if (isPaused) webView.onPause()
         webViewHost.addView(webView)
     }
 
@@ -259,6 +298,7 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     }
 
     private fun sendState(state: Player.State) {
+        if (isPaused) return
         val protocolState = when (state.status) {
             Player.Status.IDLE, Player.Status.PAUSED -> "stopped"
             Player.Status.CONNECTING, Player.Status.RECONNECTING -> "connecting"
@@ -409,6 +449,11 @@ class Frontend(private val context: Context, private val player: Player, scope: 
             Log.e(TAG, "web content process gone (crashed: ${detail.didCrash()}), reloading")
             // The web view can't be used any more; replace it.
             replaceWebView()
+            // Nobody sees the page while paused; load it when it is visible again.
+            if (isPaused) {
+                needsReload = true
+                return true
+            }
             url?.let {
                 this@Frontend.url = null
                 load(it)

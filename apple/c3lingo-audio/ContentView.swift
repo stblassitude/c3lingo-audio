@@ -5,6 +5,7 @@ struct ContentView: View {
     @EnvironmentObject private var player: Player
     @StateObject private var frontend = Frontend()
     @ObservedObject private var settings = ServerSettings.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         VStack(spacing: 0) {
@@ -42,6 +43,9 @@ struct ContentView: View {
         .onAppear {
             frontend.attach(player)
             frontend.load(settings.serverURL)
+        }
+        .onChange(of: scenePhase) { phase in
+            frontend.isInBackground = phase == .background
         }
         .onOpenURL { url in
             frontend.open(url)

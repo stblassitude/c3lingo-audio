@@ -1,0 +1,2 @@
+• Braucht im Hintergrund weniger Akku: die Seite bleibt pausiert, solange der Bildschirm aus oder die App verdeckt ist
+• Die Wiedergabeleiste zeigt Saal und Vortrag nur dann neben den Tasten, wenn genug Platz dafür ist

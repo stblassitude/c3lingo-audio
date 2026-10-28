@@ -1,0 +1,2 @@
+• Gasta menos batería en segundo plano: la página queda en pausa mientras la pantalla está apagada o la app oculta
+• La barra de reproducción muestra la sala y la charla junto a los botones solo cuando hay sitio suficiente

@@ -1,0 +1,2 @@
+• Mniejsze zużycie baterii w tle: strona pozostaje wstrzymana, gdy ekran jest wyłączony lub aplikacja ukryta
+• Pasek odtwarzania pokazuje salę i wykład obok przycisków tylko wtedy, gdy jest na to dość miejsca

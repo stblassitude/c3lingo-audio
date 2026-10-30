@@ -1,6 +1,6 @@
 package org.c3lingo.audio
 
-import android.content.Context
+import android.content.res.Resources
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,7 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -61,7 +61,7 @@ import okhttp3.Response
  */
 @Composable
 fun ServerDialog(settings: ServerSettings, onReload: () -> Unit, onDismiss: () -> Unit) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val uriHandler = LocalUriHandler.current
     var draft by rememberSaveable {
         val url = ServerSettings.urlFrom(settings.customURLString)
@@ -84,12 +84,12 @@ fun ServerDialog(settings: ServerSettings, onReload: () -> Unit, onDismiss: () -
         delay(700)
         val url = ServerSettings.urlFrom(input)
         if (url == null) {
-            status = ServerStatus.Problem(context.getString(R.string.server_invalid))
+            status = ServerStatus.Problem(resources.getString(R.string.server_invalid))
             return@LaunchedEffect
         }
         if (!ServerSettings.looksComplete(url)) return@LaunchedEffect
         status = ServerStatus.Checking
-        status = ServerCheck.problem(context, url)?.let(ServerStatus::Problem) ?: ServerStatus.Valid
+        status = ServerCheck.problem(resources, url)?.let(ServerStatus::Problem) ?: ServerStatus.Valid
     }
 
     fun save() {
@@ -174,19 +174,19 @@ private object ServerCheck {
     private val bridgeMeta = Regex("""<meta[^>]+name=["']?c3lingo-native-bridge""", RegexOption.IGNORE_CASE)
 
     /** Returns what's wrong, worded for the user, or null if the page is a c3lingo frontend. */
-    suspend fun problem(context: Context, url: Uri): String? = withContext(Dispatchers.IO) {
+    suspend fun problem(resources: Resources, url: Uri): String? = withContext(Dispatchers.IO) {
         try {
             fetch(url).use { response ->
                 when {
-                    response.code >= 400 -> context.getString(R.string.server_http_error, response.code)
-                    !bridgeMeta.containsMatchIn(response.body.string()) -> context.getString(R.string.server_not_c3lingo)
+                    response.code >= 400 -> resources.getString(R.string.server_http_error, response.code)
+                    !bridgeMeta.containsMatchIn(response.body.string()) -> resources.getString(R.string.server_not_c3lingo)
                     else -> null
                 }
             }
         } catch (e: UnknownHostException) {
-            context.getString(R.string.server_not_found)
+            resources.getString(R.string.server_not_found)
         } catch (e: IOException) {
-            context.getString(R.string.server_cant_connect, e.message ?: e.javaClass.simpleName)
+            resources.getString(R.string.server_cant_connect, e.message ?: e.javaClass.simpleName)
         }
     }
 

@@ -133,6 +133,12 @@ the app waits for the page's `ready()` and `describe()` before it handles the li
 then sends the event; the page shows the channel, hall or talk, e.g. by highlighting its
 card. A page that doesn't describe its channels never gets a link.
 
+Both apps only look at the fragment, never at the host: the link opens on the server
+set in the app. But https links open the app only for `audio.c3lingo.org`: the domains
+are fixed in the app when it is built, and each has to vouch for the app with the files
+below. So with another server, link to `c3lingo://#Saal_1_0_Floor`; it plays the
+channel on whatever server the app is set to.
+
 The system only opens https links in the app if the server vouches for it, with the
 files in [`shared/well-known/`](shared/well-known/) served from
 `https://audio.c3lingo.org/.well-known/`, over https without redirects:

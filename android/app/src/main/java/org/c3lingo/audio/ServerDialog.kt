@@ -4,8 +4,10 @@ import android.content.res.Resources
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,6 +17,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,7 +65,6 @@ import okhttp3.Response
 @Composable
 fun ServerDialog(settings: ServerSettings, onReload: () -> Unit, onDismiss: () -> Unit) {
     val resources = LocalResources.current
-    val uriHandler = LocalUriHandler.current
     var draft by rememberSaveable {
         val url = ServerSettings.urlFrom(settings.customURLString)
         mutableStateOf(url?.takeIf { it != settings.defaultURL }?.let(ServerSettings::displayString).orEmpty())
@@ -145,9 +147,7 @@ fun ServerDialog(settings: ServerSettings, onReload: () -> Unit, onDismiss: () -
                     keyboardActions = KeyboardActions(onDone = { save() }),
                     modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                 )
-                TextButton(onClick = { uriHandler.openUri(ServerSettings.PRIVACY_POLICY_URL) }) {
-                    Text(stringResource(R.string.privacy_policy))
-                }
+                ServerLinks()
             }
         },
         confirmButton = {
@@ -157,6 +157,28 @@ fun ServerDialog(settings: ServerSettings, onReload: () -> Unit, onDismiss: () -
             TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
         },
     )
+}
+
+/** Says that anyone can run a server, with links to the source, and links the privacy policy. */
+@Composable
+fun ServerLinks() {
+    val uriHandler = LocalUriHandler.current
+    Column {
+        Text(
+            stringResource(R.string.open_source),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        FlowRow {
+            TextButton(onClick = { uriHandler.openUri(ServerSettings.APP_SOURCE_URL) }) { Text("c3lingo-audio") }
+            TextButton(onClick = { uriHandler.openUri(ServerSettings.FRONTEND_SOURCE_URL) }) { Text("listen-frontend") }
+            TextButton(onClick = { uriHandler.openUri(ServerSettings.GALENE_SOURCE_URL) }) { Text("Galène") }
+        }
+        TextButton(onClick = { uriHandler.openUri(ServerSettings.PRIVACY_POLICY_URL) }) {
+            Text(stringResource(R.string.privacy_policy))
+        }
+    }
 }
 
 private sealed interface ServerStatus {

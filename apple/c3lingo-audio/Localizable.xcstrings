@@ -716,6 +716,40 @@
         }
       }
     },
+    "Open Source": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Source"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código abierto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open source"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwarte oprogramowanie"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código aberto"
+          }
+        }
+      }
+    },
     "Opens the talk's page in the browser": {
       "localizations": {
         "de": {
@@ -1052,6 +1086,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Parar"
+          }
+        }
+      }
+    },
+    "The app (c3lingo-audio), the web frontend (listen-frontend) and the audio server (Galène) are open source, so anyone can run their own server.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die App (c3lingo-audio), das Web-Frontend (listen-frontend) und der Audio-Server (Galène) sind Open Source, so kannst du auch einen eigenen Server betreiben."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La app (c3lingo-audio), el frontend web (listen-frontend) y el servidor de audio (Galène) son de código abierto, así que puedes montar tu propio servidor."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'app (c3lingo-audio), le frontend web (listen-frontend) et le serveur audio (Galène) sont open source, vous pouvez donc héberger votre propre serveur."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplikacja (c3lingo-audio), frontend webowy (listen-frontend) i serwer audio (Galène) są open source, więc każdy może uruchomić własny serwer."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A app (c3lingo-audio), o frontend web (listen-frontend) e o servidor de áudio (Galène) são de código aberto, por isso pode alojar o seu próprio servidor."
           }
         }
       }

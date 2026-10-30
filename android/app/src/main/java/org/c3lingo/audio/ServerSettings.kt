@@ -58,6 +58,10 @@ class ServerSettings(context: Context) {
         val BUILT_IN_URL: Uri = "https://audio.c3lingo.org/".toUri()
         /** Linked from the server settings; the stores also require it to be in the app. */
         const val PRIVACY_POLICY_URL = "https://github.com/stblassitude/c3lingo-audio/blob/main/PRIVACY.md"
+        /** The source of the app and of the server side, linked from the server settings: anyone can run a server. */
+        const val APP_SOURCE_URL = "https://github.com/stblassitude/c3lingo-audio"
+        const val FRONTEND_SOURCE_URL = "https://codeberg.org/c3lingo/listen-frontend"
+        const val GALENE_SOURCE_URL = "https://github.com/jech/galene"
         private const val KEY = "serverURL"
 
         /**

@@ -16,6 +16,10 @@ final class ServerSettings: ObservableObject {
     static let builtInURL = URL(string: "https://audio.c3lingo.org/")!
     /// Linked from the server settings; the stores also require it to be in the app.
     static let privacyPolicyURL = URL(string: "https://github.com/stblassitude/c3lingo-audio/blob/main/PRIVACY.md")!
+    /// The source of the app and of the server side, linked from the server settings: anyone can run a server.
+    static let appSourceURL = URL(string: "https://github.com/stblassitude/c3lingo-audio")!
+    static let frontendSourceURL = URL(string: "https://codeberg.org/c3lingo/listen-frontend")!
+    static let galeneSourceURL = URL(string: "https://github.com/jech/galene")!
     static let key = "serverURL"
 
     /// The server used when no custom URL is stored.

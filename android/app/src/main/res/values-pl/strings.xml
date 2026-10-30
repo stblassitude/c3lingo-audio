@@ -43,6 +43,7 @@
     <string name="done">Gotowe</string>
     <string name="back">Wstecz</string>
     <string name="privacy_policy">Polityka prywatności</string>
+    <string name="open_source">Aplikacja (c3lingo-audio), frontend webowy (listen-frontend) i serwer audio (Galène) są open source, więc każdy może uruchomić własny serwer.</string>
     <string name="error_network">Nie można połączyć. Upewnij się, że korzystasz z Wi-Fi wydarzenia. Ponawianie…</string>
     <string name="error_unavailable">Ten kanał jest teraz niedostępny. Ponawianie…</string>
 </resources>

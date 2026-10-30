@@ -54,6 +54,7 @@ struct ServerDialog: View {
                 } footer: {
                     statusText
                 }
+                OpenSourceSection()
                 Section {
                     Link("Privacy Policy", destination: ServerSettings.privacyPolicyURL)
                 }
@@ -124,6 +125,21 @@ struct ServerDialog: View {
             reload()
         }
         dismiss()
+    }
+}
+
+/// Says that anyone can run a server, with links to the source.
+struct OpenSourceSection: View {
+    var body: some View {
+        Section {
+            Link(destination: ServerSettings.appSourceURL) { Text(verbatim: "c3lingo-audio") }
+            Link(destination: ServerSettings.frontendSourceURL) { Text(verbatim: "listen-frontend") }
+            Link(destination: ServerSettings.galeneSourceURL) { Text(verbatim: "Galène") }
+        } header: {
+            Text("Open Source")
+        } footer: {
+            Text("The app (c3lingo-audio), the web frontend (listen-frontend) and the audio server (Galène) are open source, so anyone can run their own server.")
+        }
     }
 }
 

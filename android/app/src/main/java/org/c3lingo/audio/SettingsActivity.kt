@@ -30,7 +30,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -127,10 +126,7 @@ private fun SettingsScreen(settings: ServerSettings, onBack: () -> Unit) {
                     Text(stringResource(R.string.settings_apply))
                 }
             }
-            val uriHandler = LocalUriHandler.current
-            TextButton(onClick = { uriHandler.openUri(ServerSettings.PRIVACY_POLICY_URL) }) {
-                Text(stringResource(R.string.privacy_policy))
-            }
+            ServerLinks()
         }
     }
 }

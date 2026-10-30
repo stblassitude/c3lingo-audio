@@ -37,6 +37,7 @@ struct SettingsView: View {
                     .keyboardShortcut(.defaultAction)
                     .disabled(!draft.isEmpty && parsedDraft == nil)
             }
+            OpenSourceSection()
             Link("Privacy Policy", destination: ServerSettings.privacyPolicyURL)
         }
         .groupedFormStyle()

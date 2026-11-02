@@ -1,0 +1,2 @@
+• Ustawienia serwera zawierają linki do kodu źródłowego aplikacji, frontendu webowego i serwera audio, więc każdy może uruchomić własny serwer
+• Android: Ustawienia serwera od razu uwzględniają zmianę języka systemu

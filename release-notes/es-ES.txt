@@ -1,0 +1,2 @@
+• Los ajustes del servidor enlazan al código de la app, del frontend web y del servidor de audio, así que cualquiera puede montar su propio servidor
+• Android: Los ajustes del servidor siguen al momento un cambio del idioma del sistema

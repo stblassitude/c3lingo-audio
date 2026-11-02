@@ -1,0 +1,2 @@
+• Die Servereinstellungen verlinken den Quellcode der App, des Web-Frontends und des Audio-Servers, so kann jeder einen eigenen Server betreiben
+• Android: Die Servereinstellungen folgen einer Änderung der Systemsprache sofort

@@ -1,0 +1,2 @@
+• Les réglages du serveur renvoient au code source de l'app, du frontend web et du serveur audio, pour que chacun puisse héberger son propre serveur
+• Les réglages du serveur suivent aussitôt un changement de la langue du système

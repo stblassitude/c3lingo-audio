@@ -1,0 +1,2 @@
+• The server settings link to the source of the app, the web frontend and the audio server, so anyone can run their own server
+• The server settings follow a change of the system language right away

@@ -1,0 +1,2 @@
+• As definições do servidor têm ligações para o código da app, do frontend web e do servidor de áudio, para que qualquer pessoa possa alojar o seu próprio servidor
+• As definições do servidor acompanham de imediato uma mudança do idioma do sistema

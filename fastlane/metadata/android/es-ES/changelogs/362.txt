@@ -1,0 +1,1 @@
+• El reproductor muestra «Sin sonido» cuando está conectado pero no se oye nada en el canal, por ejemplo porque se ha cortado el audio que llega al servidor

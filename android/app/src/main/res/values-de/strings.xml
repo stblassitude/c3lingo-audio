@@ -12,10 +12,12 @@
     <string name="status_waiting">Keine Übertragung</string>
     <string name="status_live">Live</string>
     <string name="status_live_muted">Live, stumm</string>
+    <string name="status_silent">Kein Ton</string>
     <string name="status_paused">Pausiert</string>
     <string name="status_reconnecting">Verbinde erneut…</string>
     <string name="status_connection_problem">Verbindungsproblem</string>
     <string name="waiting_message">Auf diesem Kanal wird gerade nichts übertragen. Die Wiedergabe startet, sobald es losgeht.</string>
+    <string name="silent_message">Verbunden, aber auf diesem Kanal kommt gerade kein Ton an.</string>
     <string name="talk_day">Tag %1$d, %2$s</string>
     <string name="talk_since">Seit %1$s: %2$s</string>
     <string name="talk_next">Als Nächstes: %1$s: %2$s</string>

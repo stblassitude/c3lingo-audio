@@ -15,10 +15,12 @@
     <string name="status_waiting">Nothing playing</string>
     <string name="status_live">Live</string>
     <string name="status_live_muted">Live, muted</string>
+    <string name="status_silent">No sound</string>
     <string name="status_paused">Paused</string>
     <string name="status_reconnecting">Reconnecting…</string>
     <string name="status_connection_problem">Connection problem</string>
     <string name="waiting_message">Nothing is being broadcast on this channel right now. It starts playing as soon as it is.</string>
+    <string name="silent_message">Connected, but no sound is coming through on this channel right now.</string>
     <string name="talk_day">Day %1$d, %2$s</string>
     <string name="talk_since">Since %1$s: %2$s</string>
     <string name="talk_next">Next: %1$s: %2$s</string>

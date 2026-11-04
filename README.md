@@ -109,6 +109,7 @@ The app's player states map onto the protocol like this:
 | connecting, reconnecting | `connecting` | `error` says whether the network or the channel is the problem |
 | joined, nobody sending | `waiting` | no stream offered within 2 s of joining, or the sender stopped |
 | playing | `playing` | |
+| playing, no sound | `playing` | connected, but nothing or only silence arrived for about 10 s; only the player bar shows it |
 
 An offered stream that doesn't connect within 15 s (ICE failing, e.g. because UDP is
 blocked) counts as a network problem, like in the frontend's own player.

@@ -256,7 +256,8 @@ final class Frontend: NSObject, ObservableObject {
         case .idle, .paused: state = "stopped"
         case .connecting, .reconnecting: state = "connecting"
         case .waiting: state = "waiting"
-        case .playing: state = "playing"
+        // The protocol has no state for silence; the player bar shows it.
+        case .playing, .silent: state = "playing"
         }
         let detail: [String: Any] = [
             "state": state,

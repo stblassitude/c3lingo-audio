@@ -7,6 +7,7 @@ import android.util.Log
 import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.math.sqrt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +55,12 @@ class GaleneSession(
         /** Audio is flowing from at least one stream. */
         data object Receiving : Event
         /**
+         * Connected, but for a while now the streams have carried no audio or only
+         * silence, e.g. because the source feeding the server is down. [Receiving]
+         * follows when sound comes through again.
+         */
+        data object Silent : Event
+        /**
          * Joined, but nobody is sending: no stream was offered after joining, or the
          * last one was closed because the sender stopped. Audio follows when they start.
          */
@@ -80,6 +87,10 @@ class GaleneSession(
     private val mediaTimeouts = mutableMapOf<String, Job>()
     private var lastReceived = SystemClock.elapsedRealtime()
     private var isClosed = false
+    /** Whether [Event.Receiving] (false) or [Event.Silent] (true) was reported last, null before either. */
+    private var isSilent: Boolean? = null
+    /** Checks in a row, one per ping, in which no stream carried sound. */
+    private var silentChecks = 0
 
     fun start() {
         Log.i(TAG, "connecting to $endpoint for group $group")
@@ -115,7 +126,38 @@ class GaleneSession(
                     return@launch
                 }
                 send(JSONObject().put("type", "ping"))
-                if (BuildConfig.DEBUG) downstreams.values.forEach { it.logStatistics() }
+                checkSound()
+            }
+        }
+    }
+
+    /**
+     * Reports [Event.Silent] once the streams have carried no sound for a while, and
+     * [Event.Receiving] as soon as they do again.
+     */
+    private suspend fun checkSound() {
+        var audible = false
+        for (downstream in downstreams.values.toList()) {
+            if (downstream.measureSound()) audible = true
+        }
+        // Muting silences the measured level as well.
+        if (isClosed || isSilent == null || isMuted) {
+            silentChecks = 0
+            return
+        }
+        if (audible) {
+            silentChecks = 0
+            if (isSilent == true) {
+                Log.i(TAG, "sound is coming through again")
+                isSilent = false
+                onEvent?.invoke(Event.Receiving)
+            }
+        } else {
+            silentChecks += 1
+            if (silentChecks >= SILENT_CHECKS_NEEDED && isSilent == false) {
+                Log.w(TAG, "no sound for $silentChecks checks")
+                isSilent = true
+                onEvent?.invoke(Event.Silent)
             }
         }
     }
@@ -235,7 +277,11 @@ class GaleneSession(
         val downstream = downstreams.remove(streamId) ?: return
         mediaTimeouts.remove(streamId)?.cancel()
         downstream.close()
-        if (downstreams.isEmpty()) onEvent?.invoke(Event.Waiting)
+        if (downstreams.isEmpty()) {
+            isSilent = null
+            silentChecks = 0
+            onEvent?.invoke(Event.Waiting)
+        }
     }
 
     // Events from the peer connections, delivered on WebRTC's signalling thread
@@ -257,6 +303,9 @@ class GaleneSession(
             when (state) {
                 PeerConnection.PeerConnectionState.CONNECTED -> {
                     mediaTimeouts.remove(streamId)?.cancel()
+                    // Give the stream the full time to show that it carries sound.
+                    isSilent = false
+                    silentChecks = 0
                     onEvent?.invoke(Event.Receiving)
                 }
                 PeerConnection.PeerConnectionState.FAILED -> fail(GaleneException("The audio connection failed"))
@@ -268,6 +317,8 @@ class GaleneSession(
     private companion object {
         const val TAG = "galene"
         const val PING_INTERVAL_MS = 5_000L
+        /** Silent checks in a row before [Event.Silent] is reported, about 10 seconds. */
+        const val SILENT_CHECKS_NEEDED = 2
         const val TIMEOUT_MS = 15_000L
         /** After joining, Galène offers the streams that are already there right away. */
         const val OFFER_TIMEOUT_MS = 2_000L
@@ -330,15 +381,32 @@ private class Downstream private constructor(val id: String) {
         connection.dispose()
     }
 
-    fun logStatistics() {
-        if (isClosed) return
-        connection.getStats { report ->
-            report.statsMap.values.filter { it.type == "inbound-rtp" }.forEach { stats ->
-                val value = { key: String -> stats.members[key]?.toString() ?: "-" }
-                Log.d(TAG, "stream $id: ${value("bytesReceived")} bytes, ${value("totalSamplesReceived")} samples, level ${value("audioLevel")}")
+    /**
+     * Whether sound came through since the last call: audio arrived, and it wasn't
+     * all but silent. The first call only takes the starting point and reports silence.
+     */
+    suspend fun measureSound(): Boolean {
+        if (isClosed) return false
+        val sample = suspendCancellableCoroutine<SoundSample?> { continuation ->
+            connection.getStats { report ->
+                val stats = report.statsMap.values.firstOrNull { it.type == "inbound-rtp" }
+                continuation.resume(stats?.let {
+                    val value = { key: String -> (it.members[key] as? Number)?.toDouble() ?: 0.0 }
+                    SoundSample(value("bytesReceived"), value("totalAudioEnergy"), value("totalSamplesDuration"))
+                })
             }
-        }
+        } ?: return false
+        val last = lastSample
+        lastSample = sample
+        if (last == null) return false
+        val duration = sample.duration - last.duration
+        // The energy is the sum of the squared level over the duration, so this is the mean level.
+        val level = if (duration > 0) sqrt((sample.energy - last.energy) / duration) else 0.0
+        Log.d(TAG, "stream $id: ${sample.bytes - last.bytes} bytes, level $level")
+        return sample.bytes > last.bytes && level >= SoundSample.SILENCE_LEVEL
     }
+
+    private var lastSample: SoundSample? = null
 
     /** Runs an operation on the peer connection; the result arrives on the signalling thread. */
     private suspend fun awaitSet(operation: (SdpObserver) -> Unit) {
@@ -417,4 +485,12 @@ private abstract class SdpObserverAdapter : SdpObserver {
     override fun onSetSuccess() {}
     override fun onCreateFailure(error: String?) {}
     override fun onSetFailure(error: String?) {}
+}
+
+/** Totals from a stream's statistics, compared between two calls. */
+private data class SoundSample(val bytes: Double, val energy: Double, val duration: Double) {
+    companion object {
+        /** About -80 dBFS: the silence a dead source sends, not that of a quiet room. */
+        const val SILENCE_LEVEL = 0.0001
+    }
 }

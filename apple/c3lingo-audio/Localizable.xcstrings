@@ -308,6 +308,40 @@
         }
       }
     },
+    "Connected, but no sound is coming through on this channel right now.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden, aber auf diesem Kanal kommt gerade kein Ton an."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado, pero ahora mismo no llega sonido por este canal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté, mais aucun son ne passe sur ce canal pour le moment."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połączono, ale na tym kanale nie dociera teraz żaden dźwięk."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ligado, mas neste momento não chega som por este canal."
+          }
+        }
+      }
+    },
     "Connecting…": {
       "localizations": {
         "de": {
@@ -644,6 +678,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "A seguir: %1$@: %2$@"
+          }
+        }
+      }
+    },
+    "No sound": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Ton"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin sonido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun son"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak dźwięku"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem som"
           }
         }
       }

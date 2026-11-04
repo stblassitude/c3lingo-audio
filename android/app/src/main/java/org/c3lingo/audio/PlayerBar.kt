@@ -155,11 +155,12 @@ private fun Status(state: Player.State, modifier: Modifier = Modifier) {
     }
 }
 
-/** Explains the status: that nothing is being broadcast, or why there's no connection. */
+/** Explains the status: that nothing is being broadcast or can be heard, or why there's no connection. */
 @Composable
 private fun Message(state: Player.State, textAlign: TextAlign? = null) {
     val text = when (state.status) {
         Player.Status.WAITING -> stringResource(R.string.waiting_message)
+        Player.Status.SILENT -> stringResource(R.string.silent_message)
         Player.Status.CONNECTING, Player.Status.RECONNECTING -> state.lastError
         else -> null
     } ?: return
@@ -227,6 +228,7 @@ private fun statusText(state: Player.State): String = when (state.status) {
     Player.Status.CONNECTING -> stringResource(R.string.status_connecting)
     Player.Status.WAITING -> stringResource(R.string.status_waiting)
     Player.Status.PLAYING -> stringResource(if (state.isMuted) R.string.status_live_muted else R.string.status_live)
+    Player.Status.SILENT -> stringResource(R.string.status_silent)
     Player.Status.PAUSED -> stringResource(R.string.status_paused)
     // The message below says what's wrong.
     Player.Status.RECONNECTING ->

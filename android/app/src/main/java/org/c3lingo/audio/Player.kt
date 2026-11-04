@@ -43,6 +43,8 @@ class Player(private val context: Context, private val settings: ServerSettings)
         /** Joined, but nobody is sending audio right now. */
         WAITING,
         PLAYING,
+        /** Connected, but no sound is coming through. */
+        SILENT,
         PAUSED,
         RECONNECTING,
     }
@@ -178,6 +180,7 @@ class Player(private val context: Context, private val settings: ServerSettings)
                 attempt = 0
                 _state.update { it.copy(status = Status.PLAYING, lastError = null) }
             }
+            GaleneSession.Event.Silent -> _state.update { it.copy(status = Status.SILENT) }
             // Everything works, there is just nothing to hear.
             GaleneSession.Event.Waiting -> {
                 attempt = 0

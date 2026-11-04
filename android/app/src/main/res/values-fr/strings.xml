@@ -12,10 +12,12 @@
     <string name="status_waiting">Aucune diffusion</string>
     <string name="status_live">En direct</string>
     <string name="status_live_muted">En direct, son coupé</string>
+    <string name="status_silent">Aucun son</string>
     <string name="status_paused">En pause</string>
     <string name="status_reconnecting">Reconnexion…</string>
     <string name="status_connection_problem">Problème de connexion</string>
     <string name="waiting_message">Rien n\'est diffusé sur ce canal pour le moment. La lecture démarre dès que la diffusion commence.</string>
+    <string name="silent_message">Connecté, mais aucun son ne passe sur ce canal pour le moment.</string>
     <string name="talk_day">jour %1$d, %2$s</string>
     <string name="talk_since">Depuis %1$s : %2$s</string>
     <string name="talk_next">Ensuite : %1$s : %2$s</string>

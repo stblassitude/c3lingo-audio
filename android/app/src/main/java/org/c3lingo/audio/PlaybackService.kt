@@ -97,7 +97,7 @@ private class SessionPlayer(
                     .build()))
             .setPlayWhenReady(current.status != Player.Status.PAUSED, Media3Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
             .setPlaybackState(when (current.status) {
-                Player.Status.PLAYING, Player.Status.PAUSED -> Media3Player.STATE_READY
+                Player.Status.PLAYING, Player.Status.SILENT, Player.Status.PAUSED -> Media3Player.STATE_READY
                 else -> Media3Player.STATE_BUFFERING
             })
             .build()

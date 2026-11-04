@@ -37,6 +37,10 @@ final class GaleneSession {
     enum Event {
         /// Audio is flowing from at least one stream.
         case receiving
+        /// Connected, but for a while now the streams have carried no audio or only
+        /// silence, e.g. because the source feeding the server is down. `receiving`
+        /// follows when sound comes through again.
+        case silent
         /// Joined, but nobody is sending: no stream was offered after joining, or the
         /// last one was closed because the sender stopped. Audio follows when they start.
         case waiting
@@ -61,8 +65,14 @@ final class GaleneSession {
     private var mediaTimeouts: [String: Task<Void, Never>] = [:]
     private var lastReceived = Date.now
     private var isClosed = false
+    /// Whether `receiving` (false) or `silent` (true) was reported last, nil before either.
+    private var isSilent: Bool?
+    /// Checks in a row, one per ping, in which no stream carried sound.
+    private var silentChecks = 0
 
     private static let pingInterval: UInt64 = 5_000_000_000
+    /// Silent checks in a row before `silent` is reported, about 10 seconds.
+    private static let silentChecksNeeded = 2
     private static let timeout: TimeInterval = 15
     /// After joining, Galène offers the streams that are already there right away.
     private static let offerTimeout: UInt64 = 2_000_000_000
@@ -90,9 +100,36 @@ final class GaleneSession {
                     return
                 }
                 send(["type": "ping"])
-                #if DEBUG
-                downstreams.values.forEach { $0.logStatistics() }
-                #endif
+                await checkSound()
+            }
+        }
+    }
+
+    /// Reports `silent` once the streams have carried no sound for a while, and
+    /// `receiving` as soon as they do again.
+    private func checkSound() async {
+        var audible = false
+        for downstream in downstreams.values where await downstream.measureSound() {
+            audible = true
+        }
+        // Muting silences the measured level as well.
+        guard !isClosed, isSilent != nil, !isMuted else {
+            silentChecks = 0
+            return
+        }
+        if audible {
+            silentChecks = 0
+            if isSilent == true {
+                Log.galene.info("sound is coming through again")
+                isSilent = false
+                onEvent?(.receiving)
+            }
+        } else {
+            silentChecks += 1
+            if silentChecks >= Self.silentChecksNeeded, isSilent == false {
+                Log.galene.warning("no sound for \(self.silentChecks) checks")
+                isSilent = true
+                onEvent?(.silent)
             }
         }
     }
@@ -268,6 +305,8 @@ final class GaleneSession {
         mediaTimeouts.removeValue(forKey: streamID)?.cancel()
         downstream.close()
         if downstreams.isEmpty {
+            isSilent = nil
+            silentChecks = 0
             onEvent?(.waiting)
         }
     }
@@ -287,6 +326,9 @@ final class GaleneSession {
         switch state {
         case .connected:
             mediaTimeouts.removeValue(forKey: streamID)?.cancel()
+            // Give the stream the full time to show that it carries sound.
+            isSilent = false
+            silentChecks = 0
             onEvent?(.receiving)
         case .failed:
             fail(GaleneError.connectionFailed)
@@ -371,16 +413,39 @@ private final class Downstream {
         connection.close()
     }
 
-    #if DEBUG
-    func logStatistics() {
-        connection.statistics { [id] report in
-            for stats in report.statistics.values where stats.type == "inbound-rtp" {
-                let value = { (key: String) in stats.values[key]?.description ?? "-" }
-                Log.galene.debug("stream \(id): \(value("bytesReceived"), privacy: .public) bytes, \(value("totalSamplesReceived"), privacy: .public) samples, level \(value("audioLevel"), privacy: .public)")
+    /// Whether sound came through since the last call: audio arrived, and it wasn't
+    /// all but silent. The first call only takes the starting point and reports silence.
+    func measureSound() async -> Bool {
+        let sample = await withCheckedContinuation { (continuation: CheckedContinuation<SoundSample?, Never>) in
+            connection.statistics { report in
+                let stats = report.statistics.values.first { $0.type == "inbound-rtp" }
+                continuation.resume(returning: stats.map { stats in
+                    let value = { (key: String) in (stats.values[key] as? NSNumber)?.doubleValue ?? 0 }
+                    return SoundSample(bytes: value("bytesReceived"), energy: value("totalAudioEnergy"), duration: value("totalSamplesDuration"))
+                })
             }
         }
+        guard let sample else { return false }
+        defer { lastSample = sample }
+        guard let lastSample else { return false }
+        let duration = sample.duration - lastSample.duration
+        // The energy is the sum of the squared level over the duration, so this is the mean level.
+        let level = duration > 0 ? ((sample.energy - lastSample.energy) / duration).squareRoot() : 0
+        Log.galene.debug("stream \(self.id): \(sample.bytes - lastSample.bytes, privacy: .public) bytes, level \(level, privacy: .public)")
+        return sample.bytes > lastSample.bytes && level >= SoundSample.silenceLevel
     }
-    #endif
+
+    private var lastSample: SoundSample?
+}
+
+/// Totals from a stream's statistics, compared between two calls.
+private nonisolated struct SoundSample: Sendable {
+    var bytes: Double
+    var energy: Double
+    var duration: Double
+
+    /// About -80 dBFS: the silence a dead source sends, not that of a quiet room.
+    static let silenceLevel = 0.0001
 }
 
 /// Forwards peer connection callbacks, which arrive on WebRTC's signalling thread, to the main actor.

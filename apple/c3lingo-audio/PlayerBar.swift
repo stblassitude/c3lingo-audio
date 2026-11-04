@@ -64,7 +64,12 @@ struct PlayerBar: View {
         })
         .onPreferenceChange(WidthKey.self) { width = $0 }
         .onPreferenceChange(ControlsWidthKey.self) { controlsWidth = $0 }
+        #if os(visionOS)
+        // On the bar material, which is opaque and light there, secondary text all but disappears.
+        .background(.thickMaterial)
+        #else
         .background(.bar)
+        #endif
         #if os(iOS)
         // Separates the bar from the page, like a tab bar or toolbar.
         .overlay(alignment: .top) { Divider() }
@@ -102,10 +107,15 @@ struct PlayerBar: View {
                 .lineLimit(1)
         }
         .font(.subheadline)
+        #if os(visionOS)
+        // Over the glass, whatever is behind the window shows through; keep this readable.
+        .foregroundStyle(.primary)
+        #else
         .foregroundStyle(.secondary)
+        #endif
     }
 
-    /// Explains the status: that nothing is being broadcast, or why there's no connection.
+    /// Explains the status: that nothing is being broadcast or can be heard, or why there's no connection.
     @ViewBuilder private var message: some View {
         if let text = messageText {
             Text(text)
@@ -119,6 +129,7 @@ struct PlayerBar: View {
     private var messageText: String? {
         switch player.status {
         case .waiting: String(localized: "Nothing is being broadcast on this channel right now. It starts playing as soon as it is.")
+        case .silent: String(localized: "Connected, but no sound is coming through on this channel right now.")
         case .connecting, .reconnecting: player.lastError
         default: nil
         }
@@ -186,6 +197,7 @@ struct PlayerBar: View {
         case .connecting: String(localized: "Connecting…")
         case .waiting: String(localized: "Nothing playing")
         case .playing: player.isMuted ? String(localized: "Live, muted") : String(localized: "Live")
+        case .silent: String(localized: "No sound")
         case .paused: String(localized: "Paused")
         case .reconnecting:
             // The message below says what's wrong.

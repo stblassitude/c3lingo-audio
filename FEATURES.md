@@ -81,8 +81,15 @@ what isn't done yet in the table at the end.
 
 ## Staying connected
 
-- **Status:** connecting, waiting for audio (joined, nobody sending), live, paused,
-  reconnecting (with the reason).
+- **Status:** connecting, waiting for audio (joined, nobody sending), live, no sound,
+  paused, reconnecting (with the reason).
+- **No sound:** while live, the app checks every 5 seconds how much audio arrived and
+  how loud it was, from WebRTC's statistics. If nothing arrived or it was practically
+  digital silence (below about -80 dBFS) twice in a row, the status changes to "No
+  sound" with an explanation; it goes back to live as soon as sound comes through.
+  A quiet room or a pause in the interpretation stays above that level; a source that
+  feeds the server silence doesn't. Not checked while muted, which silences the
+  measured level too.
 - **Reconnect with backoff** after any failure: 1, 2, 4, 8 seconds, then every
   15 seconds, until it works or the user pauses or stops. The backoff resets once audio
   flows.

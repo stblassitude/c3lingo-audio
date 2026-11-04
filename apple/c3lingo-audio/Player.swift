@@ -18,6 +18,8 @@ final class Player: ObservableObject {
         /// Joined, but nobody is sending audio right now.
         case waiting
         case playing
+        /// Connected, but no sound is coming through.
+        case silent
         case paused
         case reconnecting
     }
@@ -136,6 +138,8 @@ final class Player: ObservableObject {
             attempt = 0
             lastError = nil
             status = .playing
+        case .silent:
+            status = .silent
         case .waiting:
             // Everything works, there is just nothing to hear.
             attempt = 0

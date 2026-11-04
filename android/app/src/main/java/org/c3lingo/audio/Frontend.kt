@@ -303,7 +303,8 @@ class Frontend(private val context: Context, private val player: Player, scope: 
             Player.Status.IDLE, Player.Status.PAUSED -> "stopped"
             Player.Status.CONNECTING, Player.Status.RECONNECTING -> "connecting"
             Player.Status.WAITING -> "waiting"
-            Player.Status.PLAYING -> "playing"
+            // The protocol has no state for silence; the player bar shows it.
+            Player.Status.PLAYING, Player.Status.SILENT -> "playing"
         }
         val detail = JSONObject()
             .put("state", protocolState)

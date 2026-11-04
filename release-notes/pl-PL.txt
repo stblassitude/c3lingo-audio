@@ -1,0 +1,2 @@
+• Odtwarzacz pokazuje „Brak dźwięku”, gdy połączenie działa, ale na kanale nic nie słychać, np. dlatego, że do serwera przestał docierać dźwięk
+• visionOS: Stan odtwarzacza jest czytelniejszy

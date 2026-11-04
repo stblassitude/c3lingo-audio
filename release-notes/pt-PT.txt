@@ -1,0 +1,2 @@
+• O leitor mostra «Sem som» quando está ligado mas não se ouve nada no canal, por exemplo porque o áudio que chega ao servidor parou
+• visionOS: O estado do leitor lê-se melhor

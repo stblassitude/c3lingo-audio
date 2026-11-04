@@ -1,0 +1,2 @@
+• Le lecteur affiche « Aucun son » quand il est connecté mais que rien ne s'entend sur le canal, par exemple parce que l'audio qui alimente le serveur s'est arrêté
+• visionOS: L'état du lecteur est plus lisible

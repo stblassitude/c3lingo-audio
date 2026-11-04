@@ -1,0 +1,2 @@
+• Der Player zeigt „Kein Ton“, wenn die Verbindung steht, aber auf dem Kanal nichts zu hören ist, etwa weil der Ton zum Server ausgefallen ist
+• visionOS: Der Status im Player ist besser lesbar

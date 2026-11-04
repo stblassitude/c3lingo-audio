@@ -1,0 +1,2 @@
+• The player shows "No sound" when it is connected but nothing can be heard on the channel, for example because the audio feeding the server has stopped
+• visionOS: The player status is easier to read

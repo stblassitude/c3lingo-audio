@@ -23,6 +23,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import org.json.JSONArray
@@ -32,7 +33,12 @@ import org.json.JSONObject
  * The frontend's help text, from the bridge's optional `help` message: what c3lingo is,
  * how to use the soundcheck, what the channels are, and whom to ask.
  */
-data class Help(val title: String, val blocks: List<Block>) {
+data class Help(
+    val title: String,
+    val blocks: List<Block>,
+    /** The BCP 47 tag of the text's language, e.g. `de-DE`, for TalkBack's voice. */
+    val language: String? = null,
+) {
     /** Text shown one after another in the same paragraph. */
     data class Run(
         val text: String,
@@ -66,7 +72,7 @@ data class Help(val title: String, val blocks: List<Block>) {
                     else -> null
                 }
             }.orEmpty()
-            return if (blocks.isEmpty()) null else Help(title, blocks)
+            return if (blocks.isEmpty()) null else Help(title, blocks, json.string("language"))
         }
 
         private fun runs(json: JSONArray?): List<Run> = json?.objects()?.mapNotNull { run ->
@@ -83,6 +89,9 @@ data class Help(val title: String, val blocks: List<Block>) {
 @Composable
 fun HelpDialog(help: Help, onDismiss: () -> Unit) {
     val linkColor = MaterialTheme.colorScheme.primary
+    // In the help's own language for TalkBack, which may differ from the app's when the
+    // page has no translation for it.
+    val locale = help.language?.let { runCatching { LocaleList(it) }.getOrNull() }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(help.title) },
@@ -91,16 +100,16 @@ fun HelpDialog(help: Help, onDismiss: () -> Unit) {
                 help.blocks.forEach { block ->
                     when (block) {
                         is Help.Block.Heading -> Text(
-                            block.text,
+                            listOf(Help.Run(block.text, false, null)).text(linkColor, locale),
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.padding(top = 8.dp).semantics { heading() },
                         )
-                        is Help.Block.Paragraph -> Text(block.runs.text(linkColor))
+                        is Help.Block.Paragraph -> Text(block.runs.text(linkColor, locale))
                         is Help.Block.Bullets -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             block.items.forEach { item ->
                                 Row {
                                     Text("•", Modifier.padding(end = 8.dp).clearAndSetSemantics {})
-                                    Text(item.text(linkColor))
+                                    Text(item.text(linkColor, locale))
                                 }
                             }
                         }
@@ -114,7 +123,7 @@ fun HelpDialog(help: Help, onDismiss: () -> Unit) {
     )
 }
 
-private fun List<Help.Run>.text(linkColor: Color): AnnotatedString = buildAnnotatedString {
+private fun List<Help.Run>.text(linkColor: Color, locale: LocaleList?): AnnotatedString = buildAnnotatedString {
     val linkStyles = TextLinkStyles(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline))
     forEach { run ->
         val start = length
@@ -122,4 +131,5 @@ private fun List<Help.Run>.text(linkColor: Color): AnnotatedString = buildAnnota
         if (run.strong) addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, length)
         run.link?.let { addLink(LinkAnnotation.Url(it, linkStyles), start, length) }
     }
+    if (locale != null) addStyle(SpanStyle(localeList = locale), 0, length)
 }

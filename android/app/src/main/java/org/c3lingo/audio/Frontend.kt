@@ -8,7 +8,9 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityManager
 import android.webkit.CookieManager
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
@@ -25,6 +27,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.ScriptHandler
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,18 +37,6 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import kotlin.math.roundToInt
 import kotlin.math.max
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.Modifier
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.Icons
-import androidx.compose.foundation.layout.size
-import android.widget.AbsoluteLayout
 import android.graphics.Canvas
 
 /**
@@ -61,6 +53,37 @@ class Frontend(private val context: Context, private val player: Player, scope: 
      * container only ever lays out the child it saw first, so it gets this one, which stays.
      */
     private val webViewHost = FrameLayout(context)
+
+    /**
+     * Where the bottom of the page is, in pixels from the top of the web view, for the
+     * settings button that sits there, over the page and scrolling with it; on a page
+     * shorter than the view, at the bottom of the view. The button is drawn by Compose
+     * beside the web view rather than in it: a web view reports its page to accessibility
+     * services itself, which leaves out views added to it, and keyboard focus couldn't
+     * get from there to the player bar.
+     */
+    val pageBottom = mutableIntStateOf(0)
+
+    /** Whether the splash or error screen covers the page, see [setCovered]. */
+    val isCovered = mutableStateOf(true)
+
+    /**
+     * Moves keyboard focus from the page to the native controls after it (`forward`, Tab
+     * past the page's last element) or before it (Shift+Tab before its first); false if
+     * there are none, and the focus wraps around within the page. Without this, the focus
+     * would never leave the page: Compose hands it back to its first focusable element,
+     * which is the web view.
+     */
+    var onFocusLeavesPage: (forward: Boolean) -> Boolean = { false }
+
+    /** Whether the settings button is there to take keyboard focus. */
+    val isSettingsButtonFocusable: Boolean
+        get() = !isCovered.value
+
+    /** Scrolls to the end of the page, where the settings button is, once it has keyboard focus. */
+    fun revealSettingsButton() {
+        webView.pageDown(true)
+    }
 
     /** The web view inside a pull to refresh container; the container stays when the web view is replaced. */
     val view = SwipeRefreshLayout(context).apply {
@@ -165,6 +188,37 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         }
     }
 
+    /**
+     * Hides the page from accessibility services while the splash or error screen covers
+     * it, so they can't reach a page that hasn't passed the check either.
+     */
+    fun setCovered(covered: Boolean) {
+        isCovered.value = covered
+        view.importantForAccessibility =
+            if (covered) View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS else View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
+    }
+
+    /** Whether TalkBack or another service that explores the screen by touch is on. */
+    val isScreenReaderOn: Boolean
+        get() = context.getSystemService(AccessibilityManager::class.java)?.isTouchExplorationEnabled == true
+
+    /**
+     * Moves input and accessibility focus back into the page, after a native control that
+     * had it has gone away: to the channel the player bar's Stop button stopped, or to the
+     * page's help button once the help has been closed. Waits for the player bar to have
+     * gone. Pages that don't handle the `c3lingo:focus` event keep the focus at their start.
+     */
+    fun focusPage(channel: String) = focusPage(JSONObject().put("channel", channel))
+
+    fun focusPageAfterHelp() = focusPage(JSONObject().put("help", true))
+
+    private fun focusPage(detail: JSONObject) {
+        webViewHost.postDelayed({
+            webView.requestFocus()
+            evaluate("window.__c3lingoNativeFocus && window.__c3lingoNativeFocus($detail)")
+        }, FOCUS_DELAY_MILLIS)
+    }
+
     fun showServerDialog(show: Boolean) {
         _isShowingServerDialog.value = show
     }
@@ -221,12 +275,16 @@ class Frontend(private val context: Context, private val player: Player, scope: 
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun createWebView() = FrontendWebView(context) { showServerDialog(true) }.apply {
+    private fun createWebView() = FrontendWebView(context, { pageBottom.intValue = it }, { onFocusLeavesPage(it) }).apply {
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         // The page scrolls but can't be zoomed, neither by pinching nor by double tapping.
         settings.setSupportZoom(false)
+        // Larger text still reaches it: it follows the system font size, up to twice the
+        // size, where the page still has room for its layout. The activity is recreated
+        // when the font size changes, and with it the web view.
+        settings.textZoom = (context.resources.configuration.fontScale * 100).roundToInt().coerceIn(100, 200)
         webViewClient = Client()
         webChromeClient = WebChromeClient()
     }
@@ -472,50 +530,69 @@ class Frontend(private val context: Context, private val player: Player, scope: 
         const val IS_FRONTEND_SCRIPT = "document.querySelector('meta[name=\"c3lingo-native-bridge\"]') !== null"
         /** Seen by the page as `window.c3lingoAndroid`, see FrontendBridge.js. */
         const val MESSAGE_LISTENER = "c3lingoAndroid"
+        /** Long enough for the player bar to have gone, with the focused button in it. */
+        const val FOCUS_DELAY_MILLIS = 400L
     }
 }
 
 /**
- * The web view with a small settings button in the bottom right corner of the page, over
- * the page and scrolling with it. On a page shorter than the view, it sits in the bottom
- * right corner of the view.
+ * The web view, telling [onPageBottom] where the bottom of the page is in its own
+ * coordinates, for the settings button over it: at the bottom of a page shorter than the
+ * view, and moving with the page when it scrolls. When keyboard focus leaves the page,
+ * [onFocusLeaves] moves it to the native controls.
  */
 @SuppressLint("ViewConstructor")
-@Suppress("DEPRECATION") // A web view places its children with AbsoluteLayout, in page coordinates.
-private class FrontendWebView(context: Context, onSettings: () -> Unit) : WebView(context) {
-    private val buttonSize = (48 * resources.displayMetrics.density).roundToInt()
-    private val margin = (8 * resources.displayMetrics.density).roundToInt()
-    private val settingsButton = ComposeView(context).apply {
-        setContent {
-            C3lingoTheme {
-                FilledTonalIconButton(
-                    onClick = onSettings,
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    ),
-                ) {
-                    Icon(Icons.Filled.Settings, stringResource(R.string.settings_title), Modifier.size(20.dp))
-                }
-            }
-        }
-    }
-
-    init {
-        addView(settingsButton, AbsoluteLayout.LayoutParams(buttonSize, buttonSize, 0, 0))
-    }
-
+private class FrontendWebView(
+    context: Context,
+    private val onPageBottom: (Int) -> Unit,
+    private val onFocusLeaves: (forward: Boolean) -> Boolean,
+) : WebView(context) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         // The page's height changes as it renders, and there is no callback for that.
-        val params = settingsButton.layoutParams as AbsoluteLayout.LayoutParams
-        val x = width - buttonSize - margin
-        val y = max(computeVerticalScrollRange(), height) - buttonSize - margin
-        if (params.x != x || params.y != y) {
-            params.x = x
-            params.y = y
-            post { settingsButton.requestLayout() }
+        placeButton()
+    }
+
+    override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
+        super.onScrollChanged(l, t, oldl, oldt)
+        placeButton()
+    }
+
+    private fun placeButton() {
+        onPageBottom(max(computeVerticalScrollRange(), height) - scrollY)
+    }
+
+    /**
+     * Asked by the page when Tab or Shift+Tab leaves its last or first element. Once the
+     * controls have the focus, returns what has it, so the page leaves it there. The page
+     * asks with FOCUS_FORWARD or FOCUS_BACKWARD, which the parameter's annotation leaves out.
+     */
+    @SuppressLint("SwitchIntDef")
+    override fun focusSearch(direction: Int): View? {
+        val forward = when (direction) {
+            FOCUS_FORWARD -> true
+            FOCUS_BACKWARD -> false
+            else -> return super.focusSearch(direction)
         }
+        return if (onFocusLeaves(forward)) rootView.findFocus() else super.focusSearch(direction)
+    }
+
+    /**
+     * Shift+Tab from the controls after the page enters it at its first element; the
+     * page's last one is where it should go.
+     */
+    override fun onFocusChanged(focused: Boolean, direction: Int, previouslyFocusedRect: android.graphics.Rect?) {
+        super.onFocusChanged(focused, direction, previouslyFocusedRect)
+        if (focused && direction == FOCUS_BACKWARD) evaluateJavascript(FOCUS_LAST_SCRIPT, null)
+    }
+
+    private companion object {
+        /** Focuses the last element Tab would reach in the page. */
+        const val FOCUS_LAST_SCRIPT = """(() => {
+            const elements = [...document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]')]
+                .filter((e) => e.tabIndex >= 0 && !e.disabled && e.getClientRects().length > 0);
+            elements.at(-1)?.focus();
+        })()"""
     }
 }
 

@@ -14,6 +14,10 @@
  * a link that opened the app points to ({channel}, {hall} or {talk}, the talk's GUID),
  * dispatched through window.__c3lingoNativeLink() after the page has called ready() and
  * describe(). The app plays a linked channel itself; the event lets the page show it.
+ * "c3lingo:focus" events, dispatched through window.__c3lingoNativeFocus(), ask the page
+ * to move keyboard and screen reader focus to what a native control took it from:
+ * {channel}, the channel the app's Stop button stopped, or {help: true}, after the app's
+ * help has been closed. Pages that ignore it leave the focus at the start of the page.
  *
  * Only pages that declare <meta name="c3lingo-native-bridge" content="2"> see
  * window.c3lingoNative; any other page is left alone and plays audio itself. The meta
@@ -78,19 +82,17 @@
     });
 
     // Called by the app with the full state.
-    let hadChannel = false;
     window.__c3lingoNativeState = function (detail) {
-        const hasChannel = detail != null && detail.channel != null;
-        // The page highlights the focused channel link like the selected one. Its own stop
-        // button takes the focus away from the link; the native one doesn't, so do it here.
-        if (hadChannel && !hasChannel && document.activeElement instanceof HTMLAnchorElement)
-            document.activeElement.blur();
-        hadChannel = hasChannel;
         window.dispatchEvent(new CustomEvent("c3lingo:state", { detail: detail }));
     };
 
     // Called by the app with what a link that opened the app points to.
     window.__c3lingoNativeLink = function (detail) {
         window.dispatchEvent(new CustomEvent("c3lingo:link", { detail: detail }));
+    };
+
+    // Called by the app when a native control that had the focus has gone away.
+    window.__c3lingoNativeFocus = function (detail) {
+        window.dispatchEvent(new CustomEvent("c3lingo:focus", { detail: detail }));
     };
 })();

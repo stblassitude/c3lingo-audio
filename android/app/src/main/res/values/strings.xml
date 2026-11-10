@@ -34,6 +34,8 @@
     <string name="audio_output">Audio output</string>
 
     <string name="settings_title">Server</string>
+    <!-- The label screen readers read for the cog on the page. -->
+    <string name="server_settings">Server settings</string>
     <string name="settings_url_label">Server URL</string>
     <string name="settings_invalid_url">This is not a valid http or https URL.</string>
     <string name="settings_footer">For testing only. Leave empty to use %1$s. Currently using %2$s.</string>

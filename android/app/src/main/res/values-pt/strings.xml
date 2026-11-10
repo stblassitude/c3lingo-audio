@@ -29,6 +29,7 @@
     <string name="stop">Parar</string>
     <string name="audio_output">Saída de áudio</string>
     <string name="settings_title">Servidor</string>
+    <string name="server_settings">Definições do servidor</string>
     <string name="settings_url_label">URL do servidor</string>
     <string name="settings_invalid_url">Não é um URL http ou https válido.</string>
     <string name="settings_footer">Apenas para testes. Deixe vazio para usar %1$s. Atualmente a usar %2$s.</string>

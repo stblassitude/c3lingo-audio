@@ -68,7 +68,8 @@ final class Frontend: NSObject, ObservableObject {
     }
 
     /// The page scrolls but can't be zoomed, neither by pinching nor by double tapping:
-    /// limits the page's viewport to its initial scale, which WKWebView respects.
+    /// limits the page's viewport to its initial scale, which WKWebView respects. Larger
+    /// text still reaches the page: it follows the system text size, see `FrontendWebView`.
     private static let noZoomScript = """
         (() => {
             let viewport = document.querySelector('meta[name="viewport"]');
@@ -236,6 +237,33 @@ final class Frontend: NSObject, ObservableObject {
             return
         }
         evaluate("window.__c3lingoNativeLink && window.__c3lingoNativeLink(\(json))")
+    }
+
+    /// Moves keyboard and screen reader focus back into the page, after a native control
+    /// that had it has gone away: to the channel the player bar's Stop button stopped, or
+    /// to the page's help button once the help has been closed. Pages that don't handle
+    /// the `c3lingo:focus` event keep the focus at their start.
+    func focusPage(channel name: String) {
+        focusPage(["channel": name])
+    }
+
+    func focusPageAfterHelp() {
+        focusPage(["help": true])
+    }
+
+    private func focusPage(_ detail: [String: Any]) {
+        guard let data = try? JSONSerialization.data(withJSONObject: detail),
+              let json = String(data: data, encoding: .utf8) else {
+            return
+        }
+        #if os(macOS)
+        webView.window?.makeFirstResponder(webView)
+        #else
+        // First into the web view, then the page moves it to the element, which
+        // VoiceOver follows.
+        UIAccessibility.post(notification: .layoutChanged, argument: webView)
+        #endif
+        evaluate("window.__c3lingoNativeFocus && window.__c3lingoNativeFocus(\(json))")
     }
 
     private func catchUp() {
@@ -444,6 +472,13 @@ extension Frontend: WKNavigationDelegate, WKUIDelegate {
 /// The web view with a small settings button in the bottom right corner of the page,
 /// over the page and scrolling with it. On a page shorter than the view, it sits in the
 /// bottom right corner of the view.
+///
+/// The page follows the system text size: its root font size is scaled by the factor by
+/// which Dynamic Type scales body text, which scales the page's text, sized in `rem`, and
+/// reflows it at the same width, like the text zoom of Android's web view. The page can't
+/// be zoomed by hand (see `noZoomScript`), so this is how larger text reaches it; it
+/// doesn't use the system's text styles itself. (`pageZoom` doesn't do: it lays the page
+/// out narrower but shrinks its text by the same factor.)
 final class FrontendWebView: WKWebView {
     let settingsButton: UIButton = {
         var configuration = UIButton.Configuration.gray()
@@ -451,10 +486,17 @@ final class FrontendWebView: WKWebView {
         configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(textStyle: .subheadline)
         configuration.cornerStyle = .capsule
         let button = UIButton(configuration: configuration)
-        button.accessibilityLabel = String(localized: "Server")
+        button.accessibilityLabel = String(localized: "Server settings")
         return button
     }()
+    /// Apple's minimum size for something to tap.
+    private static let minimumButtonSize: CGFloat = 44
+    /// At twice the size, the page still has room for its layout on the smallest phones.
+    private static let maximumTextScale: CGFloat = 2
     private var contentSizeObservation: NSKeyValueObservation?
+    private var textScale: CGFloat = 1
+    /// Applies `textScale` to each page as it loads, before it is first drawn.
+    private var textScaleScript: WKUserScript?
 
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
@@ -462,6 +504,26 @@ final class FrontendWebView: WKWebView {
         contentSizeObservation = scrollView.observe(\.contentSize) { [weak self] _, _ in
             MainActor.assumeIsolated { self?.setNeedsLayout() }
         }
+        NotificationCenter.default.addObserver(self, selector: #selector(followTextSize), name: UIContentSizeCategory.didChangeNotification, object: nil)
+        followTextSize()
+    }
+
+    @objc private func followTextSize() {
+        let bodySize: CGFloat = 17
+        let scale = min(max(UIFontMetrics(forTextStyle: .body).scaledValue(for: bodySize) / bodySize, 1), Self.maximumTextScale)
+        guard scale != textScale || textScaleScript == nil else { return }
+        textScale = scale
+        let source = "document.documentElement.style.fontSize = \(scale == 1 ? "''" : "'\(Int((scale * 100).rounded()))%'");"
+        // User scripts can only be removed all at once.
+        let controller = configuration.userContentController
+        let others = controller.userScripts.filter { $0 !== textScaleScript }
+        controller.removeAllUserScripts()
+        others.forEach(controller.addUserScript)
+        let script = WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        controller.addUserScript(script)
+        textScaleScript = script
+        // The page already showing.
+        evaluateJavaScript(source)
     }
 
     @available(*, unavailable)
@@ -471,7 +533,9 @@ final class FrontendWebView: WKWebView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        let size = settingsButton.intrinsicContentSize
+        let intrinsicSize = settingsButton.intrinsicContentSize
+        let size = CGSize(width: max(intrinsicSize.width, Self.minimumButtonSize),
+                          height: max(intrinsicSize.height, Self.minimumButtonSize))
         let margin: CGFloat = 12
         // The page may extend below the home indicator (viewport-fit=cover); stay clear of it.
         let insets = scrollView.adjustedContentInset

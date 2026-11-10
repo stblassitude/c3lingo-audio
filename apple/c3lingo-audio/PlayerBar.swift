@@ -11,6 +11,11 @@ struct PlayerBar: View {
     @EnvironmentObject private var player: Player
     /// What the frontend knows about the channel, if anything.
     let description: ChannelDescription?
+    /// Stops playback; true if the Stop button had keyboard focus.
+    let stop: (Bool) -> Void
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// The bar's width, and that of the controls, which grow with the text size.
     @State private var width: CGFloat = 0
@@ -23,8 +28,12 @@ struct PlayerBar: View {
         let informationWidth = width - 2 * Self.padding - Self.spacing - controlsWidth
         return informationWidth >= 2 * controlsWidth
     }
-    /// Twice the usual size of a `.title2` symbol, so the controls are easy to hit.
-    @ScaledMetric(relativeTo: .title2) private var controlSize: CGFloat = 44
+
+    /// At the accessibility text sizes, text wraps instead of being cut off, to twice as
+    /// many lines, which leaves room for the page even with a long talk title.
+    private func lines(_ count: Int) -> Int {
+        dynamicTypeSize.isAccessibilitySize ? count * 2 : count
+    }
 
     var body: some View {
         Group {
@@ -35,7 +44,6 @@ struct PlayerBar: View {
                             title
                             status
                         }
-                        .accessibilityElement(children: .combine)
                         talk
                         message
                     }
@@ -74,13 +82,28 @@ struct PlayerBar: View {
         // Separates the bar from the page, like a tab bar or toolbar.
         .overlay(alignment: .top) { Divider() }
         #endif
+        // The page doesn't announce the state while the app plays: it leaves that to the app.
+        .onAppear { announce(announcement) }
+        .onChange(of: announcement) { announce($0) }
+    }
+
+    /// Capped from outside, so that the controls' own scaled size is capped too.
+    private var controls: some View {
+        PlayerControls(stop: stop)
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+    }
+
+    private var name: String {
+        description?.title ?? player.channel?.displayName ?? ""
     }
 
     private var title: some View {
-        Text(description?.title ?? player.channel?.displayName ?? "")
+        Text(name)
             .font(.headline)
-            .lineLimit(1)
+            .lineLimit(lines(1))
             .truncationMode(.tail)
+            // Wraps rather than giving way to the page above.
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     /// The current or next talk, a link to its page in the browser if the schedule has one.
@@ -88,23 +111,32 @@ struct PlayerBar: View {
         if let text = description?.talkText {
             Group {
                 if let url = description?.talk?.url {
-                    Link(text, destination: url)
-                        .accessibilityHint("Opens the talk's page in the browser")
+                    // Taller to tap than the line it takes up.
+                    Link(destination: url) {
+                        Text(text)
+                            .padding(.vertical, 12)
+                            .contentShape(Rectangle())
+                    }
+                    .padding(.vertical, -12)
+                    .accessibilityHint("Opens the talk's page in the browser")
                 } else {
                     Text(text)
                         .foregroundStyle(.secondary)
                 }
             }
             .font(.subheadline)
-            .lineLimit(1)
+            .lineLimit(lines(1))
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 
+    /// The status, and for screen readers the message below it, which explains it.
     private var status: some View {
         HStack(spacing: 6) {
             statusIndicator
             Text(statusText)
-                .lineLimit(1)
+                .lineLimit(lines(1))
+                .fixedSize(horizontal: false, vertical: true)
         }
         .font(.subheadline)
         #if os(visionOS)
@@ -113,6 +145,8 @@ struct PlayerBar: View {
         #else
         .foregroundStyle(.secondary)
         #endif
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([statusText, messageText].compactMap { $0 }.joined(separator: ". "))
     }
 
     /// Explains the status: that nothing is being broadcast or can be heard, or why there's no connection.
@@ -121,8 +155,10 @@ struct PlayerBar: View {
             Text(text)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-                .lineLimit(2)
+                .lineLimit(lines(2))
                 .fixedSize(horizontal: false, vertical: true)
+                // Read with the status.
+                .accessibilityHidden(true)
         }
     }
 
@@ -135,42 +171,34 @@ struct PlayerBar: View {
         }
     }
 
-    private var controls: some View {
-        HStack(spacing: 24) {
-            Button {
-                player.isMuted.toggle()
-            } label: {
-                Label(player.isMuted ? "Unmute" : "Mute",
-                      systemImage: player.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                    .replacingSymbolTransition()
-            }
-
-            Button {
-                player.togglePause()
-            } label: {
-                Label(player.status == .paused ? "Play" : "Pause",
-                      systemImage: player.status == .paused ? "play.fill" : "pause.fill")
-                    .replacingSymbolTransition()
-            }
-
-            #if os(iOS) || os(macOS)
-            RoutePicker()
-                .frame(width: controlSize * 1.25, height: controlSize * 1.25)
-                .accessibilityLabel("Audio output")
-            #endif
-
-            Button {
-                player.stop()
-            } label: {
-                Label("Stop", systemImage: "stop.fill")
-            }
+    /// What screen readers announce when the state changes, worded like the frontend's
+    /// own announcements: the status with the channel, or what is wrong.
+    private var announcement: String? {
+        switch player.status {
+        case .idle:
+            nil
+        case .waiting, .silent:
+            messageText.map { "\(name): \($0)" }
+        case .connecting, .reconnecting:
+            player.lastError.map { "\(statusText): \($0)" } ?? "\(statusText) \(name)"
+        case .playing, .paused:
+            "\(statusText) \(name)"
         }
-        .font(.system(size: controlSize))
-        // The same in both layouts, so measuring it doesn't change the layout it is measured in.
-        .fixedSize()
-        .background(GeometryReader { geometry in
-            Color.clear.preference(key: ControlsWidthKey.self, value: geometry.size.width)
-        })
+    }
+
+    private func announce(_ text: String?) {
+        guard let text, !text.isEmpty else { return }
+        #if os(macOS)
+        NSAccessibility.post(element: NSApp.mainWindow as Any, notification: .announcementRequested, userInfo: [
+            .announcement: text,
+            .priority: NSAccessibilityPriorityLevel.medium.rawValue,
+        ])
+        #else
+        // Queued, so it doesn't cut off what VoiceOver is saying, e.g. a button's new label.
+        UIAccessibility.post(notification: .announcement, argument: NSAttributedString(string: text, attributes: [
+            .accessibilitySpeechQueueAnnouncement: true,
+        ]))
+        #endif
     }
 
     @ViewBuilder private var statusIndicator: some View {
@@ -179,7 +207,7 @@ struct PlayerBar: View {
             let image = Image(systemName: "dot.radiowaves.left.and.right")
                 .foregroundStyle(.red)
             if #available(iOS 17, macOS 14, *) {
-                image.symbolEffect(.variableColor.iterative, isActive: !player.isMuted)
+                image.symbolEffect(.variableColor.iterative, isActive: !player.isMuted && !reduceMotion)
             } else {
                 image
             }
@@ -206,6 +234,62 @@ struct PlayerBar: View {
     }
 }
 
+/// Mute, play or pause, audio output and stop.
+///
+/// They grow with the text size up to xxxLarge (capped by `PlayerBar`), where the four of them still fit across a
+/// phone; beyond that, holding one shows it enlarged in the Large Content Viewer, as in
+/// the system's own bars.
+private struct PlayerControls: View {
+    @EnvironmentObject private var player: Player
+    let stop: (Bool) -> Void
+
+    @FocusState private var isStopFocused: Bool
+    /// Twice the usual size of a `.title2` symbol, so the controls are easy to hit.
+    @ScaledMetric(relativeTo: .title2) private var controlSize: CGFloat = 44
+
+    var body: some View {
+        HStack(spacing: 24) {
+            Button {
+                player.isMuted.toggle()
+            } label: {
+                Label(player.isMuted ? "Unmute" : "Mute",
+                      systemImage: player.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    .replacingSymbolTransition()
+            }
+            .largeContentViewer()
+
+            Button {
+                player.togglePause()
+            } label: {
+                Label(player.status == .paused ? "Play" : "Pause",
+                      systemImage: player.status == .paused ? "play.fill" : "pause.fill")
+                    .replacingSymbolTransition()
+            }
+            .largeContentViewer()
+
+            #if os(iOS) || os(macOS)
+            RoutePicker()
+                .frame(width: controlSize * 1.25, height: controlSize * 1.25)
+                .accessibilityLabel("Audio output")
+            #endif
+
+            Button {
+                stop(isStopFocused)
+            } label: {
+                Label("Stop", systemImage: "stop.fill")
+            }
+            .focused($isStopFocused)
+            .largeContentViewer()
+        }
+        .font(.system(size: controlSize))
+        // The same in both layouts, so measuring it doesn't change the layout it is measured in.
+        .fixedSize()
+        .background(GeometryReader { geometry in
+            Color.clear.preference(key: ControlsWidthKey.self, value: geometry.size.width)
+        })
+    }
+}
+
 private nonisolated struct WidthKey: PreferenceKey {
     static let defaultValue: CGFloat = 0
 
@@ -223,6 +307,14 @@ private nonisolated struct ControlsWidthKey: PreferenceKey {
 }
 
 private extension View {
+    @ViewBuilder func largeContentViewer() -> some View {
+        #if os(iOS)
+        accessibilityShowsLargeContentViewer()
+        #else
+        self
+        #endif
+    }
+
     @ViewBuilder func replacingSymbolTransition() -> some View {
         if #available(iOS 17, macOS 14, *) {
             contentTransition(.symbolEffect(.replace))

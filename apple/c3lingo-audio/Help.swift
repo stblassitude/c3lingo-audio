@@ -98,33 +98,43 @@ struct HelpView: View {
     @ViewBuilder private func block(_ block: Help.Block) -> some View {
         switch block {
         case .heading(let text):
-            Text(text)
+            Text(spoken(AttributedString(text)))
                 .font(.headline)
                 .padding(.top, 8)
                 .accessibilityAddTraits(.isHeader)
         case .paragraph(let runs):
-            Text(Self.text(runs))
+            Text(text(runs))
         case .list(let items):
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(items.indices, id: \.self) { index in
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(verbatim: "•")
                             .accessibilityHidden(true)
-                        Text(Self.text(items[index]))
+                        Text(text(items[index]))
                     }
                 }
             }
         }
     }
 
-    private static func text(_ runs: [Help.Run]) -> AttributedString {
-        runs.reduce(into: AttributedString()) { text, run in
+    /// In the help's own language for VoiceOver, which may differ from the app's when the
+    /// page has no translation for it.
+    private func spoken(_ text: AttributedString) -> AttributedString {
+        var text = text
+        if let language = help.language {
+            text.languageIdentifier = language
+        }
+        return text
+    }
+
+    private func text(_ runs: [Help.Run]) -> AttributedString {
+        spoken(runs.reduce(into: AttributedString()) { text, run in
             var part = AttributedString(run.text)
             if run.strong {
                 part.inlinePresentationIntent = .stronglyEmphasized
             }
             part.link = run.link
             text += part
-        }
+        })
     }
 }

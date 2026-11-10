@@ -99,6 +99,13 @@ In short:
   the screenshot scripts do.
 - When a link opened the app, the app sends a `c3lingo:link` event with what it points
   to, see [Links to the app](#links-to-the-app).
+- When a native control that had keyboard or screen reader focus goes away, the app
+  sends a `c3lingo:focus` event, so the page can put the focus back where it belongs:
+  `{channel}` after the player bar's Stop button stopped that channel, `{help: true}`
+  after the native help has been closed. A page that ignores it leaves the focus at its
+  start.
+- The page doesn't announce the state to screen readers while the app plays (it doesn't
+  show its own player); the app announces it, see `FEATURES.md`.
 
 The app's player states map onto the protocol like this:
 

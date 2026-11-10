@@ -10,6 +10,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -31,7 +33,10 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.WifiOff
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -39,13 +44,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -151,20 +166,49 @@ private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettin
         ServerDialog(settings, onReload = frontend::reload, onDismiss = { frontend.showServerDialog(false) })
     }
     help?.takeIf { isShowingHelp }?.let {
-        HelpDialog(it, onDismiss = { frontend.showHelp(false) })
+        HelpDialog(it, onDismiss = {
+            frontend.showHelp(false)
+            if (frontend.isScreenReaderOn) frontend.focusPageAfterHelp()
+        })
+    }
+    val animate = animationsEnabled()
+
+    // Keyboard focus from the page to the controls after it, the settings button and the
+    // player bar, and back; Compose moves it among the controls by itself.
+    val settingsFocus = remember { FocusRequester() }
+    val playerBarFirst = remember { FocusRequester() }
+    val playerBarLast = remember { FocusRequester() }
+    SideEffect {
+        frontend.onFocusLeavesPage = { forward ->
+            val settings = frontend.isSettingsButtonFocusable
+            val target = when {
+                forward && settings -> settingsFocus
+                forward && playing -> playerBarFirst
+                !forward && playing -> playerBarLast
+                !forward && settings -> settingsFocus
+                else -> null
+            }
+            target?.requestFocus() == true
+        }
     }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
         FrontendArea(
-            frontend, loadError, hasLoaded, serverURL, playing, { frontend.showServerDialog(true) },
+            frontend, loadError, hasLoaded, serverURL, playing, { frontend.showServerDialog(true) }, settingsFocus,
             Modifier.weight(1f).fillMaxWidth(),
         )
         AnimatedVisibility(
             playing,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
+            enter = if (animate) slideInVertically { it } + fadeIn() else EnterTransition.None,
+            exit = if (animate) slideOutVertically { it } + fadeOut() else ExitTransition.None,
         ) {
-            PlayerBar(state, player, state.channel?.let { descriptions[it.name] })
+            PlayerBar(state, player, state.channel?.let { descriptions[it.name] }, playerBarFirst, playerBarLast) { hadKeyboardFocus ->
+                val channel = state.channel?.name
+                player.stop()
+                // The bar goes away with the focused Stop button; hand the focus back to
+                // the page, rather than leaving it at the screen's start.
+                if (channel != null && (hadKeyboardFocus || frontend.isScreenReaderOn)) frontend.focusPage(channel)
+            }
         }
     }
 }
@@ -178,6 +222,7 @@ private fun FrontendArea(
     serverURL: Uri,
     playing: Boolean,
     onChangeServer: () -> Unit,
+    settingsFocus: FocusRequester,
     modifier: Modifier,
 ) {
     Box(modifier) {
@@ -188,10 +233,16 @@ private fun FrontendArea(
         } else {
             WindowInsets.safeDrawing
         }
-        AndroidView(
-            factory = { frontend.view.also { (it.parent as? ViewGroup)?.removeView(it) } },
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(insets),
-        )
+        Box(Modifier.fillMaxSize().windowInsetsPadding(insets).clipToBounds()) {
+            AndroidView(
+                factory = { frontend.view.also { (it.parent as? ViewGroup)?.removeView(it) } },
+                modifier = Modifier.fillMaxSize(),
+                update = { frontend.setCovered(loadError != null || !hasLoaded) },
+            )
+            if (!frontend.isCovered.value) {
+                SettingsButton(frontend, onChangeServer, Modifier.align(Alignment.TopEnd).focusRequester(settingsFocus))
+            }
+        }
         AnimatedVisibility(loadError != null, enter = fadeIn(), exit = fadeOut()) {
             LoadErrorView(loadError.orEmpty(), serverURL, onRetry = frontend::reload, onChangeServer = onChangeServer)
         }
@@ -200,6 +251,33 @@ private fun FrontendArea(
         }
     }
 }
+
+/**
+ * A small settings button at the bottom right of the page, over the page and scrolling
+ * with it, see [Frontend.pageBottom]. Given keyboard focus, it scrolls the page to its end,
+ * so it can be seen.
+ */
+@Composable
+private fun SettingsButton(frontend: Frontend, onClick: () -> Unit, modifier: Modifier) {
+    val margin = 8.dp
+    FilledTonalIconButton(
+        onClick = onClick,
+        colors = IconButtonDefaults.filledTonalIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        ),
+        modifier = modifier
+            .padding(end = margin)
+            // Read while placing, so scrolling moves the button without recomposing.
+            .offset { IntOffset(0, frontend.pageBottom.intValue - SETTINGS_BUTTON_SIZE.roundToPx() - margin.roundToPx()) }
+            .size(SETTINGS_BUTTON_SIZE)
+            .onFocusChanged { if (it.isFocused) frontend.revealSettingsButton() },
+    ) {
+        Icon(Icons.Filled.Settings, stringResource(R.string.server_settings), Modifier.size(20.dp))
+    }
+}
+
+private val SETTINGS_BUTTON_SIZE = 48.dp
 
 /** Shown until the frontend has loaded: the logo centred on the screen, with progress below it. */
 @Composable
@@ -253,6 +331,7 @@ private fun LoadErrorView(reason: String, url: Uri, onRetry: () -> Unit, onChang
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() },
         )
         Text(
             stringResource(R.string.load_error_message),

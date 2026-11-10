@@ -6,6 +6,7 @@ struct ContentView: View {
     @StateObject private var frontend = Frontend()
     @ObservedObject private var settings = ServerSettings.shared
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,6 +15,9 @@ struct ContentView: View {
                     // A new web view after a server change needs a new view.
                     .id(ObjectIdentifier(frontend.webView))
                     .ignoresSafeArea(edges: player.channel == nil ? .all : .top)
+                    // Covered by the splash or error screen: not there for screen readers
+                    // either, so they can't reach a page that hasn't passed the check.
+                    .accessibilityHidden(!frontend.hasLoaded || frontend.loadError != nil)
                 if let error = frontend.loadError {
                     LoadErrorView(reason: error, url: settings.serverURL) {
                         frontend.reload()
@@ -26,14 +30,27 @@ struct ContentView: View {
                 }
             }
             .animation(.easeOut, value: frontend.hasLoaded)
-            .sheet(isPresented: $frontend.isShowingHelp) {
+            .sheet(isPresented: $frontend.isShowingHelp, onDismiss: {
+                if isAssistiveTechnologyRunning {
+                    frontend.focusPageAfterHelp()
+                }
+            }) {
                 if let help = frontend.help {
                     HelpView(help: help)
                 }
             }
             if let channel = player.channel {
-                PlayerBar(description: frontend.descriptions[channel.name])
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                PlayerBar(description: frontend.descriptions[channel.name]) { hadKeyboardFocus in
+                    player.stop()
+                    // The bar goes away with the focused Stop button; hand the focus back
+                    // to the page once it has, rather than leaving it at the screen's start.
+                    if hadKeyboardFocus || isAssistiveTechnologyRunning {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            frontend.focusPage(channel: channel.name)
+                        }
+                    }
+                }
+                .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
             }
         }
         .animation(.default, value: player.channel != nil)
@@ -91,8 +108,10 @@ private struct LoadErrorView: View {
             Image(systemName: "wifi.exclamationmark")
                 .font(.system(size: 44))
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             Text("Unable to load the channel list")
                 .font(.title2.bold())
+                .accessibilityAddTraits(.isHeader)
             Text("The configured server URL doesn't appear to be a c3lingo audio site. Please check your network connection and the URL you entered.")
                 .foregroundStyle(.secondary)
             VStack(spacing: 4) {
@@ -116,6 +135,16 @@ private struct LoadErrorView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.background)
     }
+}
+
+/// Whether focus is moved by something other than touch, which needs to be told where
+/// to go when the element it was on goes away. Keyboard focus is checked separately.
+private var isAssistiveTechnologyRunning: Bool {
+    #if os(macOS)
+    NSWorkspace.shared.isVoiceOverEnabled || NSWorkspace.shared.isSwitchControlEnabled
+    #else
+    UIAccessibility.isVoiceOverRunning || UIAccessibility.isSwitchControlRunning
+    #endif
 }
 
 #if os(macOS)

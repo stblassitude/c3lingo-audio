@@ -2,6 +2,7 @@ package org.c3lingo.audio
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.provider.Settings
 import android.util.Log
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -10,6 +11,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -38,16 +41,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.mediarouter.app.SystemOutputSwitcherDialogController
 
@@ -58,9 +71,24 @@ import androidx.mediarouter.app.SystemOutputSwitcherDialogController
  * talk, the status and, if needed, a message that explains it, with the controls below.
  * Wide: the same information on the left, the controls on the right, once the
  * information has at least twice as much room as the controls take.
+ *
+ * TalkBack reads the status together with the message that explains it, and announces it
+ * when it changes: the page doesn't announce the state while the app plays.
+ * [onStop] is told whether the Stop button had keyboard focus. [firstFocus] and
+ * [lastFocus] move keyboard focus to the first and last of its controls, from the page.
  */
 @Composable
-fun PlayerBar(state: Player.State, player: Player, description: ChannelDescription?) {
+fun PlayerBar(
+    state: Player.State,
+    player: Player,
+    description: ChannelDescription?,
+    firstFocus: FocusRequester,
+    lastFocus: FocusRequester,
+    onStop: (Boolean) -> Unit,
+) {
+    // The talk comes first if it is a link; otherwise the first control does.
+    val talkFocus = firstFocus.takeIf { description?.talk?.url != null }
+    val controlsFocus = Focus(first = firstFocus.takeIf { talkFocus == null }, last = lastFocus)
     Surface(tonalElevation = 3.dp) {
         BoxWithConstraints(
             Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)),
@@ -69,26 +97,30 @@ fun PlayerBar(state: Player.State, player: Player, description: ChannelDescripti
             if (maxWidth - WIDE_START_PADDING - CONTROLS_WIDTH >= CONTROLS_WIDTH * 2) {
                 // The buttons' own padding is enough at the end.
                 Row(Modifier.padding(start = WIDE_START_PADDING, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
+                    Column(Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Title(title, Modifier.weight(1f, fill = false))
                             Status(state)
                         }
-                        description?.talk?.let { Talk(it) }
+                        description?.talk?.let { Talk(it, focusRequester = talkFocus) }
                         Message(state)
                     }
-                    Controls(state, player)
+                    Controls(state, player, BUTTON_SIZE, controlsFocus, onStop)
                 }
             } else {
+                // Smaller where four of them don't fit, e.g. on small phones or with a
+                // larger display size, but never below the minimum size to tap.
+                val narrowButtonSize = ((maxWidth - NARROW_PADDING * 2 - BUTTON_SPACING * (BUTTON_COUNT - 1)) / BUTTON_COUNT)
+                    .coerceIn(MIN_BUTTON_SIZE, BUTTON_SIZE)
                 Column(
-                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp),
+                    Modifier.fillMaxWidth().padding(start = NARROW_PADDING, end = NARROW_PADDING, top = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Title(title)
-                    description?.talk?.let { Talk(it, TextAlign.Center) }
+                    description?.talk?.let { Talk(it, TextAlign.Center, talkFocus) }
                     Status(state)
                     Message(state, TextAlign.Center)
-                    Controls(state, player)
+                    Controls(state, player, narrowButtonSize, controlsFocus, onStop)
                 }
             }
         }
@@ -96,19 +128,38 @@ fun PlayerBar(state: Player.State, player: Player, description: ChannelDescripti
 }
 
 private val WIDE_START_PADDING = 16.dp
+private val NARROW_PADDING = 16.dp
 /** Twice the usual size of an icon button, so they are easy to hit. */
 private val BUTTON_SIZE = 80.dp
+/** The minimum size to tap. */
+private val MIN_BUTTON_SIZE = 48.dp
 private val BUTTON_SPACING = 8.dp
 private const val BUTTON_COUNT = 4
 /** The width of [Controls], which the bar uses to decide where they go. */
 private val CONTROLS_WIDTH = BUTTON_SIZE * BUTTON_COUNT + BUTTON_SPACING * (BUTTON_COUNT - 1)
+
+/**
+ * At large font sizes, text wraps instead of being cut off, to twice as many lines, which
+ * leaves room for the page even with a long talk title.
+ */
+@Composable
+private fun lines(count: Int): Int = if (LocalDensity.current.fontScale >= LARGE_FONT_SCALE) count * 2 else count
+
+private const val LARGE_FONT_SCALE = 1.3f
+
+/** Whether animations are on: off with Remove animations, or animation scale off in the developer options. */
+@Composable
+fun animationsEnabled(): Boolean {
+    val resolver = LocalContext.current.contentResolver
+    return remember(resolver) { Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f }
+}
 
 @Composable
 private fun Title(title: String, modifier: Modifier = Modifier) {
     Text(
         title,
         style = MaterialTheme.typography.titleMedium,
-        maxLines = 1,
+        maxLines = lines(1),
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
@@ -116,11 +167,11 @@ private fun Title(title: String, modifier: Modifier = Modifier) {
 
 /** The current or next talk, a link to its page in the browser if the schedule has one. */
 @Composable
-private fun Talk(talk: ChannelDescription.Talk, textAlign: TextAlign? = null) {
+private fun Talk(talk: ChannelDescription.Talk, textAlign: TextAlign? = null, focusRequester: FocusRequester? = null) {
     val context = LocalContext.current
     val url = talk.url
     val modifier = if (url != null) {
-        Modifier.clickable(onClickLabel = stringResource(R.string.open_talk)) {
+        Modifier.focusRequester(focusRequester).clickable(onClickLabel = stringResource(R.string.open_talk), role = Role.Button) {
             try {
                 context.startActivity(Intent(Intent.ACTION_VIEW, url))
             } catch (e: ActivityNotFoundException) {
@@ -135,21 +186,31 @@ private fun Talk(talk: ChannelDescription.Talk, textAlign: TextAlign? = null) {
         style = MaterialTheme.typography.bodyMedium,
         color = if (url != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = textAlign,
-        maxLines = 1,
+        maxLines = lines(1),
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
 }
 
+/** The status; for TalkBack with the message below it, and announced when it changes. */
 @Composable
 private fun Status(state: Player.State, modifier: Modifier = Modifier) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    val status = statusText(state)
+    val spoken = listOfNotNull(status, messageText(state)).joinToString(". ")
+    Row(
+        modifier.clearAndSetSemantics {
+            contentDescription = spoken
+            liveRegion = LiveRegionMode.Polite
+        },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         StatusIndicator(state)
         Text(
-            statusText(state),
+            status,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
+            maxLines = lines(1),
             overflow = TextOverflow.Ellipsis,
         )
     }
@@ -157,50 +218,71 @@ private fun Status(state: Player.State, modifier: Modifier = Modifier) {
 
 /** Explains the status: that nothing is being broadcast or can be heard, or why there's no connection. */
 @Composable
+private fun messageText(state: Player.State): String? = when (state.status) {
+    Player.Status.WAITING -> stringResource(R.string.waiting_message)
+    Player.Status.SILENT -> stringResource(R.string.silent_message)
+    Player.Status.CONNECTING, Player.Status.RECONNECTING -> state.lastError
+    else -> null
+}
+
+/** The message, which TalkBack reads with the status. */
+@Composable
 private fun Message(state: Player.State, textAlign: TextAlign? = null) {
-    val text = when (state.status) {
-        Player.Status.WAITING -> stringResource(R.string.waiting_message)
-        Player.Status.SILENT -> stringResource(R.string.silent_message)
-        Player.Status.CONNECTING, Player.Status.RECONNECTING -> state.lastError
-        else -> null
-    } ?: return
+    val text = messageText(state) ?: return
     Text(
         text,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = textAlign,
-        maxLines = 2,
+        maxLines = lines(2),
         overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.clearAndSetSemantics {},
     )
 }
 
 @Composable
-private fun Controls(state: Player.State, player: Player) {
+private fun Controls(state: Player.State, player: Player, buttonSize: Dp, focus: Focus, onStop: (Boolean) -> Unit) {
     val context = LocalContext.current
+    val stopInteraction = remember { MutableInteractionSource() }
+    val isStopFocused by stopInteraction.collectIsFocusedAsState()
     Row(horizontalArrangement = Arrangement.spacedBy(BUTTON_SPACING)) {
         if (state.isMuted) {
-            ControlButton(Icons.AutoMirrored.Filled.VolumeOff, stringResource(R.string.unmute)) { player.setMuted(false) }
+            ControlButton(Icons.AutoMirrored.Filled.VolumeOff, stringResource(R.string.unmute), buttonSize, focus.first) { player.setMuted(false) }
         } else {
-            ControlButton(Icons.AutoMirrored.Filled.VolumeUp, stringResource(R.string.mute)) { player.setMuted(true) }
+            ControlButton(Icons.AutoMirrored.Filled.VolumeUp, stringResource(R.string.mute), buttonSize, focus.first) { player.setMuted(true) }
         }
         if (state.status == Player.Status.PAUSED) {
-            ControlButton(Icons.Filled.PlayArrow, stringResource(R.string.play), player::togglePause)
+            ControlButton(Icons.Filled.PlayArrow, stringResource(R.string.play), buttonSize, onClick = player::togglePause)
         } else {
-            ControlButton(Icons.Filled.Pause, stringResource(R.string.pause), player::togglePause)
+            ControlButton(Icons.Filled.Pause, stringResource(R.string.pause), buttonSize, onClick = player::togglePause)
         }
         // Bluetooth, wired and other outputs, through the system's output switcher.
-        ControlButton(Icons.Outlined.SpeakerGroup, stringResource(R.string.audio_output)) {
+        ControlButton(Icons.Outlined.SpeakerGroup, stringResource(R.string.audio_output), buttonSize) {
             SystemOutputSwitcherDialogController.showDialog(context)
         }
-        ControlButton(Icons.Filled.Stop, stringResource(R.string.stop), player::stop)
+        ControlButton(Icons.Filled.Stop, stringResource(R.string.stop), buttonSize, focus.last, stopInteraction) { onStop(isStopFocused) }
     }
 }
 
-/** A standard icon button at [BUTTON_SIZE]. */
+/** Where keyboard focus enters the controls from the page, if it does. */
+private class Focus(val first: FocusRequester?, val last: FocusRequester?)
+
+/** Attaches [requester] if there is one. */
+private fun Modifier.focusRequester(requester: FocusRequester?): Modifier =
+    if (requester != null) focusRequester(requester) else this
+
+/** A standard icon button at [size], its icon in proportion. */
 @Composable
-private fun ControlButton(icon: ImageVector, description: String, onClick: () -> Unit) {
-    IconButton(onClick, Modifier.size(BUTTON_SIZE)) {
-        Icon(icon, description, Modifier.size(48.dp))
+private fun ControlButton(
+    icon: ImageVector,
+    description: String,
+    size: Dp,
+    focusRequester: FocusRequester? = null,
+    interactionSource: MutableInteractionSource? = null,
+    onClick: () -> Unit,
+) {
+    IconButton(onClick, Modifier.focusRequester(focusRequester).size(size), interactionSource = interactionSource) {
+        Icon(icon, description, Modifier.size(size * 0.6f))
     }
 }
 
@@ -209,7 +291,7 @@ private fun StatusIndicator(state: Player.State) {
     when (state.status) {
         Player.Status.PLAYING -> {
             val pulse = rememberInfiniteTransition(label = "live")
-            val alpha = if (state.isMuted) {
+            val alpha = if (state.isMuted || !animationsEnabled()) {
                 1f
             } else {
                 pulse.animateFloat(1f, 0.3f, infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "alpha").value

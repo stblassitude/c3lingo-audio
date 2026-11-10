@@ -37,6 +37,10 @@ what isn't done yet in the table at the end.
   Unknown block types and run fields are left out.
 - **Pull to refresh** reloads the page (iOS, Android).
 - **No zooming:** the page scrolls, but pinching and double tapping don't zoom it.
+- **The page follows the system text size**, up to twice the size, and reflows: on
+  Apple its root font size is scaled by the factor Dynamic Type scales body text by (not
+  on macOS), on Android its text is zoomed by the font scale. The page sizes its text in
+  `rem`.
 - **The web content process may crash**; the page is then reloaded without user
   interaction.
 - **Inspectable in debug builds** (Safari Web Inspector, Chrome `chrome://inspect`).
@@ -141,6 +145,37 @@ what isn't done yet in the table at the end.
 - **`autoplay` launch option** selects a channel once the page has loaded, as if it had
   been clicked.
 
+## Accessibility
+
+- **Screen readers announce the state** when it changes, worded like the frontend's own
+  announcements: the status with the channel, or what is wrong ("Connection problem:
+  …", "No sound"). The page doesn't announce it while the app plays. The status is read
+  together with the message that explains it. Apple: queued announcements; Android: a
+  polite live region.
+- **Focus returns to the page** when the player bar goes away with the focused Stop
+  button (with a screen reader, Switch Control or keyboard focus), to the channel that
+  was stopped, and when the help is closed with a screen reader on, to the page's help
+  button, through the `c3lingo:focus` event. Pages that don't handle it keep the focus
+  at their start.
+- **The page is hidden from screen readers** while the splash or error screen covers it.
+- **The settings button** is labelled "Server settings", at least 44 pt (Apple) or 48 dp
+  (Android), and on Android is drawn by Compose over the web view rather than added to
+  it, where accessibility services couldn't find it.
+- **Keyboard:** Tab moves from the page's last element to the settings button and the
+  player bar, and on to the page again; Shift+Tab goes the other way, into the page at
+  its last element. On Android the app routes the focus between page and controls
+  itself, as the web view would otherwise keep it. The settings button, given the
+  focus, scrolls the page to its end, where it is.
+- **Large text:** the player bar's text wraps at accessibility text sizes (Apple) or a
+  font scale of 1.3 and above (Android), to twice as many lines, instead of being cut
+  off. The controls grow
+  with the text size up to xxxLarge, beyond which holding one shows it in the Large
+  Content Viewer (iOS); on Android they shrink to no less than 48 dp where four of them
+  don't fit across.
+- **Reduced motion:** without animations (Reduce Motion; Android: Remove animations),
+  the live indicator doesn't pulse and the player bar fades instead of sliding.
+- **The help is read in its own language**, when the page gives one.
+
 ## Status
 
 | Feature | Apple | Android |
@@ -163,6 +198,7 @@ what isn't done yet in the table at the end.
 | Interruptions | ✓ | ✓ (audio focus) |
 | Pause when headphones are unplugged | – | ✓ |
 | Player bar | ✓ | ✓ |
+| Accessibility: announcements, focus, text size, reduced motion | ✓ | ✓ |
 | Lock screen and headset controls | ✓ | ✓ (media3 session) |
 | Audio output selection | ✓ (iOS, macOS) | ✓ |
 | Server URL setting | ✓ | ✓ |

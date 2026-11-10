@@ -43,6 +43,34 @@ git fetch --quiet origin main --tags
 [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] || fail "main differs from origin/main"
 ! git rev-parse --quiet --verify "refs/tags/$tag" >/dev/null || fail "$tag exists already"
 
+# A reminder to retake the screenshots when an app changed since the last release but its
+# screenshots didn't. The Android ones are committed; the Apple ones aren't, so their
+# files' times are compared with the last release's.
+last=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+if [ -n "$last" ]; then
+    stale=()
+    if [ -n "$(git diff --name-only "$last" -- android/app/src/main shared)" ] \
+        && [ -z "$(git diff --name-only "$last" -- 'fastlane/metadata/android/*/images/*')" ]; then
+        stale+=("Android (android/screenshots/capture.sh, then commit them)")
+    fi
+    if [ -n "$(git diff --name-only "$last" -- apple/c3lingo-audio shared)" ]; then
+        released=$(git log -1 --format=%ct "$last")
+        newest=$(find apple/fastlane/screenshots -type f -name '*.png' -exec stat -f %m {} + 2>/dev/null \
+            | sort -n | tail -1)
+        if [ -z "$newest" ] || [ "$newest" -lt "$released" ]; then
+            stale+=("Apple (apple/screenshots/capture.sh, then fastlane upload_screenshots)")
+        fi
+    fi
+    if [ ${#stale[@]} -gt 0 ]; then
+        echo "The apps changed since $last, but these screenshots didn't:"
+        printf '  %s\n' "${stale[@]}"
+        if [ -z "$yes" ]; then
+            read -r -p "Release anyway? [y/N] " answer
+            [ "$answer" = y ] || exit 1
+        fi
+    fi
+fi
+
 old_name=$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' "$gradle")
 old_code=$(sed -n 's/^ *versionCode = \([0-9]*\)$/\1/p' "$gradle")
 [ -n "$old_name" ] && [ -n "$old_code" ] || fail "no versionName or versionCode in $gradle"

@@ -344,7 +344,8 @@ Both apps are released together, from one tag such as `v1.2.0`, made by `./relea
    `iPhone`, `iPad`; `macOS`, `Mac`; `visionOS`, `Vision Pro`, `Apple Vision Pro`.
    `shared/filter-release-notes <platform> < release-notes/en-US.txt` shows what a
    platform (`android`, `ios`, `macos`, `visionos`) gets.
-2. Commit them to `main`, push, and run `./release 1.2.0` (`-y` to push without asking).
+2. If the apps look different, retake the screenshots, see [Screenshots](#screenshots).
+3. Commit them to `main`, push, and run `./release 1.2.0` (`-y` to push without asking).
 
 The script sets `versionName` to the new version and increments `versionCode` in
 `android/app/build.gradle.kts`, writes the Android notes to
@@ -359,7 +360,10 @@ It refuses to run outside an up-to-date `main` without local changes, or for a v
 that isn't higher than the last. It also refuses notes that leave nothing for a
 platform, Android notes over 500 characters (Google Play's and F-Droid's limit), and
 Apple notes that mention Android, Google or F-Droid, which App Review rejects: mark
-such an item with `Android:`.
+such an item with `Android:`. When an app's sources (or `shared/`) changed since the last
+release but its screenshots didn't, it says so and asks whether to release anyway; with
+`-y` it only says so. The Apple screenshots aren't committed, so for them it compares
+the files' times in `apple/fastlane/screenshots/` with the last release's.
 
 The tag starts the two release workflows, which check it against `versionName`:
 

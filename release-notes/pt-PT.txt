@@ -1,0 +1,5 @@
+• Os leitores de ecrã anunciam as mudanças de estado do leitor, por exemplo um problema de ligação ou «Sem som»
+• Depois de «Parar» no leitor ou de fechar a ajuda, o foco volta à lista de canais
+• A lista de canais segue o tamanho do texto do sistema, e o texto do leitor passa à linha seguinte em vez de ser cortado
+• Com o movimento reduzido, o indicador em direto deixa de piscar
+• Android: O leitor e o botão de definições podem ser alcançados com o teclado e com o TalkBack

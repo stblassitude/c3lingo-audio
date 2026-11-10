@@ -1,0 +1,5 @@
+• Czytniki ekranu ogłaszają zmiany stanu odtwarzacza, np. problem z połączeniem lub „Brak dźwięku”
+• Po „Zatrzymaj” w odtwarzaczu lub zamknięciu pomocy fokus wraca do listy kanałów
+• Lista kanałów dopasowuje się do rozmiaru tekstu w systemie, a tekst odtwarzacza zawija się zamiast być ucinany
+• Przy ograniczonym ruchu wskaźnik transmisji na żywo przestaje pulsować
+• Android: Odtwarzacz i przycisk ustawień są dostępne z klawiatury i w TalkBack

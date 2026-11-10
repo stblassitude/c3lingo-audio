@@ -1,0 +1,5 @@
+• Screenreader sagen an, wenn sich der Status des Players ändert, etwa bei einem Verbindungsproblem oder „Kein Ton“
+• Nach „Stopp“ im Player oder dem Schließen der Hilfe kehrt der Fokus zur Kanalliste zurück
+• Die Kanalliste folgt der Textgröße des Systems, und der Text im Player bricht um, statt abgeschnitten zu werden
+• Mit reduzierter Bewegung pulsiert die Live-Anzeige nicht mehr
+• Android: Player und Einstellungsknopf sind mit Tastatur und TalkBack erreichbar

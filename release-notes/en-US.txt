@@ -1,0 +1,5 @@
+• Screen readers announce when the player's status changes, for example to a connection problem or "No sound"
+• After Stop in the player or closing the help, the focus returns to the channel list
+• The channel list follows the system text size, and the player's text wraps instead of being cut off
+• With reduced motion, the live indicator no longer pulses
+• Android: The player and the settings button can be reached with a keyboard and with TalkBack

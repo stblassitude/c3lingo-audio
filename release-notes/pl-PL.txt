@@ -1,0 +1,5 @@
+• Nowość: napisy. Gdy kanał gra, przycisk napisów pokazuje jako tekst to, co jest mówione, transkrybowane na Twoim urządzeniu w języku kanału
+• Za pierwszym razem dla danego języka urządzenie pobiera rozpoznawanie mowy, a napisy włączają się same, gdy jest gotowe
+• iOS: Napisy wymagają systemu iOS lub iPadOS 26 lub nowszego
+• macOS: Napisy wymagają systemu macOS 26 lub nowszego
+• Android: Napisy wymagają Androida 13 lub nowszego oraz rozpoznawania mowy na urządzeniu, które ma większość nowszych telefonów

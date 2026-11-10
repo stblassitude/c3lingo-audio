@@ -1,0 +1,6 @@
+• Nouveau : sous-titres. Pendant la lecture d'un canal, le bouton des sous-titres affiche ce qui est dit, transcrit sur ton appareil dans la langue du canal
+• La première fois, ton appareil télécharge la reconnaissance vocale de la langue, puis les sous-titres démarrent seuls
+• iOS: Les sous-titres nécessitent iOS ou iPadOS 26 ou une version ultérieure
+• macOS: Les sous-titres nécessitent macOS 26 ou une version ultérieure
+• Android: Les sous-titres nécessitent Android 13 ou ultérieur et la reconnaissance vocale sur l'appareil, présente sur la plupart des téléphones récents
+• L'app te tutoie désormais, comme dans les autres langues

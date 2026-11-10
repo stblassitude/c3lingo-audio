@@ -8,7 +8,8 @@
 #   apple/fastlane/screenshots/macos/<locale>/      Mac
 #
 # Usage: apple/screenshots/capture.sh [iphone] [duo] [ipad] [vision] [mac]
-# Without arguments, all of them. See "Screenshots" in README.md.
+# Without arguments, those for iOS, the only platform published for now. See
+# "Screenshots" in README.md.
 
 set -euo pipefail
 
@@ -32,7 +33,7 @@ out=$apple/fastlane/screenshots
 derived=$apple/build/screenshots
 helper=$here/helper.swift
 targets=("$@")
-[ ${#targets[@]} -gt 0 ] || targets=(iphone duo ipad vision mac)
+[ ${#targets[@]} -gt 0 ] || targets=(iphone duo ipad)
 skipped=()
 
 log() { printf '\033[1m%s\033[0m\n' "$*" >&2; }

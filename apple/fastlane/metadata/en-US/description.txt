@@ -8,7 +8,7 @@ The app shows the event's channel list from the server, so it always matches the
 • reconnects automatically after network changes and interruptions such as phone calls
 • never uses the microphone, and plays as media, not as a call
 
-For iPhone, iPad, Mac and Apple Vision Pro.
+For iPhone and iPad.
 
 The audio is streamed with WebRTC from a Galène server (https://galene.org/). The app connects to https://audio.c3lingo.org/, which can be changed in the settings.
 

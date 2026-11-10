@@ -8,7 +8,7 @@ A app mostra a lista de canais do evento a partir do servidor, por isso correspo
 • volta a ligar-se automaticamente após mudanças de rede e interrupções como chamadas
 • nunca usa o microfone e toca como multimédia, não como uma chamada
 
-Para iPhone, iPad, Mac e Apple Vision Pro.
+Para iPhone e iPad.
 
 O áudio é transmitido por WebRTC a partir de um servidor Galène (https://galene.org/). A app liga-se a https://audio.c3lingo.org/, o que pode ser alterado nas definições.
 

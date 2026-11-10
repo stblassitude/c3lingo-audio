@@ -8,7 +8,7 @@ La app muestra la lista de canales del evento desde el servidor, así que siempr
 • se reconecta automáticamente tras cambios de red e interrupciones como llamadas
 • nunca usa el micrófono y suena como contenido multimedia, no como una llamada
 
-Para iPhone, iPad, Mac y Apple Vision Pro.
+Para iPhone y iPad.
 
 El audio se transmite con WebRTC desde un servidor Galène (https://galene.org/). La app se conecta a https://audio.c3lingo.org/, que se puede cambiar en los ajustes.
 

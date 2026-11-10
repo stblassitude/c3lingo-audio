@@ -1,13 +1,11 @@
 c3lingo is the volunteer team that interprets the talks at the Chaos Communication Congress live into other languages. Attendees listen with this app, on their own phones and headphones, in the lecture halls. The audio only exists while an event is on, so outside of events the default server shows "No event right now". For review, please use our testing server, which plays a recording in a loop:
 
-1. Open the server settings:
-   • iPhone, iPad, Apple Vision Pro: tap the gear button at the bottom right of the page (or Change Server… if an error is shown).
-   • Mac: choose c3lingo → Settings… (⌘,).
-2. Enter c3listen.lassitu.de and tap Done (Mac: Apply).
+1. Open the server settings: tap the gear button at the bottom right of the page (or Change Server… if an error is shown).
+2. Enter c3listen.lassitu.de and tap Done.
 3. Under the hall "One", tap English, Deutsch or Português. The Soundcheck button at the top plays as well. The channels of the hall "Two" are silent on purpose: they show how the app looks when a hall isn't broadcasting.
 
 The channel list is a web page from the server, so it always matches the event's halls and schedule. Playback is native: it continues in the background and with the screen locked, shows Now Playing on the lock screen and in Control Center, can be sent to AirPlay and Bluetooth devices, and reconnects after network changes and phone calls. The app only plays audio; it never uses the microphone or the camera, and collects no data.
 
-Subtitles (new in 1.1.0): while a channel plays, tap the speech bubble button in the player, between Pause and AirPlay. The first time, the app explains the feature; tap Turn On Subtitles. The channel's speech is then transcribed on the device with SpeechAnalyzer, in the channel's language (on the testing server: English, German or Portuguese). The first time for a language, the system downloads its speech model, and the app shows the progress. Subtitles need iOS, iPadOS, macOS or visionOS 26 on a device that supports SpeechTranscriber; elsewhere the button explains that they aren't available. They transcribe the received stream, not the microphone, and nothing leaves the device.
+Subtitles (new in 1.1.0): while a channel plays, tap the speech bubble button in the player, between Pause and AirPlay. The first time, the app explains the feature; tap Turn On Subtitles. The channel's speech is then transcribed on the device with SpeechAnalyzer, in the channel's language (on the testing server: English, German or Portuguese). The first time for a language, the system downloads its speech model, and the app shows the progress. Subtitles need iOS or iPadOS 26 on a device that supports SpeechTranscriber; elsewhere the button explains that they aren't available. They transcribe the received stream, not the microphone, and nothing leaves the device.
 
 To return to the default server, open the server settings again and clear the field.

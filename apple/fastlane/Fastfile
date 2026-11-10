@@ -110,8 +110,9 @@ end
 #   bundle exec fastlane upload_screenshots
 lane :upload_screenshots do |options|
   key = api_key
-  # Only the platforms named, e.g. `platforms:ios,osx`, or all that have screenshots.
-  wanted = options[:platforms]&.split(",") || PLATFORMS.keys
+  # Only the platforms named, e.g. `platforms:ios,osx`, or iOS, the only one published
+  # for now.
+  wanted = options[:platforms]&.split(",") || ["ios"]
   PLATFORMS.slice(*wanted).each do |platform, folder|
     path = File.expand_path(File.join("screenshots", folder), __dir__)
     if Dir.glob(File.join(path, "*", "*.png")).empty?

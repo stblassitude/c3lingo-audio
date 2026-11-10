@@ -1,6 +1,6 @@
 # Privacy Policy
 
-This policy covers the c3lingo audio apps for iOS, iPadOS, macOS, visionOS and Android
+This policy covers the c3lingo audio apps for iOS, iPadOS and Android
 ("the app"), published on the App Store, Google Play and F-Droid.
 
 Responsible for the app: Stefan Bethke, Arndtstr. 11, 22085 Hamburg
@@ -33,8 +33,8 @@ where that site's privacy policy applies.
 ## Subtitles
 
 If you turn on subtitles, the audio of the channel you are listening to is transcribed
-on your device, by the speech recognition built into the system: Apple's on iOS, iPadOS,
-macOS and visionOS, the system's on-device speech recognition (usually Google's) on
+on your device, by the speech recognition built into the system: Apple's on iOS and
+iPadOS, the system's on-device speech recognition (usually Google's) on
 Android. The app gives it only that audio, never the microphone, and doesn't send the
 audio or the text anywhere. The text is kept only while the app runs. To recognize a
 language, the system may first download it from Apple or Google, as it does for

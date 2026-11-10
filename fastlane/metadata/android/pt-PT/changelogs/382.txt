@@ -1,0 +1,4 @@
+• Novidade: legendas. Enquanto um canal toca, o botão de legendas mostra em texto o que é dito, transcrito no teu dispositivo na língua do canal
+• Na primeira vez para uma língua, o teu dispositivo transfere o reconhecimento de voz, e as legendas começam sozinhas assim que estiver pronto
+• As legendas precisam do Android 13 ou posterior e de reconhecimento de voz no dispositivo, que a maioria dos telemóveis recentes tem
+• A app passa a tratar-te por tu, como nas outras línguas

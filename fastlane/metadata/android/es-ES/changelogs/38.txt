@@ -1,0 +1,3 @@
+• Nuevo: subtítulos. Mientras suena un canal, el botón de subtítulos muestra como texto lo que se dice, transcrito en tu dispositivo en el idioma del canal
+• La primera vez para un idioma, tu dispositivo descarga su reconocimiento de voz, y los subtítulos empiezan solos en cuanto está listo
+• Los subtítulos necesitan Android 13 o posterior y reconocimiento de voz en el dispositivo, que tienen la mayoría de los teléfonos recientes

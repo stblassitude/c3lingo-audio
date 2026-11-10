@@ -1,0 +1,3 @@
+• New: subtitles. While a channel plays, the subtitles button shows what is said as text, transcribed on your device in the channel's language
+• The first time for a language, your device downloads its speech recognition, and the subtitles start by themselves once it is ready
+• Subtitles need Android 13 or later and on-device speech recognition, which most recent phones have

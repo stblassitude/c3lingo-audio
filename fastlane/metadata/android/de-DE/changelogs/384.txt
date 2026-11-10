@@ -1,0 +1,3 @@
+• Neu: Untertitel. Während ein Kanal läuft, zeigt der Untertitel-Knopf als Text, was gesagt wird, direkt auf deinem Gerät in der Sprache des Kanals transkribiert
+• Beim ersten Mal lädt dein Gerät die Spracherkennung für die Sprache, und die Untertitel starten von selbst, sobald sie bereit ist
+• Untertitel benötigen Android 13 oder neuer und Spracherkennung auf dem Gerät, die die meisten aktuellen Telefone haben

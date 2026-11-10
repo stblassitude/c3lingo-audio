@@ -9,11 +9,14 @@ class C3lingoApp : Application() {
         private set
     lateinit var player: Player
         private set
+    lateinit var subtitles: Subtitles
+        private set
 
     override fun onCreate() {
         super.onCreate()
         settings = ServerSettings(this)
         player = Player(this, settings)
+        subtitles = Subtitles(this, player)
     }
 }
 

@@ -4,6 +4,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var player: Player
     @StateObject private var frontend = Frontend()
+    @StateObject private var subtitles = Subtitles()
     @ObservedObject private var settings = ServerSettings.shared
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -17,7 +18,12 @@ struct ContentView: View {
                     .ignoresSafeArea(edges: player.channel == nil ? .all : .top)
                     // Covered by the splash or error screen: not there for screen readers
                     // either, so they can't reach a page that hasn't passed the check.
-                    .accessibilityHidden(!frontend.hasLoaded || frontend.loadError != nil)
+                    // Nor while the subtitles cover it.
+                    .accessibilityHidden(!frontend.hasLoaded || frontend.loadError != nil || subtitles.isShowing)
+                if subtitles.isShowing {
+                    SubtitlesView(subtitles: subtitles)
+                        .transition(.opacity)
+                }
                 if let error = frontend.loadError {
                     LoadErrorView(reason: error, url: settings.serverURL) {
                         frontend.reload()
@@ -30,6 +36,7 @@ struct ContentView: View {
                 }
             }
             .animation(.easeOut, value: frontend.hasLoaded)
+            .animation(.default, value: subtitles.isShowing)
             .sheet(isPresented: $frontend.isShowingHelp, onDismiss: {
                 if isAssistiveTechnologyRunning {
                     frontend.focusPageAfterHelp()
@@ -54,12 +61,18 @@ struct ContentView: View {
             }
         }
         .animation(.default, value: player.channel != nil)
+        .environmentObject(subtitles)
         .sheet(isPresented: $frontend.isShowingServerDialog) {
             ServerDialog(reload: frontend.reload)
         }
         .onAppear {
             frontend.attach(player)
             frontend.load(settings.serverURL)
+            subtitles.attach(player)
+            subtitles.update(subtitlesContext)
+        }
+        .onChange(of: subtitlesContext) { context in
+            subtitles.update(context)
         }
         .onChange(of: scenePhase) { phase in
             frontend.isInBackground = phase == .background
@@ -71,6 +84,16 @@ struct ContentView: View {
             player.stop()
             frontend.restart(url)
         }
+    }
+}
+
+extension ContentView {
+    /// The channel, its language and the player's status, which the subtitles follow.
+    private var subtitlesContext: Subtitles.Context {
+        Subtitles.Context(
+            channel: player.channel?.name,
+            language: player.channel.flatMap { frontend.descriptions[$0.name]?.language },
+            status: player.status)
     }
 }
 

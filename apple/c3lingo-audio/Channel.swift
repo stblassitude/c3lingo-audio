@@ -50,6 +50,8 @@ nonisolated struct ChannelDescription: Equatable, Sendable {
     struct Language: Equatable, Sendable {
         let name: String
         let flag: String?
+        /// The BCP 47 tag, e.g. `de` or `pt-BR`, which picks the language for subtitles.
+        let tag: String?
     }
 
     struct Talk: Equatable, Sendable {
@@ -76,7 +78,7 @@ nonisolated struct ChannelDescription: Equatable, Sendable {
         }
         room = string(json, "room")
         let language = json["language"] as? [String: Any]
-        self.language = string(language, "name").map { Language(name: $0, flag: string(language, "flag")) }
+        self.language = string(language, "name").map { Language(name: $0, flag: string(language, "flag"), tag: string(language, "lang")) }
         let talk = json["talk"] as? [String: Any]
         if let title = string(talk, "title"), let start = string(talk, "startdt") ?? string(talk, "start") {
             let url = string(talk, "url").flatMap(URL.init(string:)).flatMap { ["http", "https"].contains($0.scheme?.lowercased()) ? $0 : nil }

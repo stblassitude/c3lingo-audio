@@ -73,7 +73,8 @@ data class ChannelDescription(
     val language: Language? = null,
     val talk: Talk? = null,
 ) {
-    data class Language(val name: String, val flag: String?)
+    /** [tag] is the BCP 47 tag, e.g. `de` or `pt-BR`, which picks the language for subtitles. */
+    data class Language(val name: String, val flag: String?, val tag: String? = null)
 
     data class Talk(
         val title: String,
@@ -149,7 +150,7 @@ data class ChannelDescription(
             val start = talk?.string("startdt") ?: talk?.string("start")
             return ChannelDescription(
                 room = json.string("room"),
-                language = language?.string("name")?.let { Language(it, language.string("flag")) },
+                language = language?.string("name")?.let { Language(it, language.string("flag"), language.string("lang")) },
                 talk = if (title != null && start != null) {
                     val url = talk.string("url")?.toUri()?.takeIf { it.scheme?.lowercase() in setOf("http", "https") }
                     Talk(title, url, start, talk.opt("started") as? Boolean ?: false, (talk.opt("day") as? Number)?.toInt())

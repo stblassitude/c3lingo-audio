@@ -16,6 +16,8 @@ update. Playback is done natively:
 - automatic reconnect with backoff, after network changes and after interruptions
   such as phone calls
 - the microphone is never used, so there is no permission prompt
+- live subtitles, transcribed on the device from the audio received (iOS, iPadOS,
+  macOS and visionOS 26; Android 13 with on-device speech recognition)
 
 ## Repository layout
 
@@ -89,7 +91,8 @@ In short:
   the bridge.
 - If the page also calls the optional `describe(channels)` with each channel's hall,
   language and current talk, the player bar shows them; otherwise it shows the
-  channel's `displayName`.
+  channel's `displayName`. The subtitles are in the language whose BCP 47 tag
+  `language.lang` gives; without it, a channel has none.
 - The app answers `ready()` and reports every state change, whatever caused it, as a
   `c3lingo:state` event with the full state `{state, channel, muted, error}`.
 - If the page calls the optional `help(content)`, the app shows that help natively: by

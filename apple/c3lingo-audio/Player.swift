@@ -1,5 +1,6 @@
 import AVFoundation
 import Combine
+import LiveKitWebRTC
 import MediaPlayer
 import Network
 import os
@@ -30,6 +31,11 @@ final class Player: ObservableObject {
 
     @Published var isMuted = false {
         didSet { session?.isMuted = isMuted }
+    }
+
+    /// Gets the received audio, across reconnects, e.g. for subtitles.
+    var audioRenderer: (any LKRTCAudioRenderer)? {
+        didSet { session?.audioRenderer = audioRenderer }
     }
 
     /// Hall, language and talk per channel name, if the frontend sends them, for the
@@ -119,6 +125,7 @@ final class Player: ObservableObject {
                 guard let self, !Task.isCancelled, self.channel == channel else { return }
                 let session = GaleneSession(endpoint: endpoint, group: channel.name)
                 session.isMuted = self.isMuted
+                session.audioRenderer = self.audioRenderer
                 session.onEvent = { [weak self, weak session] event in
                     guard let self, let session, session === self.session else { return }
                     self.handle(event)

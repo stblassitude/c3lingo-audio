@@ -49,4 +49,31 @@
     <string name="open_source">A app (c3lingo-audio), o frontend web (listen-frontend) e o servidor de áudio (Galène) são de código aberto, por isso pode alojar o seu próprio servidor.</string>
     <string name="error_network">Não é possível ligar. Confirme que está ligado à rede Wi-Fi do evento. A tentar novamente…</string>
     <string name="error_unavailable">Este canal não está disponível de momento. A tentar novamente…</string>
+
+    <!-- Subtitles -->
+    <string name="subtitles_show">Mostrar legendas</string>
+    <string name="subtitles_hide">Ocultar legendas</string>
+    <string name="subtitles_title">Legendas</string>
+    <string name="subtitles_intro">A funcionalidade de legendas usa as capacidades do seu telemóvel para criar, no próprio dispositivo, legendas para o áudio recebido. A criação de legendas pode aumentar o consumo de bateria. Não controlamos a qualidade da transcrição, mas temos interesse na sua experiência. Escreva-nos para %1$s.</string>
+    <string name="subtitles_turn_on">Ativar legendas</string>
+    <string name="subtitles_not_now">Agora não</string>
+    <string name="subtitles_preparing">A preparar as legendas…</string>
+    <string name="subtitles_downloading">A transferir o reconhecimento de voz para %1$s</string>
+    <string name="subtitles_downloading_message">As legendas começam assim que a transferência terminar.</string>
+    <string name="subtitles_unknown_language">Sem legendas para este canal</string>
+    <string name="subtitles_unknown_language_message">A lista de canais não indica em que língua está este canal.</string>
+    <string name="subtitles_unsupported">Sem legendas para %1$s</string>
+    <string name="subtitles_unsupported_message">Este dispositivo não consegue transcrever %1$s.</string>
+    <string name="subtitles_failed">Não foi possível iniciar as legendas</string>
+    <string name="subtitles_gap">As legendas foram interrompidas. Pode faltar texto aqui.</string>
+    <string name="subtitles_language_changed">Agora em %1$s</string>
+    <string name="subtitles_waiting">As legendas aparecem aqui assim que alguém falar.</string>
+    <string name="subtitles_latest">Mais recente</string>
+    <string name="subtitles_header">Legendas automáticas em %1$s. Podem conter erros.</string>
+    <string name="subtitles_header_no_language">Legendas automáticas. Podem conter erros.</string>
+    <string name="subtitles_device_unsupported">Sem legendas neste dispositivo</string>
+    <string name="subtitles_device_unsupported_message">Este dispositivo não suporta o reconhecimento de voz no dispositivo de que as legendas precisam.</string>
+    <string name="subtitles_android_too_old">As legendas precisam do Android 13 ou posterior.</string>
+    <string name="subtitles_download_failed">Não foi possível transferir o reconhecimento de voz.</string>
+    <string name="subtitles_recognizer_error">O reconhecimento de voz comunicou o erro %1$d.</string>
 </resources>

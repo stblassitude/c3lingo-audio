@@ -30,9 +30,20 @@ The app doesn't send any information that identifies you, your device or your ac
 Links to other sites, such as a talk's page in the schedule, open in your web browser,
 where that site's privacy policy applies.
 
+## Subtitles
+
+If you turn on subtitles, the audio of the channel you are listening to is transcribed
+on your device, by the speech recognition built into the system: Apple's on iOS, iPadOS,
+macOS and visionOS, the system's on-device speech recognition (usually Google's) on
+Android. The app gives it only that audio, never the microphone, and doesn't send the
+audio or the text anywhere. The text is kept only while the app runs. To recognize a
+language, the system may first download it from Apple or Google, as it does for
+dictation.
+
 ## What the app stores on your device
 
 - the server URL, if you changed it
+- whether you have seen the explanation of the subtitles
 - what the web page stores for itself, such as the language you chose
 
 This stays on your device and is removed when you uninstall the app. Changing the server

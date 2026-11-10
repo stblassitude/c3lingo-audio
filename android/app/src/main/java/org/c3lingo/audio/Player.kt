@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
+import org.webrtc.AudioTrackSink
 
 /**
  * Plays one channel at a time and keeps it playing: reconnects with backoff when the
@@ -141,6 +142,13 @@ class Player(private val context: Context, private val settings: ServerSettings)
         _state.update { it.copy(channel = null, status = Status.IDLE, lastError = null) }
     }
 
+    /** Gets the received audio, across reconnects, e.g. for subtitles. */
+    var audioSink: AudioTrackSink? = null
+        set(value) {
+            field = value
+            session?.audioSink = value
+        }
+
     fun setMuted(muted: Boolean) {
         session?.isMuted = muted
         _state.update { it.copy(isMuted = muted) }
@@ -163,6 +171,7 @@ class Player(private val context: Context, private val settings: ServerSettings)
                 if (state.value.channel != channel) return@launch
                 val session = GaleneSession(context, endpoint, channel.name, http)
                 session.isMuted = state.value.isMuted
+                session.audioSink = audioSink
                 session.onEvent = { event -> if (session === this@Player.session) handle(event) }
                 this@Player.session = session
                 session.start()

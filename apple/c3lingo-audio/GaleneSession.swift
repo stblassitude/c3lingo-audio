@@ -53,6 +53,11 @@ final class GaleneSession {
         didSet { downstreams.values.forEach { $0.setMuted(isMuted) } }
     }
 
+    /// Gets the decoded audio of every stream, e.g. for subtitles.
+    var audioRenderer: (any LKRTCAudioRenderer)? {
+        didSet { downstreams.values.forEach { $0.setRenderer(audioRenderer) } }
+    }
+
     private let endpoint: URL
     private let group: String
     private let id = "app-" + UUID().uuidString.prefix(8).lowercased()
@@ -277,6 +282,8 @@ final class GaleneSession {
 
         do {
             let answer = try await downstream.answer(offer: sdp)
+            // The track exists once the offer has been applied.
+            downstream.setRenderer(audioRenderer)
             Log.galene.info("answering offer for stream \(streamID)")
             send(["type": "answer", "id": streamID, "sdp": answer])
         } catch {
@@ -409,7 +416,27 @@ private final class Downstream {
         }
     }
 
+    /// Replaces the renderer on the stream's audio track, if it has one yet.
+    func setRenderer(_ renderer: (any LKRTCAudioRenderer)?) {
+        // Every call to `track` makes a new wrapper, and a renderer stays attached only
+        // as long as the wrapper it was added to, so keep that.
+        guard let track = audioTrack ?? connection.transceivers.lazy.compactMap({ $0.receiver.track as? LKRTCAudioTrack }).first else { return }
+        audioTrack = track
+        if let current = self.renderer {
+            track.remove(current)
+        }
+        if let renderer {
+            track.add(renderer)
+        }
+        self.renderer = renderer
+    }
+
+    private var audioTrack: LKRTCAudioTrack?
+    private var renderer: (any LKRTCAudioRenderer)?
+
     func close() {
+        audioTrack?.removeAllRenderers()
+        audioTrack = nil
         connection.close()
     }
 

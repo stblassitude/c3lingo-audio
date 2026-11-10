@@ -87,10 +87,11 @@ struct PlayerBar: View {
         .onChange(of: announcement) { announce($0) }
     }
 
-    /// Capped from outside, so that the controls' own scaled size is capped too.
+    /// Capped from outside, so that the controls' own scaled size is capped too, where
+    /// the five of them still fit across a small phone.
     private var controls: some View {
         PlayerControls(stop: stop)
-            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .dynamicTypeSize(...DynamicTypeSize.xLarge)
     }
 
     private var name: String {
@@ -234,13 +235,14 @@ struct PlayerBar: View {
     }
 }
 
-/// Mute, play or pause, audio output and stop.
+/// Mute, play or pause, subtitles, audio output and stop.
 ///
-/// They grow with the text size up to xxxLarge (capped by `PlayerBar`), where the four of them still fit across a
-/// phone; beyond that, holding one shows it enlarged in the Large Content Viewer, as in
+/// They grow with the text size up to xLarge (capped by `PlayerBar`), where they still
+/// fit across a phone; beyond that, holding one shows it enlarged in the Large Content Viewer, as in
 /// the system's own bars.
 private struct PlayerControls: View {
     @EnvironmentObject private var player: Player
+    @EnvironmentObject private var subtitles: Subtitles
     let stop: (Bool) -> Void
 
     @FocusState private var isStopFocused: Bool
@@ -248,7 +250,7 @@ private struct PlayerControls: View {
     @ScaledMetric(relativeTo: .title2) private var controlSize: CGFloat = 44
 
     var body: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: 16) {
             Button {
                 player.isMuted.toggle()
             } label: {
@@ -265,6 +267,17 @@ private struct PlayerControls: View {
                       systemImage: player.status == .paused ? "play.fill" : "pause.fill")
                     .replacingSymbolTransition()
             }
+            .largeContentViewer()
+
+            // Also where the device can't make subtitles: they then explain why.
+            Button {
+                subtitles.toggle()
+            } label: {
+                Label(subtitles.isShowing ? "Hide Subtitles" : "Show Subtitles",
+                      systemImage: subtitles.isShowing ? "captions.bubble.fill" : "captions.bubble")
+                    .replacingSymbolTransition()
+            }
+            .disabled(!subtitles.isAvailable)
             .largeContentViewer()
 
             #if os(iOS) || os(macOS)

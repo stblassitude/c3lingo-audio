@@ -69,6 +69,74 @@
         }
       }
     },
+    "Automatic subtitles in %@. They may contain mistakes.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische Untertitel auf %@. Sie können Fehler enthalten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subtítulos automáticos en %@. Pueden contener errores."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sous-titres automatiques en %@. Ils peuvent contenir des erreurs."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatyczne napisy (%@). Mogą zawierać błędy."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legendas automáticas em %@. Podem conter erros."
+          }
+        }
+      }
+    },
+    "Automatic subtitles. They may contain mistakes.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische Untertitel. Sie können Fehler enthalten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subtítulos automáticos. Pueden contener errores."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sous-titres automatiques. Ils peuvent contenir des erreurs."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatyczne napisy. Mogą zawierać błędy."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legendas automáticas. Podem conter erros."
+          }
+        }
+      }
+    },
     "Can't connect to the server: %@": {
       "localizations": {
         "de": {
@@ -478,6 +546,108 @@
         }
       }
     },
+    "Downloading speech recognition for %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spracherkennung für %@ wird geladen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargando el reconocimiento de voz para %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléchargement de la reconnaissance vocale pour %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pobieranie rozpoznawania mowy: %@"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A transferir o reconhecimento de voz para %@"
+          }
+        }
+      }
+    },
+    "Hide Subtitles": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untertitel ausblenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar subtítulos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer les sous-titres"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukryj napisy"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar legendas"
+          }
+        }
+      }
+    },
+    "Latest": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuell"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más reciente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus récent"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Najnowsze"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mais recente"
+          }
+        }
+      }
+    },
     "Leave empty to use %@. Currently using %@.": {
       "localizations": {
         "de": {
@@ -716,6 +886,142 @@
         }
       }
     },
+    "No subtitles for %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Untertitel für %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay subtítulos para %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas de sous-titres pour %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak napisów: %@"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem legendas para %@"
+          }
+        }
+      }
+    },
+    "No subtitles for this channel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Untertitel für diesen Kanal"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay subtítulos para este canal"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas de sous-titres pour ce canal"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak napisów dla tego kanału"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem legendas para este canal"
+          }
+        }
+      }
+    },
+    "No subtitles on this device": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Untertitel auf diesem Gerät"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay subtítulos en este dispositivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas de sous-titres sur cet appareil"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak napisów na tym urządzeniu"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem legendas neste dispositivo"
+          }
+        }
+      }
+    },
+    "Not Now": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht jetzt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora no"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas maintenant"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie teraz"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agora não"
+          }
+        }
+      }
+    },
     "Nothing is being broadcast on this channel right now. It starts playing as soon as it is.": {
       "localizations": {
         "de": {
@@ -780,6 +1086,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sem emissão"
+          }
+        }
+      }
+    },
+    "Now in %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt auf %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora en %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maintenant en %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teraz: %@"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agora em %@"
           }
         }
       }
@@ -954,6 +1294,40 @@
         }
       }
     },
+    "Preparing subtitles…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untertitel werden vorbereitet…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando los subtítulos…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparation des sous-titres…"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przygotowywanie napisów…"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A preparar as legendas…"
+          }
+        }
+      }
+    },
     "Privacy Policy": {
       "localizations": {
         "de": {
@@ -1124,6 +1498,40 @@
         }
       }
     },
+    "Show Subtitles": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untertitel einblenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar subtítulos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher les sous-titres"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokaż napisy"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar legendas"
+          }
+        }
+      }
+    },
     "Since %@: %@": {
       "localizations": {
         "de": {
@@ -1154,6 +1562,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desde %1$@: %2$@"
+          }
+        }
+      }
+    },
+    "Speech recognition can't process this audio.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Spracherkennung kann dieses Audio nicht verarbeiten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El reconocimiento de voz no puede procesar este audio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La reconnaissance vocale ne peut pas traiter cet audio."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpoznawanie mowy nie może przetworzyć tego dźwięku."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O reconhecimento de voz não consegue processar este áudio."
           }
         }
       }
@@ -1192,6 +1634,142 @@
         }
       }
     },
+    "Subtitles": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untertitel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subtítulos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sous-titres"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napisy"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legendas"
+          }
+        }
+      }
+    },
+    "Subtitles appear here as soon as someone speaks.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untertitel erscheinen hier, sobald jemand spricht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los subtítulos aparecerán aquí en cuanto alguien hable."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les sous-titres apparaissent ici dès que quelqu'un parle."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napisy pojawią się tutaj, gdy tylko ktoś zacznie mówić."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As legendas aparecem aqui assim que alguém falar."
+          }
+        }
+      }
+    },
+    "Subtitles need %@ 26 or later. Please update your device's software to use them.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untertitel benötigen %@ 26 oder neuer. Aktualisiere bitte die Software deines Geräts, um sie zu nutzen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los subtítulos necesitan %@ 26 o posterior. Actualiza el software de tu dispositivo para usarlos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les sous-titres nécessitent %@ 26 ou une version ultérieure. Mettez à jour le logiciel de votre appareil pour les utiliser."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napisy wymagają systemu %@ 26 lub nowszego. Zaktualizuj oprogramowanie urządzenia, aby z nich korzystać."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As legendas precisam do %@ 26 ou posterior. Atualize o software do seu dispositivo para as usar."
+          }
+        }
+      }
+    },
+    "Subtitles were interrupted. Some text may be missing here.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Untertitel waren unterbrochen. Hier fehlt möglicherweise Text."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los subtítulos se interrumpieron. Puede faltar texto aquí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les sous-titres ont été interrompus. Il manque peut-être du texte ici."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napisy zostały przerwane. W tym miejscu może brakować tekstu."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As legendas foram interrompidas. Pode faltar texto aqui."
+          }
+        }
+      }
+    },
     "The app (c3lingo-audio), the web frontend (listen-frontend) and the audio server (Galène) are open source, so anyone can run their own server.": {
       "localizations": {
         "de": {
@@ -1222,6 +1800,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "A app (c3lingo-audio), o frontend web (listen-frontend) e o servidor de áudio (Galène) são de código aberto, por isso pode alojar o seu próprio servidor."
+          }
+        }
+      }
+    },
+    "The channel list doesn't say which language this channel is in.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Kanalliste gibt nicht an, in welcher Sprache dieser Kanal ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lista de canales no indica en qué idioma está este canal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La liste des canaux n'indique pas la langue de ce canal."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lista kanałów nie podaje, w jakim języku jest ten kanał."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A lista de canais não indica em que língua está este canal."
           }
         }
       }
@@ -1328,6 +1940,74 @@
         }
       }
     },
+    "The subtitles feature uses your phone's on-device capabilities to create subtitles for the audio received. Generating subtitles may increase battery usage. We do not control the quality of the transcription, but we are interested in your experience. Please write to us at [hello@c3lingo.org](mailto:hello@c3lingo.org).": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Untertitel-Funktion nutzt die Fähigkeiten deines Telefons, um direkt auf dem Gerät Untertitel für das empfangene Audio zu erstellen. Das Erstellen von Untertiteln kann den Akkuverbrauch erhöhen. Wir haben keinen Einfluss auf die Qualität der Transkription, interessieren uns aber für deine Erfahrungen. Schreib uns bitte an [hello@c3lingo.org](mailto:hello@c3lingo.org)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La función de subtítulos usa las capacidades de tu teléfono para crear, en el propio dispositivo, subtítulos del audio recibido. Generar subtítulos puede aumentar el consumo de batería. No controlamos la calidad de la transcripción, pero nos interesa tu experiencia. Escríbenos a [hello@c3lingo.org](mailto:hello@c3lingo.org)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fonction sous-titres utilise les capacités de votre téléphone pour créer, directement sur l'appareil, des sous-titres pour l'audio reçu. La création de sous-titres peut augmenter la consommation de la batterie. Nous ne contrôlons pas la qualité de la transcription, mais votre expérience nous intéresse. Écrivez-nous à [hello@c3lingo.org](mailto:hello@c3lingo.org)."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funkcja napisów korzysta z możliwości Twojego telefonu, aby bezpośrednio na urządzeniu tworzyć napisy do odbieranego dźwięku. Tworzenie napisów może zwiększyć zużycie baterii. Nie mamy wpływu na jakość transkrypcji, ale chętnie poznamy Twoje doświadczenia. Napisz do nas na [hello@c3lingo.org](mailto:hello@c3lingo.org)."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A funcionalidade de legendas usa as capacidades do seu telemóvel para criar, no próprio dispositivo, legendas para o áudio recebido. A criação de legendas pode aumentar o consumo de bateria. Não controlamos a qualidade da transcrição, mas temos interesse na sua experiência. Escreva-nos para [hello@c3lingo.org](mailto:hello@c3lingo.org)."
+          }
+        }
+      }
+    },
+    "The subtitles start as soon as the download is complete.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Untertitel starten, sobald der Download abgeschlossen ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los subtítulos empezarán en cuanto termine la descarga."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les sous-titres démarrent dès que le téléchargement est terminé."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Napisy pojawią się, gdy tylko pobieranie się zakończy."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As legendas começam assim que a transferência terminar."
+          }
+        }
+      }
+    },
     "This channel isn't available right now. Retrying…": {
       "localizations": {
         "de": {
@@ -1358,6 +2038,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "Este canal não está disponível de momento. A tentar novamente…"
+          }
+        }
+      }
+    },
+    "This device can't transcribe %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Gerät kann %@ nicht transkribieren."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo no puede transcribir %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet appareil ne peut pas transcrire %@."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To urządzenie nie potrafi transkrybować języka: %@."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo não consegue transcrever %@."
+          }
+        }
+      }
+    },
+    "This device doesn't support the on-device speech recognition that subtitles need.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Gerät unterstützt die Spracherkennung auf dem Gerät nicht, die für Untertitel nötig ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo no admite el reconocimiento de voz en el propio dispositivo que necesitan los subtítulos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet appareil ne prend pas en charge la reconnaissance vocale sur l'appareil nécessaire aux sous-titres."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To urządzenie nie obsługuje rozpoznawania mowy na urządzeniu, którego wymagają napisy."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo não suporta o reconhecimento de voz no dispositivo de que as legendas precisam."
           }
         }
       }
@@ -1498,6 +2246,40 @@
         }
       }
     },
+    "Turn On Subtitles": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untertitel einschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar subtítulos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activer les sous-titres"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Włącz napisy"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativar legendas"
+          }
+        }
+      }
+    },
     "Unable to load the channel list": {
       "localizations": {
         "de": {
@@ -1528,6 +2310,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível carregar a lista de canais"
+          }
+        }
+      }
+    },
+    "Unable to start the subtitles": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untertitel konnten nicht gestartet werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pueden iniciar los subtítulos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de démarrer les sous-titres"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można uruchomić napisów"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível iniciar as legendas"
           }
         }
       }

@@ -83,6 +83,38 @@ what isn't done yet in the table at the end.
   **Stop** disconnects and clears the channel.
 - **Plays in the background and with the screen locked.**
 
+## Subtitles
+
+- **Live subtitles** of the channel that is playing, transcribed on the device from the
+  audio received (never the microphone), in the language the page gives for the channel
+  in `describe()` (`language.lang`). Apple: SpeechAnalyzer with SpeechTranscriber (OS
+  26). Android: the system's on-device speech recognizer, fed the audio through
+  `EXTRA_AUDIO_SOURCE` (Android 13), restarted whenever a session ends.
+- **Subtitles button** in the player bar, between play/pause and audio output; disabled
+  while paused. It shows the subtitles over the whole page, the player bar staying
+  visible, so as much text as possible fits; pressed again, it hides them and stops the
+  recognition. Pausing and stopping close them too.
+- **Explanation first:** the first time, the subtitles explain the feature (on-device,
+  may increase battery usage, quality not ours, write to hello@c3lingo.org) with Turn On
+  Subtitles and Not Now.
+- **Not available on the device:** the button is there anyway, and the subtitles explain
+  why there are none: the system is too old, or the device has no on-device speech
+  recognition.
+- **The text** grows at the bottom, in large type (Apple: title 3; Android: title large),
+  following the system text size; what is still being recognized is shown in the
+  secondary colour. It keeps following the latest text unless scrolled back, then a
+  Latest button goes back to it. A header says the subtitles are automatic and may
+  contain mistakes. The last 500 paragraphs are kept, until the channel changes.
+- **Missing text is marked:** turned on again, or after a reconnect, a line says the
+  subtitles were interrupted and text may be missing there.
+- **The language follows the page:** when `describe()` changes the channel's language,
+  recognition restarts in the new one, marked with "Now in …".
+- **Speech models are downloaded when needed,** with the progress, and the subtitles
+  start by themselves once the model is there (Apple: AssetInventory; Android: the
+  system confirms the download, and reports progress from Android 14). A channel
+  without a language, or in a language the device can't transcribe, says so.
+- **Muted:** the subtitles keep going, as the audio is taken before it is muted.
+
 ## Staying connected
 
 - **Status:** connecting, waiting for audio (joined, nobody sending), live, no sound,
@@ -109,7 +141,7 @@ what isn't done yet in the table at the end.
 ## System integration
 
 - **Player bar** at the bottom while a channel is selected: channel name, status with a
-  live indicator or progress, mute, play/pause, audio output, stop. Slides in and out.
+  live indicator or progress, mute, play/pause, subtitles, audio output, stop. Slides in and out.
   The controls are the platform's standard borderless icon buttons at twice the usual
   size. Narrow (portrait phones): hall, language, talk, status and message centred, with
   the controls centred below. Wide, once the information would have at least twice as
@@ -169,8 +201,8 @@ what isn't done yet in the table at the end.
 - **Large text:** the player bar's text wraps at accessibility text sizes (Apple) or a
   font scale of 1.3 and above (Android), to twice as many lines, instead of being cut
   off. The controls grow
-  with the text size up to xxxLarge, beyond which holding one shows it in the Large
-  Content Viewer (iOS); on Android they shrink to no less than 48 dp where four of them
+  with the text size up to xLarge, beyond which holding one shows it in the Large
+  Content Viewer (iOS); on Android they shrink to no less than 48 dp where five of them
   don't fit across.
 - **Reduced motion:** without animations (Reduce Motion; Android: Remove animations),
   the live indicator doesn't pulse and the player bar fades instead of sliding.
@@ -194,6 +226,7 @@ what isn't done yet in the table at the end.
 | Media playback without microphone | ✓ | ✓ |
 | Mute, pause, stop | ✓ | ✓ |
 | Background playback | ✓ | ✓ (foreground service) |
+| Subtitles | ✓ (OS 26) | ✓ (Android 13, on-device recognizer) |
 | Reconnect with backoff, timeout, network change | ✓ | ✓ |
 | Interruptions | ✓ | ✓ (audio focus) |
 | Pause when headphones are unplugged | – | ✓ |

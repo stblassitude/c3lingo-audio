@@ -49,4 +49,31 @@
     <string name="open_source">Die App (c3lingo-audio), das Web-Frontend (listen-frontend) und der Audio-Server (Galène) sind Open Source, so kannst du auch einen eigenen Server betreiben.</string>
     <string name="error_network">Keine Verbindung. Prüfe, ob du im Event-WLAN bist. Neuer Versuch…</string>
     <string name="error_unavailable">Dieser Kanal ist gerade nicht verfügbar. Neuer Versuch…</string>
+
+    <!-- Subtitles -->
+    <string name="subtitles_show">Untertitel einblenden</string>
+    <string name="subtitles_hide">Untertitel ausblenden</string>
+    <string name="subtitles_title">Untertitel</string>
+    <string name="subtitles_intro">Die Untertitel-Funktion nutzt die Fähigkeiten deines Telefons, um direkt auf dem Gerät Untertitel für das empfangene Audio zu erstellen. Das Erstellen von Untertiteln kann den Akkuverbrauch erhöhen. Wir haben keinen Einfluss auf die Qualität der Transkription, interessieren uns aber für deine Erfahrungen. Schreib uns bitte an %1$s.</string>
+    <string name="subtitles_turn_on">Untertitel einschalten</string>
+    <string name="subtitles_not_now">Nicht jetzt</string>
+    <string name="subtitles_preparing">Untertitel werden vorbereitet…</string>
+    <string name="subtitles_downloading">Spracherkennung für %1$s wird geladen</string>
+    <string name="subtitles_downloading_message">Die Untertitel starten, sobald der Download abgeschlossen ist.</string>
+    <string name="subtitles_unknown_language">Keine Untertitel für diesen Kanal</string>
+    <string name="subtitles_unknown_language_message">Die Kanalliste gibt nicht an, in welcher Sprache dieser Kanal ist.</string>
+    <string name="subtitles_unsupported">Keine Untertitel für %1$s</string>
+    <string name="subtitles_unsupported_message">Dieses Gerät kann %1$s nicht transkribieren.</string>
+    <string name="subtitles_failed">Untertitel konnten nicht gestartet werden</string>
+    <string name="subtitles_gap">Die Untertitel waren unterbrochen. Hier fehlt möglicherweise Text.</string>
+    <string name="subtitles_language_changed">Jetzt auf %1$s</string>
+    <string name="subtitles_waiting">Untertitel erscheinen hier, sobald jemand spricht.</string>
+    <string name="subtitles_latest">Aktuell</string>
+    <string name="subtitles_header">Automatische Untertitel auf %1$s. Sie können Fehler enthalten.</string>
+    <string name="subtitles_header_no_language">Automatische Untertitel. Sie können Fehler enthalten.</string>
+    <string name="subtitles_device_unsupported">Keine Untertitel auf diesem Gerät</string>
+    <string name="subtitles_device_unsupported_message">Dieses Gerät unterstützt die Spracherkennung auf dem Gerät nicht, die für Untertitel nötig ist.</string>
+    <string name="subtitles_android_too_old">Untertitel benötigen Android 13 oder neuer.</string>
+    <string name="subtitles_download_failed">Die Spracherkennung konnte nicht geladen werden.</string>
+    <string name="subtitles_recognizer_error">Die Spracherkennung hat Fehler %1$d gemeldet.</string>
 </resources>

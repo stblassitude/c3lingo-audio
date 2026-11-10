@@ -49,4 +49,31 @@
     <string name="open_source">Aplikacja (c3lingo-audio), frontend webowy (listen-frontend) i serwer audio (Galène) są open source, więc każdy może uruchomić własny serwer.</string>
     <string name="error_network">Nie można połączyć. Upewnij się, że korzystasz z Wi-Fi wydarzenia. Ponawianie…</string>
     <string name="error_unavailable">Ten kanał jest teraz niedostępny. Ponawianie…</string>
+
+    <!-- Subtitles -->
+    <string name="subtitles_show">Pokaż napisy</string>
+    <string name="subtitles_hide">Ukryj napisy</string>
+    <string name="subtitles_title">Napisy</string>
+    <string name="subtitles_intro">Funkcja napisów korzysta z możliwości Twojego telefonu, aby bezpośrednio na urządzeniu tworzyć napisy do odbieranego dźwięku. Tworzenie napisów może zwiększyć zużycie baterii. Nie mamy wpływu na jakość transkrypcji, ale chętnie poznamy Twoje doświadczenia. Napisz do nas na %1$s.</string>
+    <string name="subtitles_turn_on">Włącz napisy</string>
+    <string name="subtitles_not_now">Nie teraz</string>
+    <string name="subtitles_preparing">Przygotowywanie napisów…</string>
+    <string name="subtitles_downloading">Pobieranie rozpoznawania mowy: %1$s</string>
+    <string name="subtitles_downloading_message">Napisy pojawią się, gdy tylko pobieranie się zakończy.</string>
+    <string name="subtitles_unknown_language">Brak napisów dla tego kanału</string>
+    <string name="subtitles_unknown_language_message">Lista kanałów nie podaje, w jakim języku jest ten kanał.</string>
+    <string name="subtitles_unsupported">Brak napisów: %1$s</string>
+    <string name="subtitles_unsupported_message">To urządzenie nie potrafi transkrybować języka: %1$s.</string>
+    <string name="subtitles_failed">Nie można uruchomić napisów</string>
+    <string name="subtitles_gap">Napisy zostały przerwane. W tym miejscu może brakować tekstu.</string>
+    <string name="subtitles_language_changed">Teraz: %1$s</string>
+    <string name="subtitles_waiting">Napisy pojawią się tutaj, gdy tylko ktoś zacznie mówić.</string>
+    <string name="subtitles_latest">Najnowsze</string>
+    <string name="subtitles_header">Automatyczne napisy (%1$s). Mogą zawierać błędy.</string>
+    <string name="subtitles_header_no_language">Automatyczne napisy. Mogą zawierać błędy.</string>
+    <string name="subtitles_device_unsupported">Brak napisów na tym urządzeniu</string>
+    <string name="subtitles_device_unsupported_message">To urządzenie nie obsługuje rozpoznawania mowy na urządzeniu, którego wymagają napisy.</string>
+    <string name="subtitles_android_too_old">Napisy wymagają Androida 13 lub nowszego.</string>
+    <string name="subtitles_download_failed">Nie udało się pobrać rozpoznawania mowy.</string>
+    <string name="subtitles_recognizer_error">Rozpoznawanie mowy zgłosiło błąd %1$d.</string>
 </resources>

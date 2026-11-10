@@ -30,9 +30,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.ClosedCaption
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.ClosedCaption
 import androidx.compose.material.icons.outlined.SpeakerGroup
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -62,6 +64,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.mediarouter.app.SystemOutputSwitcherDialogController
 
 /**
@@ -81,6 +84,7 @@ import androidx.mediarouter.app.SystemOutputSwitcherDialogController
 fun PlayerBar(
     state: Player.State,
     player: Player,
+    subtitles: Subtitles,
     description: ChannelDescription?,
     firstFocus: FocusRequester,
     lastFocus: FocusRequester,
@@ -105,10 +109,10 @@ fun PlayerBar(
                         description?.talk?.let { Talk(it, focusRequester = talkFocus) }
                         Message(state)
                     }
-                    Controls(state, player, BUTTON_SIZE, controlsFocus, onStop)
+                    Controls(state, player, subtitles, BUTTON_SIZE, controlsFocus, onStop)
                 }
             } else {
-                // Smaller where four of them don't fit, e.g. on small phones or with a
+                // Smaller where five of them don't fit, e.g. on small phones or with a
                 // larger display size, but never below the minimum size to tap.
                 val narrowButtonSize = ((maxWidth - NARROW_PADDING * 2 - BUTTON_SPACING * (BUTTON_COUNT - 1)) / BUTTON_COUNT)
                     .coerceIn(MIN_BUTTON_SIZE, BUTTON_SIZE)
@@ -120,7 +124,7 @@ fun PlayerBar(
                     description?.talk?.let { Talk(it, TextAlign.Center, talkFocus) }
                     Status(state)
                     Message(state, TextAlign.Center)
-                    Controls(state, player, narrowButtonSize, controlsFocus, onStop)
+                    Controls(state, player, subtitles, narrowButtonSize, controlsFocus, onStop)
                 }
             }
         }
@@ -134,7 +138,7 @@ private val BUTTON_SIZE = 80.dp
 /** The minimum size to tap. */
 private val MIN_BUTTON_SIZE = 48.dp
 private val BUTTON_SPACING = 8.dp
-private const val BUTTON_COUNT = 4
+private const val BUTTON_COUNT = 5
 /** The width of [Controls], which the bar uses to decide where they go. */
 private val CONTROLS_WIDTH = BUTTON_SIZE * BUTTON_COUNT + BUTTON_SPACING * (BUTTON_COUNT - 1)
 
@@ -241,8 +245,10 @@ private fun Message(state: Player.State, textAlign: TextAlign? = null) {
 }
 
 @Composable
-private fun Controls(state: Player.State, player: Player, buttonSize: Dp, focus: Focus, onStop: (Boolean) -> Unit) {
+private fun Controls(state: Player.State, player: Player, subtitles: Subtitles, buttonSize: Dp, focus: Focus, onStop: (Boolean) -> Unit) {
     val context = LocalContext.current
+    val isShowingSubtitles by subtitles.isShowing.collectAsStateWithLifecycle()
+    val subtitlesAvailable by subtitles.isAvailable.collectAsStateWithLifecycle()
     val stopInteraction = remember { MutableInteractionSource() }
     val isStopFocused by stopInteraction.collectIsFocusedAsState()
     Row(horizontalArrangement = Arrangement.spacedBy(BUTTON_SPACING)) {
@@ -255,6 +261,12 @@ private fun Controls(state: Player.State, player: Player, buttonSize: Dp, focus:
             ControlButton(Icons.Filled.PlayArrow, stringResource(R.string.play), buttonSize, onClick = player::togglePause)
         } else {
             ControlButton(Icons.Filled.Pause, stringResource(R.string.pause), buttonSize, onClick = player::togglePause)
+        }
+        // Also where the device can't make subtitles: they then explain why.
+        if (isShowingSubtitles) {
+            ControlButton(Icons.Filled.ClosedCaption, stringResource(R.string.subtitles_hide), buttonSize, onClick = subtitles::toggle)
+        } else {
+            ControlButton(Icons.Outlined.ClosedCaption, stringResource(R.string.subtitles_show), buttonSize, enabled = subtitlesAvailable, onClick = subtitles::toggle)
         }
         // Bluetooth, wired and other outputs, through the system's output switcher.
         ControlButton(Icons.Outlined.SpeakerGroup, stringResource(R.string.audio_output), buttonSize) {
@@ -279,9 +291,10 @@ private fun ControlButton(
     size: Dp,
     focusRequester: FocusRequester? = null,
     interactionSource: MutableInteractionSource? = null,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    IconButton(onClick, Modifier.focusRequester(focusRequester).size(size), interactionSource = interactionSource) {
+    IconButton(onClick, Modifier.focusRequester(focusRequester).size(size), enabled = enabled, interactionSource = interactionSource) {
         Icon(icon, description, Modifier.size(size * 0.6f))
     }
 }

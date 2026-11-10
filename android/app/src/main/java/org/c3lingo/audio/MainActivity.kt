@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) intent.data?.let(frontend::open)
         setContent {
             C3lingoTheme {
-                AppScreen(frontend, app.player, app.settings)
+                AppScreen(frontend, app.player, app.subtitles, app.settings)
             }
         }
 
@@ -151,7 +151,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettings) {
+private fun AppScreen(frontend: Frontend, player: Player, subtitles: Subtitles, settings: ServerSettings) {
     val state by player.state.collectAsStateWithLifecycle()
     val loadError by frontend.loadError.collectAsStateWithLifecycle()
     val hasLoaded by frontend.hasLoaded.collectAsStateWithLifecycle()
@@ -160,6 +160,7 @@ private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettin
     val isShowingServerDialog by frontend.isShowingServerDialog.collectAsStateWithLifecycle()
     val help by frontend.help.collectAsStateWithLifecycle()
     val isShowingHelp by frontend.isShowingHelp.collectAsStateWithLifecycle()
+    val isShowingSubtitles by subtitles.isShowing.collectAsStateWithLifecycle()
     val playing = state.channel != null
 
     if (isShowingServerDialog) {
@@ -194,15 +195,15 @@ private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettin
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
         FrontendArea(
-            frontend, loadError, hasLoaded, serverURL, playing, { frontend.showServerDialog(true) }, settingsFocus,
-            Modifier.weight(1f).fillMaxWidth(),
+            frontend, subtitles, isShowingSubtitles, loadError, hasLoaded, serverURL, playing, { frontend.showServerDialog(true) },
+            settingsFocus, Modifier.weight(1f).fillMaxWidth(),
         )
         AnimatedVisibility(
             playing,
             enter = if (animate) slideInVertically { it } + fadeIn() else EnterTransition.None,
             exit = if (animate) slideOutVertically { it } + fadeOut() else ExitTransition.None,
         ) {
-            PlayerBar(state, player, state.channel?.let { descriptions[it.name] }, playerBarFirst, playerBarLast) { hadKeyboardFocus ->
+            PlayerBar(state, player, subtitles, state.channel?.let { descriptions[it.name] }, playerBarFirst, playerBarLast) { hadKeyboardFocus ->
                 val channel = state.channel?.name
                 player.stop()
                 // The bar goes away with the focused Stop button; hand the focus back to
@@ -213,10 +214,12 @@ private fun AppScreen(frontend: Frontend, player: Player, settings: ServerSettin
     }
 }
 
-/** The frontend, covered by the splash or error screen until it has loaded. */
+/** The frontend, covered by the splash or error screen until it has loaded, and by the subtitles while they show. */
 @Composable
 private fun FrontendArea(
     frontend: Frontend,
+    subtitles: Subtitles,
+    isShowingSubtitles: Boolean,
     loadError: String?,
     hasLoaded: Boolean,
     serverURL: Uri,
@@ -237,11 +240,14 @@ private fun FrontendArea(
             AndroidView(
                 factory = { frontend.view.also { (it.parent as? ViewGroup)?.removeView(it) } },
                 modifier = Modifier.fillMaxSize(),
-                update = { frontend.setCovered(loadError != null || !hasLoaded) },
+                update = { frontend.setCovered(loadError != null || !hasLoaded || isShowingSubtitles) },
             )
             if (!frontend.isCovered.value) {
                 SettingsButton(frontend, onChangeServer, Modifier.align(Alignment.TopEnd).focusRequester(settingsFocus))
             }
+        }
+        AnimatedVisibility(isShowingSubtitles, enter = fadeIn(), exit = fadeOut()) {
+            SubtitlesView(subtitles, Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)))
         }
         AnimatedVisibility(loadError != null, enter = fadeIn(), exit = fadeOut()) {
             LoadErrorView(loadError.orEmpty(), serverURL, onRetry = frontend::reload, onChangeServer = onChangeServer)

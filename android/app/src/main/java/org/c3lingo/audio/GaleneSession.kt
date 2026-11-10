@@ -26,6 +26,8 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import org.json.JSONArray
 import org.json.JSONObject
+import org.webrtc.AudioTrack
+import org.webrtc.AudioTrackSink
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
@@ -74,6 +76,13 @@ class GaleneSession(
         set(value) {
             field = value
             downstreams.values.forEach { it.setMuted(value) }
+        }
+
+    /** Gets the decoded audio of every stream, e.g. for subtitles. */
+    var audioSink: AudioTrackSink? = null
+        set(value) {
+            field = value
+            downstreams.values.forEach { it.setSink(value) }
         }
 
     private val id = "app-" + UUID.randomUUID().toString().take(8)
@@ -254,6 +263,8 @@ class GaleneSession(
 
         try {
             val answer = downstream.answer(sdp)
+            // The track exists once the offer has been applied.
+            downstream.setSink(audioSink)
             Log.i(TAG, "answering offer for stream $streamId")
             send(JSONObject().put("type", "answer").put("id", streamId).put("sdp", answer))
         } catch (e: CancellationException) {
@@ -375,9 +386,21 @@ private class Downstream private constructor(val id: String) {
         connection.transceivers.forEach { it.receiver.track()?.setEnabled(!muted) }
     }
 
+    /** Replaces the sink on the stream's audio track, if it has one yet. */
+    fun setSink(sink: AudioTrackSink?) {
+        if (isClosed) return
+        val track = connection.transceivers.firstNotNullOfOrNull { it.receiver.track() as? AudioTrack } ?: return
+        this.sink?.let(track::removeSink)
+        sink?.let(track::addSink)
+        this.sink = sink
+    }
+
+    private var sink: AudioTrackSink? = null
+
     fun close() {
         if (isClosed) return
         isClosed = true
+        sink?.let { sink -> connection.transceivers.forEach { (it.receiver.track() as? AudioTrack)?.removeSink(sink) } }
         connection.dispose()
     }
 

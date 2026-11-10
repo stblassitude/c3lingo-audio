@@ -49,4 +49,31 @@
     <string name="open_source">La app (c3lingo-audio), el frontend web (listen-frontend) y el servidor de audio (Galène) son de código abierto, así que puedes montar tu propio servidor.</string>
     <string name="error_network">No se puede conectar. Comprueba que estás en la wifi del evento. Reintentando…</string>
     <string name="error_unavailable">Este canal no está disponible ahora mismo. Reintentando…</string>
+
+    <!-- Subtitles -->
+    <string name="subtitles_show">Mostrar subtítulos</string>
+    <string name="subtitles_hide">Ocultar subtítulos</string>
+    <string name="subtitles_title">Subtítulos</string>
+    <string name="subtitles_intro">La función de subtítulos usa las capacidades de tu teléfono para crear, en el propio dispositivo, subtítulos del audio recibido. Generar subtítulos puede aumentar el consumo de batería. No controlamos la calidad de la transcripción, pero nos interesa tu experiencia. Escríbenos a %1$s.</string>
+    <string name="subtitles_turn_on">Activar subtítulos</string>
+    <string name="subtitles_not_now">Ahora no</string>
+    <string name="subtitles_preparing">Preparando los subtítulos…</string>
+    <string name="subtitles_downloading">Descargando el reconocimiento de voz para %1$s</string>
+    <string name="subtitles_downloading_message">Los subtítulos empezarán en cuanto termine la descarga.</string>
+    <string name="subtitles_unknown_language">No hay subtítulos para este canal</string>
+    <string name="subtitles_unknown_language_message">La lista de canales no indica en qué idioma está este canal.</string>
+    <string name="subtitles_unsupported">No hay subtítulos para %1$s</string>
+    <string name="subtitles_unsupported_message">Este dispositivo no puede transcribir %1$s.</string>
+    <string name="subtitles_failed">No se pueden iniciar los subtítulos</string>
+    <string name="subtitles_gap">Los subtítulos se interrumpieron. Puede faltar texto aquí.</string>
+    <string name="subtitles_language_changed">Ahora en %1$s</string>
+    <string name="subtitles_waiting">Los subtítulos aparecerán aquí en cuanto alguien hable.</string>
+    <string name="subtitles_latest">Más reciente</string>
+    <string name="subtitles_header">Subtítulos automáticos en %1$s. Pueden contener errores.</string>
+    <string name="subtitles_header_no_language">Subtítulos automáticos. Pueden contener errores.</string>
+    <string name="subtitles_device_unsupported">No hay subtítulos en este dispositivo</string>
+    <string name="subtitles_device_unsupported_message">Este dispositivo no admite el reconocimiento de voz en el propio dispositivo que necesitan los subtítulos.</string>
+    <string name="subtitles_android_too_old">Los subtítulos necesitan Android 13 o posterior.</string>
+    <string name="subtitles_download_failed">No se pudo descargar el reconocimiento de voz.</string>
+    <string name="subtitles_recognizer_error">El reconocimiento de voz informó del error %1$d.</string>
 </resources>

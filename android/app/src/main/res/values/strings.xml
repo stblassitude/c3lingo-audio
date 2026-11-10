@@ -56,4 +56,31 @@
 
     <string name="error_network">Can\'t connect. Make sure you are on the event Wi-Fi. Retrying…</string>
     <string name="error_unavailable">This channel isn\'t available right now. Retrying…</string>
+
+    <!-- Subtitles -->
+    <string name="subtitles_show">Show Subtitles</string>
+    <string name="subtitles_hide">Hide Subtitles</string>
+    <string name="subtitles_title">Subtitles</string>
+    <string name="subtitles_intro">The subtitles feature uses your phone\'s on-device capabilities to create subtitles for the audio received. Generating subtitles may increase battery usage. We do not control the quality of the transcription, but we are interested in your experience. Please write to us at %1$s.</string>
+    <string name="subtitles_turn_on">Turn On Subtitles</string>
+    <string name="subtitles_not_now">Not Now</string>
+    <string name="subtitles_preparing">Preparing subtitles…</string>
+    <string name="subtitles_downloading">Downloading speech recognition for %1$s</string>
+    <string name="subtitles_downloading_message">The subtitles start as soon as the download is complete.</string>
+    <string name="subtitles_unknown_language">No subtitles for this channel</string>
+    <string name="subtitles_unknown_language_message">The channel list doesn\'t say which language this channel is in.</string>
+    <string name="subtitles_unsupported">No subtitles for %1$s</string>
+    <string name="subtitles_unsupported_message">This device can\'t transcribe %1$s.</string>
+    <string name="subtitles_failed">Unable to start the subtitles</string>
+    <string name="subtitles_gap">Subtitles were interrupted. Some text may be missing here.</string>
+    <string name="subtitles_language_changed">Now in %1$s</string>
+    <string name="subtitles_waiting">Subtitles appear here as soon as someone speaks.</string>
+    <string name="subtitles_latest">Latest</string>
+    <string name="subtitles_header">Automatic subtitles in %1$s. They may contain mistakes.</string>
+    <string name="subtitles_header_no_language">Automatic subtitles. They may contain mistakes.</string>
+    <string name="subtitles_device_unsupported">No subtitles on this device</string>
+    <string name="subtitles_device_unsupported_message">This device doesn\'t support the on-device speech recognition that subtitles need.</string>
+    <string name="subtitles_android_too_old">Subtitles need Android 13 or later.</string>
+    <string name="subtitles_download_failed">The speech recognition couldn\'t be downloaded.</string>
+    <string name="subtitles_recognizer_error">The speech recognizer reported error %1$d.</string>
 </resources>

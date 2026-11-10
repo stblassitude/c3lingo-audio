@@ -10,6 +10,13 @@
     <!-- WebRTC's audio module adjusts the audio mode; the microphone is never used. -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
+    <!-- Lets the app find the system's speech recognizer, for subtitles. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
     <application
         android:name=".C3lingoApp"
         android:icon="@mipmap/ic_launcher"

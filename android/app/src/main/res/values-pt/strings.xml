@@ -4,20 +4,20 @@
 
     <string name="loading">A carregar…</string>
     <string name="load_error_title">Não foi possível carregar a lista de canais</string>
-    <string name="load_error_message">O URL do servidor configurado não parece ser um site de áudio c3lingo. Verifique a ligação à rede e o URL introduzido.</string>
+    <string name="load_error_message">O URL do servidor configurado não parece ser um site de áudio c3lingo. Verifica a ligação à rede e o URL que introduziste.</string>
     <string name="load_error_not_compatible">O site não é compatível.</string>
     <string name="try_again">Tentar novamente</string>
     <string name="change_server">Mudar de servidor…</string>
     <string name="status_connecting">A ligar…</string>
     <string name="status_waiting">Sem emissão</string>
     <string name="status_live">Em direto</string>
-    <string name="status_live_muted">Em direto, sem som</string>
+    <string name="status_live_muted">Em direto, som desligado</string>
     <string name="status_silent">Sem som</string>
     <string name="status_paused">Em pausa</string>
     <string name="status_reconnecting">A ligar novamente…</string>
     <string name="status_connection_problem">Problema de ligação</string>
     <string name="waiting_message">Neste momento não está a ser emitido nada neste canal. A reprodução começa assim que houver emissão.</string>
-    <string name="silent_message">Ligado, mas neste momento não chega som por este canal.</string>
+    <string name="silent_message">Ligação estabelecida, mas neste momento não chega som por este canal.</string>
     <string name="talk_day">dia %1$d, %2$s</string>
     <string name="talk_since">Desde %1$s: %2$s</string>
     <string name="talk_next">A seguir: %1$s: %2$s</string>
@@ -32,7 +32,7 @@
     <string name="server_settings">Definições do servidor</string>
     <string name="settings_url_label">URL do servidor</string>
     <string name="settings_invalid_url">Não é um URL http ou https válido.</string>
-    <string name="settings_footer">Apenas para testes. Deixe vazio para usar %1$s. Atualmente a usar %2$s.</string>
+    <string name="settings_footer">Apenas para testes. Deixa vazio para usar %1$s. Atualmente a usar %2$s.</string>
     <string name="settings_use_default">Usar predefinição</string>
     <string name="settings_apply">Aplicar</string>
     <string name="server_save">Guardar</string>
@@ -46,15 +46,15 @@
     <string name="done">OK</string>
     <string name="back">Voltar</string>
     <string name="privacy_policy">Política de privacidade</string>
-    <string name="open_source">A app (c3lingo-audio), o frontend web (listen-frontend) e o servidor de áudio (Galène) são de código aberto, por isso pode alojar o seu próprio servidor.</string>
-    <string name="error_network">Não é possível ligar. Confirme que está ligado à rede Wi-Fi do evento. A tentar novamente…</string>
+    <string name="open_source">A app (c3lingo-audio), o frontend web (listen-frontend) e o servidor de áudio (Galène) são de código aberto, por isso podes alojar o teu próprio servidor.</string>
+    <string name="error_network">Não é possível ligar. Confirma que o teu dispositivo está ligado à rede Wi-Fi do evento. A tentar novamente…</string>
     <string name="error_unavailable">Este canal não está disponível de momento. A tentar novamente…</string>
 
     <!-- Subtitles -->
     <string name="subtitles_show">Mostrar legendas</string>
     <string name="subtitles_hide">Ocultar legendas</string>
     <string name="subtitles_title">Legendas</string>
-    <string name="subtitles_intro">A funcionalidade de legendas usa as capacidades do seu telemóvel para criar, no próprio dispositivo, legendas para o áudio recebido. A criação de legendas pode aumentar o consumo de bateria. Não controlamos a qualidade da transcrição, mas temos interesse na sua experiência. Escreva-nos para %1$s.</string>
+    <string name="subtitles_intro">A funcionalidade de legendas usa as capacidades do teu telemóvel para criar, no próprio dispositivo, legendas para o áudio recebido. A criação de legendas pode aumentar o consumo de bateria. Não controlamos a qualidade da transcrição, mas interessa-nos a tua experiência. Escreve-nos para %1$s.</string>
     <string name="subtitles_turn_on">Ativar legendas</string>
     <string name="subtitles_not_now">Agora não</string>
     <string name="subtitles_preparing">A preparar as legendas…</string>
@@ -72,7 +72,7 @@
     <string name="subtitles_header">Legendas automáticas em %1$s. Podem conter erros.</string>
     <string name="subtitles_header_no_language">Legendas automáticas. Podem conter erros.</string>
     <string name="subtitles_device_unsupported">Sem legendas neste dispositivo</string>
-    <string name="subtitles_device_unsupported_message">Este dispositivo não suporta o reconhecimento de voz no dispositivo de que as legendas precisam.</string>
+    <string name="subtitles_device_unsupported_message">Este dispositivo não suporta o reconhecimento de voz local de que as legendas precisam.</string>
     <string name="subtitles_android_too_old">As legendas precisam do Android 13 ou posterior.</string>
     <string name="subtitles_download_failed">Não foi possível transferir o reconhecimento de voz.</string>
     <string name="subtitles_recognizer_error">O reconhecimento de voz comunicou o erro %1$d.</string>

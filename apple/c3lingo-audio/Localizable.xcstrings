@@ -74,7 +74,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatische Untertitel auf %@. Sie können Fehler enthalten."
+            "value": "Automatische Untertitel auf %@. Fehler sind möglich."
           }
         },
         "es": {
@@ -108,7 +108,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatische Untertitel. Sie können Fehler enthalten."
+            "value": "Automatische Untertitel. Fehler sind möglich."
           }
         },
         "es": {
@@ -188,7 +188,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connexion impossible. Vérifiez que vous êtes sur le Wi-Fi de l'événement. Nouvelle tentative…"
+            "value": "Connexion impossible. Vérifie que tu es sur le Wi-Fi de l'événement. Nouvelle tentative…"
           }
         },
         "pl": {
@@ -200,7 +200,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não é possível ligar. Confirme que está ligado à rede Wi-Fi do evento. A tentar novamente…"
+            "value": "Não é possível ligar. Confirma que o teu dispositivo está ligado à rede Wi-Fi do evento. A tentar novamente…"
           }
         }
       }
@@ -387,13 +387,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conectado, pero ahora mismo no llega sonido por este canal."
+            "value": "Hay conexión, pero ahora mismo no llega sonido por este canal."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecté, mais aucun son ne passe sur ce canal pour le moment."
+            "value": "Connexion établie, mais aucun son ne passe sur ce canal pour le moment."
           }
         },
         "pl": {
@@ -405,7 +405,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ligado, mas neste momento não chega som por este canal."
+            "value": "Ligação estabelecida, mas neste momento não chega som por este canal."
           }
         }
       }
@@ -665,7 +665,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Laissez vide pour utiliser %1$@. Actuellement : %2$@."
+            "value": "Laisse vide pour utiliser %1$@. Actuellement : %2$@."
           }
         },
         "pl": {
@@ -677,7 +677,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deixe vazio para usar %1$@. Atualmente a usar %2$@."
+            "value": "Deixa vazio para usar %1$@. Atualmente a usar %2$@."
           }
         }
       }
@@ -727,7 +727,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "En directo, silenciado"
+            "value": "En directo, sonido desactivado"
           }
         },
         "fr": {
@@ -745,7 +745,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em direto, sem som"
+            "value": "Em direto, som desligado"
           }
         }
       }
@@ -1719,7 +1719,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les sous-titres nécessitent %@ 26 ou une version ultérieure. Mettez à jour le logiciel de votre appareil pour les utiliser."
+            "value": "Les sous-titres nécessitent %@ 26 ou une version ultérieure. Mets à jour le logiciel de ton appareil pour les utiliser."
           }
         },
         "pl": {
@@ -1731,7 +1731,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "As legendas precisam do %@ 26 ou posterior. Atualize o software do seu dispositivo para as usar."
+            "value": "As legendas precisam do %@ 26 ou posterior. Atualiza o software do teu dispositivo para as usares."
           }
         }
       }
@@ -1787,19 +1787,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'app (c3lingo-audio), le frontend web (listen-frontend) et le serveur audio (Galène) sont open source, vous pouvez donc héberger votre propre serveur."
+            "value": "L'app (c3lingo-audio), le frontend web (listen-frontend) et le serveur audio (Galène) sont open source, tu peux donc héberger ton propre serveur."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aplikacja (c3lingo-audio), frontend webowy (listen-frontend) i serwer audio (Galène) są open source, więc każdy może uruchomić własny serwer."
+            "value": "Aplikacja (c3lingo-audio), frontend webowy (listen-frontend) i serwer audio (Galène) są open source, więc możesz uruchomić własny serwer."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "A app (c3lingo-audio), o frontend web (listen-frontend) e o servidor de áudio (Galène) são de código aberto, por isso pode alojar o seu próprio servidor."
+            "value": "A app (c3lingo-audio), o frontend web (listen-frontend) e o servidor de áudio (Galène) são de código aberto, por isso podes alojar o teu próprio servidor."
           }
         }
       }
@@ -1855,7 +1855,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'URL du serveur configurée ne semble pas être un site audio c3lingo. Vérifiez votre connexion réseau et l'URL saisie."
+            "value": "L'URL du serveur configurée ne semble pas être un site audio c3lingo. Vérifie ta connexion réseau et l'URL saisie."
           }
         },
         "pl": {
@@ -1867,7 +1867,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O URL do servidor configurado não parece ser um site de áudio c3lingo. Verifique a ligação à rede e o URL introduzido."
+            "value": "O URL do servidor configurado não parece ser um site de áudio c3lingo. Verifica a ligação à rede e o URL que introduziste."
           }
         }
       }
@@ -1957,7 +1957,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La fonction sous-titres utilise les capacités de votre téléphone pour créer, directement sur l'appareil, des sous-titres pour l'audio reçu. La création de sous-titres peut augmenter la consommation de la batterie. Nous ne contrôlons pas la qualité de la transcription, mais votre expérience nous intéresse. Écrivez-nous à [hello@c3lingo.org](mailto:hello@c3lingo.org)."
+            "value": "La fonction sous-titres utilise les capacités de ton téléphone pour créer, directement sur l'appareil, des sous-titres pour l'audio reçu. La création de sous-titres peut augmenter la consommation de la batterie. Nous ne contrôlons pas la qualité de la transcription, mais ton expérience nous intéresse. Écris-nous à [hello@c3lingo.org](mailto:hello@c3lingo.org)."
           }
         },
         "pl": {
@@ -1969,7 +1969,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "A funcionalidade de legendas usa as capacidades do seu telemóvel para criar, no próprio dispositivo, legendas para o áudio recebido. A criação de legendas pode aumentar o consumo de bateria. Não controlamos a qualidade da transcrição, mas temos interesse na sua experiência. Escreva-nos para [hello@c3lingo.org](mailto:hello@c3lingo.org)."
+            "value": "A funcionalidade de legendas usa as capacidades do teu telemóvel para criar, no próprio dispositivo, legendas para o áudio recebido. A criação de legendas pode aumentar o consumo de bateria. Não controlamos a qualidade da transcrição, mas interessa-nos a tua experiência. Escreve-nos para [hello@c3lingo.org](mailto:hello@c3lingo.org)."
           }
         }
       }
@@ -2105,7 +2105,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Este dispositivo não suporta o reconhecimento de voz no dispositivo de que as legendas precisam."
+            "value": "Este dispositivo não suporta o reconhecimento de voz local de que as legendas precisam."
           }
         }
       }

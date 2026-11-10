@@ -4,7 +4,7 @@
 
     <string name="loading">Chargement…</string>
     <string name="load_error_title">Impossible de charger la liste des canaux</string>
-    <string name="load_error_message">L\'URL du serveur configurée ne semble pas être un site audio c3lingo. Vérifiez votre connexion réseau et l\'URL saisie.</string>
+    <string name="load_error_message">L\'URL du serveur configurée ne semble pas être un site audio c3lingo. Vérifie ta connexion réseau et l\'URL saisie.</string>
     <string name="load_error_not_compatible">Le site n\'est pas compatible.</string>
     <string name="try_again">Réessayer</string>
     <string name="change_server">Changer de serveur…</string>
@@ -17,7 +17,7 @@
     <string name="status_reconnecting">Reconnexion…</string>
     <string name="status_connection_problem">Problème de connexion</string>
     <string name="waiting_message">Rien n\'est diffusé sur ce canal pour le moment. La lecture démarre dès que la diffusion commence.</string>
-    <string name="silent_message">Connecté, mais aucun son ne passe sur ce canal pour le moment.</string>
+    <string name="silent_message">Connexion établie, mais aucun son ne passe sur ce canal pour le moment.</string>
     <string name="talk_day">jour %1$d, %2$s</string>
     <string name="talk_since">Depuis %1$s : %2$s</string>
     <string name="talk_next">Ensuite : %1$s : %2$s</string>
@@ -32,7 +32,7 @@
     <string name="server_settings">Réglages du serveur</string>
     <string name="settings_url_label">URL du serveur</string>
     <string name="settings_invalid_url">Ce n\'est pas une URL http ou https valide.</string>
-    <string name="settings_footer">Uniquement pour les tests. Laissez vide pour utiliser %1$s. Actuellement : %2$s.</string>
+    <string name="settings_footer">Uniquement pour les tests. Laisse vide pour utiliser %1$s. Actuellement : %2$s.</string>
     <string name="settings_use_default">Utiliser la valeur par défaut</string>
     <string name="settings_apply">Appliquer</string>
     <string name="server_save">Enregistrer</string>
@@ -46,15 +46,15 @@
     <string name="done">OK</string>
     <string name="back">Retour</string>
     <string name="privacy_policy">Politique de confidentialité</string>
-    <string name="open_source">L\'app (c3lingo-audio), le frontend web (listen-frontend) et le serveur audio (Galène) sont open source, vous pouvez donc héberger votre propre serveur.</string>
-    <string name="error_network">Connexion impossible. Vérifiez que vous êtes sur le Wi-Fi de l\'événement. Nouvelle tentative…</string>
+    <string name="open_source">L\'app (c3lingo-audio), le frontend web (listen-frontend) et le serveur audio (Galène) sont open source, tu peux donc héberger ton propre serveur.</string>
+    <string name="error_network">Connexion impossible. Vérifie que tu es sur le Wi-Fi de l\'événement. Nouvelle tentative…</string>
     <string name="error_unavailable">Ce canal n\'est pas disponible pour le moment. Nouvelle tentative…</string>
 
     <!-- Subtitles -->
     <string name="subtitles_show">Afficher les sous-titres</string>
     <string name="subtitles_hide">Masquer les sous-titres</string>
     <string name="subtitles_title">Sous-titres</string>
-    <string name="subtitles_intro">La fonction sous-titres utilise les capacités de votre téléphone pour créer, directement sur l\'appareil, des sous-titres pour l\'audio reçu. La création de sous-titres peut augmenter la consommation de la batterie. Nous ne contrôlons pas la qualité de la transcription, mais votre expérience nous intéresse. Écrivez-nous à %1$s.</string>
+    <string name="subtitles_intro">La fonction sous-titres utilise les capacités de ton téléphone pour créer, directement sur l\'appareil, des sous-titres pour l\'audio reçu. La création de sous-titres peut augmenter la consommation de la batterie. Nous ne contrôlons pas la qualité de la transcription, mais ton expérience nous intéresse. Écris-nous à %1$s.</string>
     <string name="subtitles_turn_on">Activer les sous-titres</string>
     <string name="subtitles_not_now">Pas maintenant</string>
     <string name="subtitles_preparing">Préparation des sous-titres…</string>

@@ -94,7 +94,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se connecte à un serveur de test sur votre réseau local, si vous en avez configuré un."
+            "value" : "Se connecte à un serveur de test sur ton réseau local, si tu en as configuré un."
           }
         },
         "pl" : {
@@ -106,7 +106,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Liga-se a um servidor de testes na sua rede local, se tiver configurado um."
+            "value" : "Liga-se a um servidor de testes na tua rede local, se tiveres configurado um."
           }
         }
       }

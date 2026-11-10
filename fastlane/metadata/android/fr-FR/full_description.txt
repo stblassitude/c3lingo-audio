@@ -1,4 +1,4 @@
-Écoutez l'interprétation en direct de c3lingo et le son des salles pendant les conférences du Chaos Communication Congress et d'autres événements, sur votre téléphone et avec vos propres écouteurs.
+Écoute l'interprétation en direct de c3lingo et le son des salles pendant les conférences du Chaos Communication Congress et d'autres événements, sur ton téléphone et avec tes propres écouteurs.
 
 L'app affiche la liste des canaux de l'événement depuis le serveur, elle correspond donc toujours à l'événement en cours. La lecture est native :
 

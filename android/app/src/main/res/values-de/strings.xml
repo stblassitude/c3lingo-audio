@@ -69,8 +69,8 @@
     <string name="subtitles_language_changed">Jetzt auf %1$s</string>
     <string name="subtitles_waiting">Untertitel erscheinen hier, sobald jemand spricht.</string>
     <string name="subtitles_latest">Aktuell</string>
-    <string name="subtitles_header">Automatische Untertitel auf %1$s. Sie können Fehler enthalten.</string>
-    <string name="subtitles_header_no_language">Automatische Untertitel. Sie können Fehler enthalten.</string>
+    <string name="subtitles_header">Automatische Untertitel auf %1$s. Fehler sind möglich.</string>
+    <string name="subtitles_header_no_language">Automatische Untertitel. Fehler sind möglich.</string>
     <string name="subtitles_device_unsupported">Keine Untertitel auf diesem Gerät</string>
     <string name="subtitles_device_unsupported_message">Dieses Gerät unterstützt die Spracherkennung auf dem Gerät nicht, die für Untertitel nötig ist.</string>
     <string name="subtitles_android_too_old">Untertitel benötigen Android 13 oder neuer.</string>

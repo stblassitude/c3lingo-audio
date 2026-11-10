@@ -1,0 +1,5 @@
+• Los lectores de pantalla anuncian los cambios de estado del reproductor, por ejemplo un problema de conexión o «Sin sonido»
+• Tras «Detener» en el reproductor o al cerrar la ayuda, el foco vuelve a la lista de canales
+• La lista de canales sigue el tamaño de texto del sistema, y el texto del reproductor ya no se corta
+• Con el movimiento reducido, el indicador en directo ya no parpadea
+• El reproductor y el botón de ajustes se pueden alcanzar con el teclado y con TalkBack

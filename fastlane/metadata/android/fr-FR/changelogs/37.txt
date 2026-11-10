@@ -1,0 +1,5 @@
+• Les lecteurs d'écran annoncent les changements d'état du lecteur, par exemple un problème de connexion ou « Aucun son »
+• Après « Arrêter » dans le lecteur ou la fermeture de l'aide, le focus revient à la liste des canaux
+• La liste des canaux suit la taille du texte du système, et le texte du lecteur n'est plus coupé
+• Avec la réduction des animations, l'indicateur en direct ne clignote plus
+• Le lecteur et le bouton des réglages sont accessibles au clavier et avec TalkBack

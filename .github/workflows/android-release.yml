@@ -27,7 +27,7 @@ jobs:
           # android/gradle/gradle-daemon-jvm.properties.
           java-version: 21
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       # Both are set in android/app/build.gradle.kts by ./release; F-Droid reads them there too.
       - name: Determine version

@@ -27,7 +27,11 @@ jobs:
           # android/gradle/gradle-daemon-jvm.properties.
           java-version: 21
 
-      - uses: gradle/actions/setup-gradle@v4
+      # The open-source caching on top of actions/cache, not the proprietary default
+      # (gradle-actions-caching, under Gradle's Terms of Use); available from v6.1.
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
 
       # Both are set in android/app/build.gradle.kts by ./release; F-Droid reads them there too.
       - name: Determine version

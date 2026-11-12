@@ -47,6 +47,14 @@
   ],
   packageRules: [
     {
+      // The Android release builds with JDK 21 like F-Droid's buildserver, so F-Droid's
+      // APKs match ours; see android/gradle/gradle-daemon-jvm.properties. Updates within
+      // 21 are fine.
+      matchDepNames: ["java-jdk"],
+      // A regex, as its semver-partial versioning lets 22.0.2 pass "<22".
+      allowedVersions: "/^21(\\.|$)/",
+    },
+    {
       // The ABI list in android/app/build.gradle.kts looks like a dependency to Renovate.
       matchPackageNames: ["arm64-v8a:armeabi-v7a"],
       enabled: false,

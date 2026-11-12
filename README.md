@@ -1,5 +1,16 @@
 # c3lingo audio
 
+<p>
+  <a href="https://apps.apple.com/app/c3lingo-audio/id6826512913"><img
+    src=".github/badges/app-store.svg" alt="Download on the App Store" height="40"></a>
+  &nbsp;
+  <a href="https://play.google.com/store/apps/details?id=org.c3lingo.audio"><img
+    src=".github/badges/google-play.png" alt="Get it on Google Play" height="40"></a>
+  &nbsp;
+  <a href="https://f-droid.org/packages/org.c3lingo.audio/"><img
+    src=".github/badges/f-droid.png" alt="Get it on F-Droid" height="40"></a>
+</p>
+
 Native apps for listening to c3lingo audio channels (hall floor audio and live
 interpretation) distributed through [Galène](https://galene.org/): one for iOS, iPadOS,
 macOS and visionOS, and one for Android. Both do the same things;

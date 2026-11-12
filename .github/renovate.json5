@@ -14,8 +14,8 @@
   customManagers: [
     // Renovate's swift manager only reads Package.swift, not Xcode projects. The
     // requirement in the project and the pin in Package.resolved change together.
-    // SwiftPM drops leading zeros (tag 150.7871.03 is version 150.7871.3), so the new
-    // version is written without them.
+    // SwiftPM drops leading zeros (tag 150.7871.03 is version 150.7871.3). The current
+    // version gets its zero back to name the tag, the new version is written without.
     {
       customType: "regex",
       description: "Swift packages in the Xcode project",
@@ -25,6 +25,7 @@
         'repositoryURL = "https://github\\.com/(?<depName>[^"]+?)(?:\\.git)?";\\s*requirement = \\{[^}]*\\}',
         "minimumVersion = (?<currentValue>[^;]+);",
       ],
+      currentValueTemplate: "{{{replace '\\.(\\d)$' '.0$1' currentValue}}}",
       datasourceTemplate: "github-tags",
       versioningTemplate: "loose",
       autoReplaceStringTemplate: "minimumVersion = {{{replace '\\.0+(\\d)' '.$1' newValue}}};",
@@ -38,12 +39,18 @@
         '"location" : "https://github\\.com/(?<depName>[^"]+?)(?:\\.git)?",\\s*"state" : \\{[^}]*\\}',
         '"revision" : "(?<currentDigest>[0-9a-f]{40})",\\s*"version" : "(?<currentValue>[^"]+)"',
       ],
+      currentValueTemplate: "{{{replace '\\.(\\d)$' '.0$1' currentValue}}}",
       datasourceTemplate: "github-tags",
       versioningTemplate: "loose",
       autoReplaceStringTemplate: "\"revision\" : \"{{{newDigest}}}\",\n        \"version\" : \"{{{replace '\\.0+(\\d)' '.$1' newValue}}}\"",
     },
   ],
   packageRules: [
+    {
+      // The ABI list in android/app/build.gradle.kts looks like a dependency to Renovate.
+      matchPackageNames: ["arm64-v8a:armeabi-v7a"],
+      enabled: false,
+    },
     {
       // Both apps use the same LiveKit WebRTC build.
       groupName: "WebRTC",

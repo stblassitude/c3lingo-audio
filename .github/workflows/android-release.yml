@@ -25,7 +25,7 @@ jobs:
           distribution: temurin
           # The same as F-Droid's buildserver, so its APKs match these; see
           # android/gradle/gradle-daemon-jvm.properties.
-          java-version: 21
+          java-version: 25
 
       - uses: gradle/actions/setup-gradle@v4
 

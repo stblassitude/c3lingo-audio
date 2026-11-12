@@ -20,7 +20,7 @@ jobs:
           # The whole history, for the previous tag.
           fetch-depth: 0
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           # The same as F-Droid's buildserver, so its APKs match these; see

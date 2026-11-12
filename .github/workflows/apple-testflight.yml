@@ -23,7 +23,7 @@ jobs:
     # Xcode 27 is still a preview image; macos-26 only goes up to Xcode 26.
     runs-on: xcode-27
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # The whole history: for the build number.
           fetch-depth: 0
@@ -132,7 +132,7 @@ jobs:
     needs: testflight
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ruby/setup-ruby@v1
         with:
